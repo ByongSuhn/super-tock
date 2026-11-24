@@ -3011,7 +3011,6 @@ function passHTML(){
       <div class="lvinfo"><div class="xprow"><span>${L.lv >= MAXLV ? 'Max level' : `Level ${L.lv + 1}`}</span><span>${L.need ? `${L.into} / ${L.need} XP` : 'Complete'}</span></div>
         <div class="xpbar big"><i style="width:${pct}%"></i></div>
         <p>${next ? `Next reward at level ${next.lv}` : 'Every reward unlocked'}</p></div></div>
-    <div class="xpkey"><div><b>100</b><span>Play a game</span></div><div><b>+100</b><span>Win</span></div><div><b>+10</b><span>Each bink</span></div><div><b>+10</b><span>Each marble home</span></div><div><b>+25%</b><span>Online</span></div></div>
     <div class="track"><div class="rail"><i style="height:${fill}%"></i></div>${PASS.map(tier).join('')}</div>
     <div class="pvw"><label>Preview at level</label><div>${[0, 7, 18, 33, 50].map(v => `<button data-a="pvlv" data-v="${v}" class="${(passPreview === null ? -1 : levelOf(passPreview).lv) === v ? 'on' : ''}">${v}</button>`).join('')}<button data-a="pvlv" data-v="me" class="${passPreview === null ? 'on' : ''}">Mine</button></div></div>
     <p class="hint center">Rewards shown are placeholders. Test copy only.</p></div>`;
