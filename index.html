@@ -1751,7 +1751,7 @@ app.addEventListener('change', e => {
 app.addEventListener('input', e => {
   const t = e.target;
   if (t.dataset.in === 'pname') { profile.name = t.value; LS.set('st.profile', profile); }
-  if (t.dataset.in === 'seat') { setup.seats[+t.dataset.i].name = t.value; }
+  if (t.dataset.in === 'seat') { const x = setup.seats[+t.dataset.i]; x.name = t.value; if (x.human && +t.dataset.i === 0) { profile.name = t.value; LS.set('st.profile', profile); } }
 });
 app.addEventListener('click', e => {
   const t = e.target.closest('[data-a]'); if (!t || !t.dataset.a) return;
@@ -1929,7 +1929,6 @@ function homeHTML(){
     <button class="lux-btn" data-a="setup" data-mode="solo">${ICON.monitor}<span>PLAY vs COMPUTER</span></button>
     <button class="lux-btn" data-a="online">${ICON.people}<span>PLAY ONLINE</span>${typeof NET !== 'undefined' && NET ? '' : '<em class="soon">SITE</em>'}</button>
     <div class="lux-row"><button class="lux-btn sm" data-a="how">${ICON.book}<span>HOW TO PLAY</span></button><button class="lux-btn sm" data-a="rules">${ICON.cards}<span>CARD RULES</span></button></div>
-    <div class="namebox"><label class="lbl">YOUR NAME</label><input class="txt" data-in="pname" maxlength="14" placeholder="Enter your name" value="${esc(profile.name)}"></div>
   </div>`;
 }
 
