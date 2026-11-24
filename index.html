@@ -1512,7 +1512,7 @@ if (BT) s += `<clipPath id="${P}bclip"><circle cx="${C}" cy="${C}" r="499"/></cl
   for (let p = 0; p < N; p++) for (let i = 0; i < 4; i++) {
     const k = p * 4 + i, loc = locOf(k); if (!loc) continue;
     const [x, y] = pos(loc), mr = g.mr;
-    s += `<g class="mb" id="${P}mb${k}" data-x="${x}" data-y="${y}" transform="translate(${x} ${y})"><circle class="ring" r="${mr * 1.45}"/><circle r="${mr}" fill="url(#${P}mg${p})" filter="url(#${P}sh)"/>${typeof marbleFx === 'function' && cols === PAL ? marbleFx(p, mr) : ''}${typeof marbleRing === 'function' && cols === PAL && marbleRing(p) ? `<circle r="${mr * .93}" fill="none" stroke="${marbleRing(p)}" stroke-width="${mr * .2}"/>` : ''}<ellipse cx="${-mr * .32}" cy="${-mr * .38}" rx="${mr * .32}" ry="${mr * .2}" fill="#fff" opacity=".75" transform="rotate(-30 ${-mr * .32} ${-mr * .38})"/></g>`;
+    s += `<g class="mb" id="${P}mb${k}" data-x="${x}" data-y="${y}" transform="translate(${x} ${y})"><circle class="ring" r="${mr * 1.45}"/><circle r="${mr}" fill="url(#${P}mg${p})" filter="url(#${P}sh)"/>${typeof marbleFx === 'function' && cols === PAL ? marbleFx(p, mr) : ''}${typeof marbleRing === 'function' && cols === PAL && marbleRing(p) ? `<circle r="${mr * 1.04}" fill="none" stroke="#1a0f08" stroke-opacity=".85" stroke-width="${mr * .12}"/><circle r="${mr * .9}" fill="none" stroke="${marbleRing(p)}" stroke-width="${mr * .22}"/><circle r="${mr * .77}" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="${mr * .05}"/>` : ''}<ellipse cx="${-mr * .32}" cy="${-mr * .38}" rx="${mr * .32}" ry="${mr * .2}" fill="#fff" opacity=".75" transform="rotate(-30 ${-mr * .32} ${-mr * .38})"/></g>`;
   }
   return s + `</g><g id="${P}hl"></g>` + (BT && BT.k ? '</g>' : '');
 }
