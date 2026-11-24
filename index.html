@@ -1521,15 +1521,27 @@ function vib(pattern){
   try { if (_hap) _hap.click(); } catch (e) {}
 }
 
-// A "ding" (landing on someone and sending them back to start) gets a buzz, a shake and a banner.
+// A "bink" (landing on someone and sending them back to start) gets a shake and a banner.
 function dingFx(ev, mover){
-  // a quick board shake whenever you ding someone or get dinged (no banner, no buzz)
-  const hits = ev.filter(e => e.bump).map(e => e.key >> 2);
-  if (!hits.length) return;
-  const meTeam = teamOf(G, viewer);
-  if (mover !== viewer && !hits.some(q => teamOf(G, q) === meTeam)) return;
+  const hits = [...new Set(ev.filter(e => e.bump).map(e => e.key >> 2))];
+  if (!hits.length || mover < 0) return;
+  const meTeam = teamOf(G, viewer), mine = q => teamOf(G, q) === meTeam;
+  const moverMine = mine(mover), hitMine = hits.filter(mine), hitOther = hits.filter(q => !mine(q));
+  if (!moverMine && !hitMine.length) return;                       // nothing to do with you or your team
+  const who = q => q === viewer ? 'you' : (G.set.partners && q === mateOf(G, viewer) ? 'your partner ' + pname(q) : pname(q));
+  const list = qs => qs.map(who).join(' &amp; ');
+  const by = mover === viewer ? 'You' : (G.set.partners && mover === mateOf(G, viewer) ? 'Your partner' : pname(mover));
+  let cls, txt;
+  if (moverMine && !hitMine.length) { cls = 'good'; txt = `${by} binked ${list(hitOther)}!`; }
+  else if (moverMine) { cls = 'meh'; txt = hitMine.length === 1 && hitMine[0] === mover ? `${by} binked ${mover === viewer ? 'yourself' : 'themselves'}!` : `${by} binked ${list(hitMine)}!`; }
+  else { cls = 'bad'; txt = `${by} binked ${list(hitMine)}!`; }
+  txt = txt.charAt(0).toUpperCase() + txt.slice(1);
   const wrap = document.querySelector('.boardwrap');
-  if (wrap) { wrap.classList.remove('shake'); void wrap.offsetWidth; wrap.classList.add('shake'); }
+  if (!wrap) return;
+  wrap.classList.remove('shake'); void wrap.offsetWidth; wrap.classList.add('shake');
+  wrap.querySelectorAll('.ding').forEach(x => x.remove());
+  const b = document.createElement('div'); b.className = 'ding ' + cls; b.innerHTML = txt; wrap.appendChild(b);
+  setTimeout(() => b.classList.add('out'), 1500); setTimeout(() => b.remove(), 2100);
 }
 
 // --------- animation ---------
