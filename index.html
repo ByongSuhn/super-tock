@@ -541,6 +541,11 @@ input.locked{opacity:.85;cursor:default}
 .theme em{position:absolute;left:0;right:0;bottom:-17px;font:600 10px system-ui;font-style:normal;color:#d9cdea;text-align:center;white-space:nowrap}
 .themes{row-gap:24px!important;padding-bottom:12px}
 .theme .classic{position:absolute;inset:6px;border-radius:50%;background:radial-gradient(circle at 42% 36%,#f6c886,#dfa560 55%,#b47a3c);box-shadow:0 0 0 3px #b8862f}
+.orb.img{position:relative;box-shadow:0 0 0 2.5px var(--rc),0 2px 5px rgba(0,0,0,.6)}
+.orbbtn .orb.img{box-shadow:0 0 0 2.5px var(--rc),0 0 0 4.5px #e0b04f,0 0 10px rgba(240,196,92,.7)}
+.lh3 .prev{font:700 9px system-ui;font-style:normal;letter-spacing:1px;padding:2px 6px;border-radius:6px;background:#e0b04f;color:#2b1808;vertical-align:middle;margin-left:6px}
+#mpick .mgrid:not(.three){grid-template-columns:repeat(4,1fr)}
+#mpick .mtile b{font-size:11px;text-align:center;line-height:1.15}
 
 </style>
 </head>
@@ -1455,7 +1460,7 @@ if (BT) s += `<clipPath id="${P}bclip"><circle cx="${C}" cy="${C}" r="499"/></cl
   for (let p = 0; p < N; p++) for (let i = 0; i < 4; i++) {
     const k = p * 4 + i, loc = locOf(k); if (!loc) continue;
     const [x, y] = pos(loc), mr = g.mr;
-    s += `<g class="mb" id="${P}mb${k}" data-x="${x}" data-y="${y}" transform="translate(${x} ${y})"><circle class="ring" r="${mr * 1.45}"/><circle r="${mr}" fill="url(#${P}mg${p})" filter="url(#${P}sh)"/><ellipse cx="${-mr * .32}" cy="${-mr * .38}" rx="${mr * .32}" ry="${mr * .2}" fill="#fff" opacity=".75" transform="rotate(-30 ${-mr * .32} ${-mr * .38})"/></g>`;
+    s += `<g class="mb" id="${P}mb${k}" data-x="${x}" data-y="${y}" transform="translate(${x} ${y})"><circle class="ring" r="${mr * 1.45}"/><circle r="${mr}" fill="url(#${P}mg${p})" filter="url(#${P}sh)"/>${typeof marbleRing === 'function' && cols === PAL && marbleRing(p) ? `<circle r="${mr * .93}" fill="none" stroke="${marbleRing(p)}" stroke-width="${mr * .2}"/>` : ''}<ellipse cx="${-mr * .32}" cy="${-mr * .38}" rx="${mr * .32}" ry="${mr * .2}" fill="#fff" opacity=".75" transform="rotate(-30 ${-mr * .32} ${-mr * .38})"/></g>`;
   }
   return s + `</g><g id="${P}hl"></g>` + (BT && BT.k ? '</g>' : '');
 }
@@ -1969,7 +1974,7 @@ function startGame(again){
     const eff = assignSkins(setup.seats.map(x => x.skin || null));
     players = order.map(i => { const x = setup.seats[i], sk = SKIN(eff[i]);
       const nm = (x.name || '').trim();
-      return {name: x.human ? nm || sk.name : (CNAMES.includes(nm) || !nm ? sk.name : nm), human: x.human, color: sk.grp, skin: eff[i]}; });
+      return {name: x.human ? nm || sk.name : (CNAMES.includes(nm) || !nm ? sk.name : nm), human: x.human, color: sk.grp, skin: eff[i], mskin: x.mskin || null}; });
     set = {partners: setup.partners && setup.n % 2 === 0, hop: false, around: false, photo: setup.photo, center: setup.center, openHands: false, level: setup.level, speed: setup.speed, decks: 'auto', jokers: setup.jokers};
     cfg = rules;
   }
@@ -2382,7 +2387,7 @@ async function hostStart(){
   }
   const eff = assignSkins(L.seats.map(x => x.kind === 'human' ? x.skin || null : null));
   const players = order.map(i => { const x = L.seats[i]; const human = x.kind === 'human', sk = SKIN(eff[i]);
-    return {name: human ? (x.name || 'Player') : sk.name, human, pid: human ? x.pid : null, color:sk.grp, skin:eff[i]}; });
+    return {name: human ? (x.name || 'Player') : sk.name, human, pid: human ? x.pid : null, color:sk.grp, skin:eff[i], mskin: human ? x.mskin || null : null}; });
   const set = {partners:L.partners && L.n % 2 === 0, hop:false, around:false, center:L.center, openHands:false, level:L.level, speed:L.speed, decks:'auto', jokers:L.jokers};
   G = newGame({players, set, cfg:rules}); G.online = L.code; G.gid = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   L.started = true; await pushLobby();
@@ -2759,6 +2764,110 @@ applyIntent = async function(it){
     L.seats[me].skin = s.id; await pushLobby(); return;
   }
   return _apply0(it);
+};
+render();
+
+// ===================== Marble styles: picture marbles with a ring in the player's base colour =====================
+// Your colour (Red, Blue, ...) stays your colour everywhere: holes, home, start box, and a ring around each marble.
+// The style is only the look of the marble. Styles stay off the public site until they're released.
+var MARBLES_LIVE = !!window.SUPER_TOCK_BOARDS;
+var MSTYLES = [{"id": "royal-sapphire", "name": "Royal Sapphire"}, {"id": "ruby-flame", "name": "Ruby Flame"}, {"id": "silver-moon", "name": "Silver Moon"}, {"id": "toxic-lime", "name": "Toxic Lime"}, {"id": "electric-blue", "name": "Electric Blue"}, {"id": "violet-magic", "name": "Violet Magic"}, {"id": "golden-ember", "name": "Golden Ember"}, {"id": "frost-crystal", "name": "Frost Crystal"}, {"id": "obsidian-gold", "name": "Obsidian Gold"}, {"id": "prism-opal", "name": "Prism Opal"}, {"id": "ocean-tide", "name": "Ocean Tide"}, {"id": "volcanic", "name": "Volcanic"}, {"id": "galaxy", "name": "Galaxy"}, {"id": "emerald", "name": "Emerald"}, {"id": "crimson-crystal", "name": "Crimson Crystal"}, {"id": "ivory-marble", "name": "Ivory Marble"}, {"id": "stormborn", "name": "Stormborn"}, {"id": "titanium", "name": "Titanium"}, {"id": "arctic-ice", "name": "Arctic Ice"}, {"id": "dark-aurora", "name": "Dark Aurora"}, {"id": "enchanted-forest", "name": "Enchanted Forest"}, {"id": "storm-cloud", "name": "Storm Cloud"}, {"id": "desert-sunset", "name": "Desert Sunset"}, {"id": "deep-ocean", "name": "Deep Ocean"}, {"id": "cosmic-nebula", "name": "Cosmic Nebula"}, {"id": "luminous-pearl", "name": "Luminous Pearl"}, {"id": "frozen-ice", "name": "Frozen Ice"}, {"id": "royal-amethyst", "name": "Royal Amethyst"}, {"id": "emerald-crystal", "name": "Emerald Crystal"}, {"id": "ruby-flare", "name": "Ruby Flare"}, {"id": "sapphire-depths", "name": "Sapphire Depths"}, {"id": "golden-obsidian", "name": "Golden Obsidian"}, {"id": "arctic-aurora", "name": "Arctic Aurora"}, {"id": "fiery-inferno", "name": "Fiery Inferno"}, {"id": "celestial-starfield", "name": "Celestial Starfield"}, {"id": "ocean-wave", "name": "Ocean Wave"}, {"id": "black-diamond", "name": "Black Diamond"}, {"id": "dragon-scale", "name": "Dragon Scale"}, {"id": "kraken-tide", "name": "Kraken Tide"}, {"id": "phoenix-fire", "name": "Phoenix Fire"}, {"id": "celestial-gold", "name": "Celestial Gold"}, {"id": "shadow-smoke", "name": "Shadow Smoke"}, {"id": "prismatic", "name": "Prismatic"}, {"id": "lava", "name": "Lava"}, {"id": "ocean-pearl", "name": "Ocean Pearl"}, {"id": "cyberpunk", "name": "Cyberpunk"}, {"id": "frostbite", "name": "Frostbite"}, {"id": "golden-dragon", "name": "Golden Dragon"}, {"id": "amethyst", "name": "Amethyst"}, {"id": "sapphire", "name": "Sapphire"}, {"id": "ruby", "name": "Ruby"}, {"id": "opal", "name": "Opal"}, {"id": "onyx-gold", "name": "Onyx Gold"}, {"id": "arctic-glow", "name": "Arctic Glow"}, {"id": "fire-ice", "name": "Fire & Ice"}, {"id": "jungle-jade", "name": "Jungle Jade"}, {"id": "rose-quartz", "name": "Rose Quartz"}, {"id": "black-pearl", "name": "Black Pearl"}, {"id": "honey-amber", "name": "Honey Amber"}, {"id": "turquoise", "name": "Turquoise"}, {"id": "carbon-fiber", "name": "Carbon Fiber"}, {"id": "inferno", "name": "Inferno"}, {"id": "frozen-sapphire", "name": "Frozen Sapphire"}, {"id": "steampunk", "name": "Steampunk"}, {"id": "aurora", "name": "Aurora"}, {"id": "diamond", "name": "Diamond"}, {"id": "candy-swirl", "name": "Candy Swirl"}, {"id": "holographic-chrome", "name": "Holographic Chrome"}, {"id": "emerald-vein", "name": "Emerald Vein"}, {"id": "storm-lightning", "name": "Storm Lightning"}, {"id": "winter-crystal", "name": "Winter Crystal"}, {"id": "gold-flake", "name": "Gold Flake"}, {"id": "pearl", "name": "Pearl"}];
+MSTYLES.forEach(m => m.img = `marbles/${m.id}.webp`);
+function MSTYLE(id){ return MARBLES_LIVE && id ? MSTYLES.find(m => m.id === id) || null : null; }
+function styleOrb(colorId, styleId, size, extra){
+  const m = MSTYLE(styleId), c = (SKIN(colorId) || SKIN('c0')).base, st = size ? `width:${size}px;height:${size}px;` : '';
+  return m ? `<i class="orb img ${extra || ''}" style="background:center/cover url(${m.img});--rc:${c};${st}"></i>` : skinOrb(colorId, size, extra);
+}
+
+// ---------- the board ----------
+let PSTYLE = [];
+const _setPal2 = setPal;
+setPal = function(){ _setPal2(); PSTYLE = G.players.map(pl => MSTYLE(pl.mskin) ? pl.mskin : null); };
+const _gradDefs2 = gradDefs;
+gradDefs = function(n, P, cols){
+  let d = _gradDefs2(n, P, cols);
+  if (cols !== PAL) return d;
+  for (let p = 0; p < n; p++) {
+    const m = MSTYLE(PSTYLE[p]); if (!m) continue;
+    d = d.replace(new RegExp(`<(radial|linear)Gradient id="${P || ''}mg${p}"[\\s\\S]*?</(radial|linear)Gradient>`),
+      `<pattern id="${P || ''}mg${p}" patternContentUnits="objectBoundingBox" width="1" height="1"><image href="${m.img}" width="1" height="1" preserveAspectRatio="xMidYMid slice"/></pattern>`);
+  }
+  return d;
+};
+function marbleRing(p){ return PSTYLE[p] ? PAL[p] : null; }
+
+// ---------- the picker gets a second section ----------
+const _pickerHTML0 = pickerHTML;
+pickerHTML = function(){
+  let h = _pickerHTML0();
+  if (!MARBLES_LIVE) return h;
+  const seats = picker.mode === 'online' ? ON.L.seats : setup.seats, me = seats[picker.seat] || {};
+  const colorId = assignSkins(picker.mode === 'online' ? seats.map(x => x.kind === 'human' ? x.skin || null : null) : seats.map(x => x.skin || null))[picker.seat];
+  const cur = me.mskin || null;
+  const tile = m => `<button class="mtile ${cur === (m ? m.id : null) ? 'on' : ''}" data-a="mstyle" data-v="${m ? m.id : ''}">${m ? styleOrb(colorId, m.id, 40) : skinOrb(colorId, 40)}<b>${m ? m.name : 'Plain'}</b></button>`;
+  const sec = `<h3 class="lh3">MARBLE STYLE <em class="prev">PREVIEW</em></h3><div class="mgrid">${tile(null)}${MSTYLES.map(tile).join('')}</div>`;
+  h = h.replace('<h3 class="lh3">COLORS</h3>', '<h3 class="lh3">YOUR COLOR</h3>');
+  h = h.replace('<p class="hint">', sec + '<p class="hint">');
+  h = h.replace('Special unlockable marbles are coming soon.', 'Your color stays on your holes, home and start box, and rings every marble. Styles only change the look.');
+  return h;
+};
+// picking a colour keeps the picker open now that there are two sections
+chooseSkin = function(id){
+  profile.skin = id; LS.set('st.profile', profile);
+  if (picker.mode === 'solo') { setup.seats[picker.seat].skin = id; }
+  else if (ON.host) { ON.L.seats[picker.seat].skin = id; pushLobby(); }
+  else sendLobbyIntent('skin', {skin:id});
+  if (!MARBLES_LIVE) picker = null;
+  drawPicker(); render();
+};
+function chooseStyle(id){
+  id = id || null;
+  profile.mskin = id; LS.set('st.profile', profile);
+  if (picker.mode === 'solo') setup.seats[picker.seat].mskin = id;
+  else if (ON.host) { ON.L.seats[picker.seat].mskin = id; pushLobby(); }
+  else sendLobbyIntent('mskin', {mskin:id});
+  drawPicker(); render();
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-a="mstyle"]'); if (!t) return;
+  e.stopPropagation(); chooseStyle(t.dataset.v);
+}, true);
+const _apply2 = applyIntent;
+applyIntent = async function(it){
+  const L = ON.L;
+  if (it.kind === 'mskin' && L && !L.started) {
+    const me = L.seats.findIndex(x => x.pid === it.pid); if (me < 0) return;
+    L.seats[me].mskin = (it.data && MSTYLES.some(m => m.id === it.data.mskin)) ? it.data.mskin : null;
+    await pushLobby(); return;
+  }
+  return _apply2(it);
+};
+// seat rows show the styled marble
+const _decorate0 = decorateSeats;
+decorateSeats = function(){
+  _decorate0();
+  if (!MARBLES_LIVE) return;
+  const seats = screen === 'setup' ? setup.seats : (ON.L ? ON.L.seats : []);
+  const eff = assignSkins(screen === 'setup' ? seats.map(x => x.skin || null) : seats.map(x => x.kind === 'human' ? x.skin || null : null));
+  app.querySelectorAll('.seats .seat').forEach((row, i) => {
+    const x = seats[i]; if (!x || !MSTYLE(x.mskin)) return;
+    const o = row.querySelector('.orb'); if (!o) return;
+    const tmp = document.createElement('div'); tmp.innerHTML = styleOrb(eff[i], x.mskin, 26, o.classList.contains('pick') ? 'pick' : '');
+    o.replaceWith(tmp.firstChild);
+  });
+};
+// carry your saved style into a new game setup
+const _render3 = render;
+render = function(){
+  if (MARBLES_LIVE && screen === 'setup' && setup) { const me = setup.seats.find(x => x.human); if (me && me.mskin === undefined) me.mskin = profile.mskin || null; }
+  if (MARBLES_LIVE && screen === 'lobby' && ON.L && !ON.L.started) {
+    const me = ON.L.seats.findIndex(x => x.pid === ON.pid);
+    if (me >= 0 && ON.L.seats[me].mskin === undefined && profile.mskin && ON._msSent !== ON.L.code + me) {
+      ON._msSent = ON.L.code + me;
+      if (ON.host) { ON.L.seats[me].mskin = profile.mskin; pushLobby(); } else sendLobbyIntent('mskin', {mskin:profile.mskin});
+    }
+  }
+  _render3();
 };
 render();
 
