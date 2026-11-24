@@ -607,6 +607,11 @@ input.locked{opacity:.85;cursor:default}
 .mtile.pv{outline:2px dashed rgba(240,196,92,.7);outline-offset:2px}
 @media (max-width:370px){.mbig{width:120px;height:120px}.mbig .orb{width:120px!important;height:120px!important}}
 .mstage{position:sticky;top:-18px;z-index:3;background:radial-gradient(120% 120% at 25% 30%,#3a2547,#1f1430 60%)!important;box-shadow:0 10px 20px rgba(10,5,20,.7)}
+.bstage{position:relative;margin:8px 0 10px;flex-basis:100%;border-radius:18px;padding:10px;background:radial-gradient(120% 120% at 30% 20%,#3a2547,#1a1028 65%);border:1.5px solid rgba(240,196,92,.35)}
+.bstage svg{display:block;width:100%;height:auto;max-width:340px;margin:0 auto}
+.binfo{display:flex;justify-content:space-between;align-items:baseline;padding:8px 6px 2px}
+.binfo b{font:700 20px Cinzel,Georgia,serif;color:#f3e6c8}.binfo em{font:600 13px system-ui;font-style:normal;color:#cbbfdc}
+.theme.pv{outline:2px dashed rgba(240,196,92,.8);outline-offset:3px}
 
 </style>
 </head>
@@ -2204,7 +2209,7 @@ function settingsHTML(){
       <div class="srow">${ICON.sound}<span>Sound Effects <em class="soon">SOON</em></span>${sw(false, false, 'soon')}</div>
       <div class="srow">${ICON.music}<span>Music <em class="soon">SOON</em></span>${sw(false, false, 'soon')}</div>
       ${BOARDS.length < 2 ? `<div class="srow">${ICON.palette}<span>Boards <em class="soon">SOON</em></span></div>` : ''}<div class="srow col" ${BOARDS.length < 2 ? 'hidden' : ''}>${ICON.palette}<span>Board</span>
-        <div class="themes">${BOARDS.map(b => `<button class="theme ${b.id === BOARD ? 'on' : ''}" data-a="pickboard" data-v="${b.id}" style="${b.thumb ? `background:center/cover url(${b.thumb})` : ''}" aria-label="${b.name}">${b.thumb ? '' : '<i class="classic"></i>'}${b.id === BOARD ? `<i class="tick">${ICON.check}</i>` : ''}<em>${b.name}</em></button>`).join('')}</div></div>
+        ${typeof boardStageHTML === 'function' ? boardStageHTML() : ''}<div class="themes">${BOARDS.map(b => `<button class="theme ${b.id === BOARD ? 'on' : ''} ${typeof boardPrev !== 'undefined' && boardPrev === b.id ? 'pv' : ''}" data-a="pickboard" data-v="${b.id}" style="${b.thumb ? `background:center/cover url(${b.thumb})` : ''}" aria-label="${b.name}">${b.thumb ? '' : '<i class="classic"></i>'}${b.id === BOARD ? `<i class="tick">${ICON.check}</i>` : ''}<em>${b.name}</em></button>`).join('')}</div></div>
     </div>
     <button class="lux-cta" data-a="settingsx">BACK TO GAME</button>
   </div>`;
@@ -3076,12 +3081,34 @@ if (!BOARDS.some(b => b.id === BOARD)) BOARD = 'classic';
 function BOARD_THEME(){ if (!BOARDS) return null; const b = BOARDS.find(x => x.id === BOARD); return b && b.img ? b : null; }
 // warm the cache so the board appears instantly
 (() => { const t = BOARD_THEME(); if (t) { const i = new Image(); i.src = t.img; } })();
+var boardPrev = null;                                   // board shown big in Settings
+function boardOwned(id){ return true; }                  // all open while testing; locks come with the battle pass
+// a mid-game board: marbles out on the track, a couple home, some still in start
+function boardStageHTML(){
+  if (BOARDS.length < 2) return '';
+  const id = boardPrev || BOARD, b = BOARDS.find(x => x.id === id) || BOARDS[0];
+  const N = 4, g = buildGeom(N, 0), keep = BOARD;
+  const spots = {0:{t:[6, 21]}, 1:{t:[33], h:[3]}, 2:{t:[49, 60]}, 3:{h:[3, 2], t:[12]}};
+  const locOf = k => { const p = k >> 2, i = k & 3, s = spots[p] || {}, tt = s.t || [], hh = s.h || [];
+    if (i < hh.length) return {z:'h', p, i:hh[i]};
+    if (i - hh.length < tt.length) return {z:'t', i:(tt[i - hh.length] + p * g.seg) % g.L};
+    return {z:'s', p, i}; };
+  BOARD = b.id; let svg;
+  try { svg = boardSVG(g, N, false, locOf, 'pv', COLORS.slice(0, N), null); } finally { BOARD = keep; }
+  const lock = !boardOwned(b.id), on = b.id === BOARD;
+  return `<div class="bstage"><svg viewBox="0 0 1000 1000">${svg}</svg>
+    <div class="binfo"><b>${esc(b.name)}</b><em>${lock ? 'Locked' : on ? 'In use' : 'Tap again to use'}</em></div></div>`;
+}
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-a="pickboard"]'); if (!t) return;
   e.stopPropagation();
-  BOARD = t.dataset.v; LS.set('st.board', BOARD);
-  if (typeof G !== 'undefined' && G && document.getElementById('board') && typeof buildBoard === 'function') { try { buildBoard(); } catch (x) {} }
+  const id = t.dataset.v, shown = boardPrev || BOARD;
+  if (shown !== id || !boardOwned(id)) boardPrev = id;                       // first tap: look at it
+  else { BOARD = id; LS.set('st.board', BOARD); boardPrev = null;              // second tap: use it
+    if (typeof G !== 'undefined' && G && document.getElementById('board') && typeof buildBoard === 'function') { try { buildBoard(); } catch (x) {} } }
+  const box = document.querySelector('.settings'), y = box ? box.scrollTop : 0;
   render();
+  const b2 = document.querySelector('.settings'); if (b2) b2.scrollTop = y;
 }, true);
 render();
 
