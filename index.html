@@ -598,6 +598,15 @@ input.locked{opacity:.85;cursor:default}
 .cbtn{position:relative}
 .xpgain{margin:0 auto 12px;max-width:300px}
 @media (max-width:380px){.xpkey{grid-template-columns:repeat(3,1fr)}}
+.mstage{display:flex;align-items:center;gap:16px;margin:4px 0 12px;padding:14px;border-radius:18px;background:radial-gradient(120% 120% at 25% 30%,rgba(240,196,92,.16),rgba(255,255,255,.03) 60%);border:1.5px solid rgba(240,196,92,.35)}
+.mbig{flex:none;display:grid;place-items:center;width:150px;height:150px}
+.mbig .orb{box-shadow:0 0 0 4px var(--rc,transparent),0 12px 28px rgba(0,0,0,.6)!important}
+.minfo{min-width:0}.minfo b{display:block;font:700 22px/1.1 Cinzel,Georgia,serif;color:#f3e6c8}
+.minfo .fxtag{display:inline-block;margin:6px 0 4px;padding:2px 8px;border-radius:8px;background:rgba(240,196,92,.18);color:#f0c45c;font:600 11px system-ui}
+.minfo em{display:block;font:600 13px system-ui;font-style:normal;color:#cbbfdc;margin-top:4px}
+.mtile.pv{outline:2px dashed rgba(240,196,92,.7);outline-offset:2px}
+@media (max-width:370px){.mbig{width:120px;height:120px}.mbig .orb{width:120px!important;height:120px!important}}
+.mstage{position:sticky;top:-18px;z-index:3;background:radial-gradient(120% 120% at 25% 30%,#3a2547,#1f1430 60%)!important;box-shadow:0 10px 20px rgba(10,5,20,.7)}
 
 </style>
 </head>
@@ -2821,6 +2830,8 @@ render();
 // Your colour (Red, Blue, ...) stays your colour everywhere: holes, home, start box, and a ring around each marble.
 // The style is only the look of the marble. Styles stay off the public site until they're released.
 var MARBLES_LIVE = !!window.SUPER_TOCK_BOARDS;
+var pickPrev = null;                              // marble shown big in the chooser
+function styleOwned(id){ return true; }            // every style is open while testing; locks come with the battle pass
 var MSTYLES = [{"id": "toxic-lime", "name": "Toxic Lime"}, {"id": "violet-magic", "name": "Violet Magic"}, {"id": "golden-ember", "name": "Golden Ember"}, {"id": "frost-crystal", "name": "Frost Crystal"}, {"id": "obsidian-gold", "name": "Obsidian Gold"}, {"id": "prism-opal", "name": "Prism Opal"}, {"id": "galaxy", "name": "Galaxy"}, {"id": "emerald", "name": "Emerald"}, {"id": "stormborn", "name": "Stormborn"}, {"id": "titanium", "name": "Titanium"}, {"id": "dark-aurora", "name": "Dark Aurora"}, {"id": "storm-cloud", "name": "Storm Cloud"}, {"id": "cosmic-nebula", "name": "Cosmic Nebula"}, {"id": "royal-amethyst", "name": "Royal Amethyst"}, {"id": "black-diamond", "name": "Black Diamond"}, {"id": "dragon-scale", "name": "Dragon Scale"}, {"id": "prismatic", "name": "Prismatic"}, {"id": "golden-dragon", "name": "Golden Dragon"}, {"id": "fire-ice", "name": "Fire & Ice"}, {"id": "turquoise", "name": "Turquoise"}, {"id": "inferno", "name": "Inferno"}, {"id": "steampunk", "name": "Steampunk"}, {"id": "aurora", "name": "Aurora"}, {"id": "diamond", "name": "Diamond"}, {"id": "storm-lightning", "name": "Storm Lightning"}];
 MSTYLES.forEach(m => m.img = `marbles/${m.id}.webp`);
 function MSTYLE(id){ return MARBLES_LIVE && id ? MSTYLES.find(m => m.id === id) || null : null; }
@@ -2870,8 +2881,14 @@ pickerHTML = function(){
   const seats = picker.mode === 'online' ? ON.L.seats : setup.seats, me = seats[picker.seat] || {};
   const colorId = assignSkins(picker.mode === 'online' ? seats.map(x => x.kind === 'human' ? x.skin || null : null) : seats.map(x => x.skin || null))[picker.seat];
   const cur = me.mskin || null;
-  const tile = m => `<button class="mtile ${cur === (m ? m.id : null) ? 'on' : ''}" data-a="mstyle" data-v="${m ? m.id : ''}">${m ? styleOrb(colorId, m.id, 40) : skinOrb(colorId, 40)}<b>${m ? m.name : 'Plain'}</b></button>`;
-  const sec = `<h3 class="lh3">MARBLE STYLE <em class="prev">PREVIEW</em></h3><div class="mgrid">${tile(null)}${MSTYLES.map(tile).join('')}</div>`;
+  const tile = m => { const lock = m && !styleOwned(m.id);
+    return `<button class="mtile ${cur === (m ? m.id : null) ? 'on' : ''} ${lock ? 'lock' : ''} ${pickPrev === (m ? m.id : '') ? 'pv' : ''}" data-a="mstyle" data-v="${m ? m.id : ''}">${m ? styleOrb(colorId, m.id, 40) : skinOrb(colorId, 40)}<b>${m ? m.name : 'Plain'}</b>${lock ? `<span>${ICON.lock || '🔒'}</span>` : ''}</button>`; };
+  const pv = pickPrev === null ? cur : (pickPrev || null), pm = MSTYLE(pv), plock = pm && !styleOwned(pm.id);
+  const fx = pm && MFX[pm.id] ? Object.keys(MFX[pm.id]).map(k => ({swirl:'Swirl', sparkle:'Sparkle', shimmer:'Shimmer', flash:'Lightning'})[k]).filter(Boolean) : [];
+  const stage = `<div class="mstage"><div class="mbig">${pm ? styleOrb(colorId, pm.id, 150) : skinOrb(colorId, 150)}</div>
+    <div class="minfo"><b>${pm ? esc(pm.name) : 'Plain'}</b>${fx.length ? `<span class="fxtag">${fx.join(' · ')}</span>` : ''}
+    <em>${plock ? 'Locked' : (cur || null) === (pv || null) ? 'Equipped' : 'Tap again to use'}</em></div></div>`;
+  const sec = `<h3 class="lh3">MARBLE STYLE</h3>${stage}<div class="mgrid">${tile(null)}${MSTYLES.map(tile).join('')}</div>`;
   h = h.replace('<h3 class="lh3">COLORS</h3>', '<h3 class="lh3">YOUR COLOR</h3>');
   h = h.replace('<p class="hint">', sec + '<p class="hint">');
   h = h.replace('Special unlockable marbles are coming soon.', 'Your color stays on your holes, home and start box, and rings every marble. Styles only change the look.');
@@ -2896,8 +2913,18 @@ function chooseStyle(id){
 }
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-a="mstyle"]'); if (!t) return;
-  e.stopPropagation(); chooseStyle(t.dataset.v);
+  e.stopPropagation();
+  const id = t.dataset.v, shown = pickPrev === null ? (picker && (picker.mode === 'online' ? ON.L.seats : setup.seats)[picker.seat].mskin) || '' : pickPrev;
+  if (id && (shown !== id || !styleOwned(id))) { pickPrev = id; drawPicker(); return; }   // first tap: look at it up close
+  pickPrev = null; chooseStyle(id);                                                       // second tap: use it
 }, true);
+const _drawPicker0 = drawPicker;
+drawPicker = function(){
+  const box = document.querySelector('#mpick .mbox'), top = box ? box.scrollTop : 0;
+  if (!picker) pickPrev = null;
+  _drawPicker0();
+  const b2 = document.querySelector('#mpick .mbox'); if (b2) b2.scrollTop = top;
+};
 const _apply2 = applyIntent;
 applyIntent = async function(it){
   const L = ON.L;
