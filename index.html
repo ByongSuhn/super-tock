@@ -536,6 +536,11 @@ input.locked{opacity:.85;cursor:default}
 .splash .ribbon,.splash>*:first-child{margin:0 auto}.splash{align-items:center}
 .acct .tstats:has(> div:nth-child(2):last-child){grid-template-columns:repeat(2,1fr)}
 .mgrid.three{grid-template-columns:repeat(3,1fr)}
+.themes{grid-template-columns:repeat(4,1fr)!important}
+.theme{overflow:visible;background:#2a1a10}
+.theme em{position:absolute;left:0;right:0;bottom:-17px;font:600 10px system-ui;font-style:normal;color:#d9cdea;text-align:center;white-space:nowrap}
+.themes{row-gap:24px!important;padding-bottom:12px}
+.theme .classic{position:absolute;inset:6px;border-radius:50%;background:radial-gradient(circle at 42% 36%,#f6c886,#dfa560 55%,#b47a3c);box-shadow:0 0 0 3px #b8862f}
 
 </style>
 </head>
@@ -1376,6 +1381,8 @@ function gradDefs(n, P, cols){
 function boardSVG(g, N, center, locOf, pre, cols, photo){
   cols = cols || COLORS;
   const hr = g.hr, P = pre || '', C = 500;
+  const BT = typeof BOARD_THEME === 'function' ? BOARD_THEME() : null;      // picture board: art underneath, real holes on top
+  const HS = BT ? ` stroke="${BT.ring}" stroke-opacity=".85" stroke-width="${Math.max(1.5, hr * .13)}"` : '';
   const pos = loc => loc.z === 'c' ? [C, C] : loc.z === 't' ? g.track[loc.i] : loc.z === 'h' ? g.home[loc.p][loc.i] : g.start[loc.p][loc.i];
   let s = `<defs>${gradDefs(N, P, cols)}
     <radialGradient id="${P}wood" cx=".42" cy=".36" r=".75"><stop offset="0" stop-color="#f6c886"/><stop offset=".55" stop-color="#dfa560"/><stop offset="1" stop-color="#b47a3c"/></radialGradient>
@@ -1388,15 +1395,20 @@ function boardSVG(g, N, center, locOf, pre, cols, photo){
     <filter id="${P}glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="${hr * .5}"/></filter>
     <clipPath id="${P}clip"><circle cx="${C}" cy="${C}" r="470"/></clipPath></defs>`;
   // frame: walnut rim, brass inlay, wood face with grain and soft vignette
+if (BT) s += `<clipPath id="${P}bclip"><circle cx="${C}" cy="${C}" r="499"/></clipPath>
+    <circle cx="${C}" cy="${C + 6}" r="498" fill="#000" opacity=".35" filter="url(#${P}glow)"/>
+    <image href="${BT.img}" x="0" y="0" width="1000" height="1000" preserveAspectRatio="xMidYMid slice" clip-path="url(#${P}bclip)"/>`;
+  else {
   s += `<circle cx="${C}" cy="${C + 6}" r="498" fill="#000" opacity=".35" filter="url(#${P}glow)"/>
     <circle cx="${C}" cy="${C}" r="498" fill="url(#${P}rim)"/>
     <circle cx="${C}" cy="${C}" r="481" fill="none" stroke="url(#${P}brass)" stroke-width="3"/>
     <circle cx="${C}" cy="${C}" r="474" fill="url(#${P}wood)"/>
     <g clip-path="url(#${P}clip)"><rect x="0" y="0" width="1000" height="1000" filter="url(#${P}grain)" opacity=".55"/></g>
     <circle cx="${C}" cy="${C}" r="474" fill="url(#${P}vig)"/>`;
+  }
   // centre rosette: one petal per player pointing up their finger
   const cr = Math.max(46, Math.hypot(g.r0, 2 * g.d) - g.d * (photo && !center ? 1.05 : 1.5));
-  s += `<circle cx="${C}" cy="${C}" r="${cr}" fill="#a86c38" fill-opacity=".35" stroke="url(#${P}brass)" stroke-width="2.5"/>
+  if (!BT) s += `<circle cx="${C}" cy="${C}" r="${cr}" fill="#a86c38" fill-opacity=".35" stroke="url(#${P}brass)" stroke-width="2.5"/>
     <circle cx="${C}" cy="${C}" r="${cr * .86}" fill="none" stroke="#6e4120" stroke-opacity=".35" stroke-width="1.5" stroke-dasharray="2 6"/>`;
   if (photo && !center) {
     const pr = cr * .92;
@@ -1404,27 +1416,27 @@ function boardSVG(g, N, center, locOf, pre, cols, photo){
       <image href="${photo}" x="${C - pr}" y="${C - pr}" width="${pr * 2}" height="${pr * 2}" preserveAspectRatio="xMidYMid slice" clip-path="url(#${P}pc)"/>
       <circle cx="${C}" cy="${C}" r="${pr}" fill="none" stroke="url(#${P}brass)" stroke-width="5"/>`;
   }
-  else for (let p = 0; p < N; p++) {
+  else if (!BT) for (let p = 0; p < N; p++) {
     const a = Math.PI / 2 + (p - (g.rot || 0)) * 2 * Math.PI / N, L1 = cr * .78, W = Math.min(cr * .28, cr * 2.2 / N);
     const tip = [C + L1 * Math.cos(a), C + L1 * Math.sin(a)], s1 = [C + W * Math.cos(a + Math.PI / 2), C + W * Math.sin(a + Math.PI / 2)], s2 = [C + W * Math.cos(a - Math.PI / 2), C + W * Math.sin(a - Math.PI / 2)];
     s += `<path d="M${C},${C} Q${s1[0]},${s1[1]} ${tip[0]},${tip[1]} Q${s2[0]},${s2[1]} ${C},${C}Z" fill="${cols[p]}" fill-opacity=".85" stroke="#4a2a12" stroke-opacity=".4" stroke-width="1"/>`;
   }
-  if (!(photo && !center)) s += `<circle cx="${C}" cy="${C}" r="${center ? hr * 1.55 : cr * .2}" fill="url(#${P}brass)"/>`;
+  if (!(photo && !center) && (!BT || center)) s += `<circle cx="${C}" cy="${C}" r="${center ? hr * 1.55 : cr * .2}" fill="url(#${P}brass)"/>`;
   if (center) s += `<circle cx="${C}" cy="${C}" r="${hr * 1.12}" fill="url(#${P}hole)"/>`;
   // home lanes: a carved groove tinted with the player's colour
   for (let p = 0; p < N; p++) {
     const h = g.home[p], a0 = h[0], a3 = h[3];
     s += `<line x1="${a0[0]}" y1="${a0[1]}" x2="${a3[0]}" y2="${a3[1]}" stroke="${cols[p]}" stroke-opacity=".28" stroke-width="${hr * 2.9}" stroke-linecap="round"/>
       <line x1="${a0[0]}" y1="${a0[1]}" x2="${a3[0]}" y2="${a3[1]}" stroke="#3b2312" stroke-opacity=".25" stroke-width="${hr * 2.9}" stroke-linecap="round" stroke-dasharray="0 ${hr * 50}"/>`;
-    for (const [x, y] of h) s += `<circle cx="${x}" cy="${y}" r="${hr}" fill="url(#${P}hole)"/><circle cx="${x}" cy="${y}" r="${hr * .78}" fill="${cols[p]}" fill-opacity=".7"/>`;
+    for (const [x, y] of h) s += `<circle cx="${x}" cy="${y}" r="${hr}" fill="url(#${P}hole)"${HS}/><circle cx="${x}" cy="${y}" r="${hr * .78}" fill="${cols[p]}" fill-opacity=".7"/>`;
   }
   // start boxes: inlaid trays
   for (let p = 0; p < N; p++) {
     const sc = g.startC[p], deg = sc.a * 180 / Math.PI + 90, bw = sc.bw, bh = sc.bh, T = `transform="rotate(${deg} ${sc.cen[0]} ${sc.cen[1]})"`;
     s += `<rect id="${P}sb${p}" class="sbox" x="${sc.cen[0] - bw / 2 - 5}" y="${sc.cen[1] - bh / 2 - 5}" width="${bw + 10}" height="${bh + 10}" rx="${hr * .7}" fill="none" stroke="${cols[p]}" stroke-width="5" ${T}/>
-      <rect x="${sc.cen[0] - bw / 2}" y="${sc.cen[1] - bh / 2}" width="${bw}" height="${bh}" rx="${hr * .5}" fill="#7a4a22" stroke="url(#${P}brass)" stroke-width="2.5" ${T}/>
+      <rect x="${sc.cen[0] - bw / 2}" y="${sc.cen[1] - bh / 2}" width="${bw}" height="${bh}" rx="${hr * .5}" fill="${BT ? '#120a08' : '#7a4a22'}" fill-opacity="${BT ? .55 : 1}" stroke="url(#${P}brass)" stroke-width="2.5" ${T}/>
       <rect x="${sc.cen[0] - bw / 2 + 5}" y="${sc.cen[1] - bh / 2 + 5}" width="${bw - 10}" height="${bh - 10}" rx="${hr * .35}" fill="${cols[p]}" fill-opacity=".28" ${T}/>`;
-    for (const [x, y] of g.start[p]) s += `<circle cx="${x}" cy="${y}" r="${hr * .82}" fill="url(#${P}hole)"/>`;
+    for (const [x, y] of g.start[p]) s += `<circle cx="${x}" cy="${y}" r="${hr * .82}" fill="url(#${P}hole)"${HS}/>`;
   }
   // star corners
   if (center) for (const pp of g.stars) {
@@ -1436,7 +1448,7 @@ function boardSVG(g, N, center, locOf, pre, cols, photo){
   for (let i = 0; i < g.L; i++) {
     const [x, y] = g.track[i], owner = i % g.seg === 0 ? i / g.seg : -1;
     if (owner >= 0) s += `<circle cx="${x}" cy="${y}" r="${hr * 1.38}" fill="url(#${P}brass)"/><circle cx="${x}" cy="${y}" r="${hr * 1.18}" fill="${cols[owner]}"/>`;
-    s += `<circle cx="${x}" cy="${y}" r="${hr}" fill="url(#${P}hole)"/><path d="M${x - hr * .8},${y + hr * .45} A${hr * .95},${hr * .95} 0 0 0 ${x + hr * .8},${y + hr * .45}" fill="none" stroke="#f3c98f" stroke-opacity=".35" stroke-width="${Math.max(1.5, hr * .12)}"/>`;
+    s += `<circle cx="${x}" cy="${y}" r="${hr}" fill="url(#${P}hole)"${HS}/><path d="M${x - hr * .8},${y + hr * .45} A${hr * .95},${hr * .95} 0 0 0 ${x + hr * .8},${y + hr * .45}" fill="none" stroke="#f3c98f" stroke-opacity=".35" stroke-width="${Math.max(1.5, hr * .12)}"/>`;
   }
   s += `<g id="${P}trails"></g><g id="${P}marbles">`;
   for (let p = 0; p < N; p++) for (let i = 0; i < 4; i++) {
@@ -2123,8 +2135,8 @@ function settingsHTML(){
     <div class="sgroup">
       <div class="srow">${ICON.sound}<span>Sound Effects <em class="soon">SOON</em></span>${sw(false, false, 'soon')}</div>
       <div class="srow">${ICON.music}<span>Music <em class="soon">SOON</em></span>${sw(false, false, 'soon')}</div>
-      <div class="srow col">${ICON.palette}<span>Board Theme <em class="soon">MORE SOON</em></span>
-        <div class="themes">${['wood','stone','onyx','frost'].map((t, i) => `<button class="theme t-${t} ${i === 0 ? 'on' : ''}" data-a="${i === 0 ? '' : 'soon'}" data-w="Board themes">${i === 0 ? `<i class="tick">${ICON.check}</i>` : ''}</button>`).join('')}</div></div>
+      <div class="srow col">${ICON.palette}<span>Board</span>
+        <div class="themes">${BOARDS.map(b => `<button class="theme ${b.id === BOARD ? 'on' : ''}" data-a="pickboard" data-v="${b.id}" style="${b.thumb ? `background:center/cover url(${b.thumb})` : ''}" aria-label="${b.name}">${b.thumb ? '' : '<i class="classic"></i>'}${b.id === BOARD ? `<i class="tick">${ICON.check}</i>` : ''}<em>${b.name}</em></button>`).join('')}</div></div>
     </div>
     <button class="lux-cta" data-a="settingsx">BACK TO GAME</button>
   </div>`;
@@ -2745,6 +2757,27 @@ applyIntent = async function(it){
   }
   return _apply0(it);
 };
+render();
+
+// ===================== Boards: picture boards drawn under the real holes =====================
+var BOARDS = [
+  {id:'classic', name:'Classic'},
+  {id:'wood', name:'Walnut'}, {id:'whitemarble', name:'White Marble'}, {id:'blackmarble', name:'Black Marble'},
+  {id:'gold', name:'Gold'}, {id:'amethyst', name:'Royal'}, {id:'frost', name:'Frost'},
+  {id:'lava', name:'Lava'}, {id:'galaxy', name:'Galaxy'}, {id:'ruins', name:'Ruins'}, {id:'pirate', name:'Pirate'},
+].map(b => b.id === 'classic' ? b : Object.assign(b, {img:`boards/${b.id}.jpg`, thumb:`boards/${b.id}-t.jpg`, ring:'#e8bd5a'}));
+var BOARD = LS.get('st.board', 'classic');
+if (!BOARDS.some(b => b.id === BOARD)) BOARD = 'classic';
+function BOARD_THEME(){ if (!BOARDS) return null; const b = BOARDS.find(x => x.id === BOARD); return b && b.img ? b : null; }
+// warm the cache so the board appears instantly
+(() => { const t = BOARD_THEME(); if (t) { const i = new Image(); i.src = t.img; } })();
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-a="pickboard"]'); if (!t) return;
+  e.stopPropagation();
+  BOARD = t.dataset.v; LS.set('st.board', BOARD);
+  if (typeof G !== 'undefined' && G && document.getElementById('board') && typeof buildBoard === 'function') { try { buildBoard(); } catch (x) {} }
+  render();
+}, true);
 render();
 
 // ===================== Accounts: pick a username + password, progress saved in the cloud =====================
