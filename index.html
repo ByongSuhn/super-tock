@@ -1494,7 +1494,11 @@ if (BT) s += `<clipPath id="${P}bclip"><circle cx="${C}" cy="${C}" r="499"/></cl
     <g clip-path="url(#${P}clip)"><rect x="0" y="0" width="1000" height="1000" filter="url(#${P}grain)" opacity=".55"/></g>
     <circle cx="${C}" cy="${C}" r="474" fill="url(#${P}vig)"/>`;
   }
-  if (BT && BT.k) s += `<g transform="translate(${C} ${C}) scale(${BT.k}) translate(${-C} ${-C})">`;   // keep the holes inside a wide decorative rim
+  if (BT) {                                    // fit every hole inside the board's surface, the same way for 4, 5 and 6 players
+    let ext = 0; for (const [x, y] of g.track) ext = Math.max(ext, Math.hypot(x - C, y - C));
+    g._k = Math.min(1, (BT.fit || 405) / (ext + hr * 1.4));
+  } else g._k = 1;
+  if (BT && g._k < 1) s += `<g transform="translate(${C} ${C}) scale(${g._k}) translate(${-C} ${-C})">`;   // keep the holes inside a wide decorative rim
   // centre rosette: one petal per player pointing up their finger
   const cr = Math.max(46, Math.hypot(g.r0, 2 * g.d) - g.d * (photo && !center ? 1.05 : 1.5));
   if (!BT) s += `<circle cx="${C}" cy="${C}" r="${cr}" fill="#a86c38" fill-opacity=".35" stroke="url(#${P}brass)" stroke-width="2.5"/>
@@ -1545,7 +1549,7 @@ if (BT) s += `<clipPath id="${P}bclip"><circle cx="${C}" cy="${C}" r="499"/></cl
     const [x, y] = pos(loc), mr = g.mr;
     s += `<g class="mb" id="${P}mb${k}" data-x="${x}" data-y="${y}" transform="translate(${x} ${y})"><circle class="ring" r="${mr * 1.45}"/><circle r="${mr}" fill="url(#${P}mg${p})" filter="url(#${P}sh)"/>${typeof marbleFx === 'function' && cols === PAL ? marbleFx(p, mr) : ''}${typeof marbleRing === 'function' && cols === PAL && marbleRing(p) ? `<circle r="${mr * 1.04}" fill="none" stroke="#1a0f08" stroke-opacity=".85" stroke-width="${mr * .12}"/><circle r="${mr * .9}" fill="none" stroke="${marbleRing(p)}" stroke-width="${mr * .22}"/><circle r="${mr * .77}" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="${mr * .05}"/>` : ''}<ellipse cx="${-mr * .32}" cy="${-mr * .38}" rx="${mr * .32}" ry="${mr * .2}" fill="#fff" opacity=".75" transform="rotate(-30 ${-mr * .32} ${-mr * .38})"/></g>`;
   }
-  return s + `</g><g id="${P}hl"></g>` + (BT && BT.k ? '</g>' : '');
+  return s + `</g><g id="${P}hl"></g>` + (BT && g._k < 1 ? '</g>' : '');
 }
 function buildBoard(){
   geom = buildGeom(G.N, viewer >= 0 && viewer < G.N ? viewer : 0);
@@ -1578,8 +1582,8 @@ function splitUsed(){ return sel ? sel.picks.reduce((s, pk) => s + (+(pk.label.m
 function svgPoint(e){
   const svg = document.getElementById('board'), pt = svg.createSVGPoint();
   pt.x = e.clientX; pt.y = e.clientY;
-  const q = pt.matrixTransform(svg.getScreenCTM().inverse()), BT = typeof BOARD_THEME === 'function' ? BOARD_THEME() : null;
-  if (BT && BT.k) { q.x = 500 + (q.x - 500) / BT.k; q.y = 500 + (q.y - 500) / BT.k; }
+  const q = pt.matrixTransform(svg.getScreenCTM().inverse()), k = geom && geom._k || 1;
+  if (k < 1) { q.x = 500 + (q.x - 500) / k; q.y = 500 + (q.y - 500) / k; }
   return q;
 }
 // Where the tapped marble ends up for each choice it has at this step.
@@ -3097,7 +3101,7 @@ var BOARDS = [
   {id:'gold', name:'Gold'}, {id:'amethyst', name:'Royal'}, {id:'frost', name:'Frost'},
   {id:'lava', name:'Lava'}, {id:'galaxy', name:'Galaxy'}, {id:'ruins', name:'Ruins'}, {id:'pirate', name:'Pirate'},
   {id:'roman', name:'Roman'}, {id:'poker', name:'Poker Night'}, {id:'billiards', name:'Billiards'}, {id:'dragon', name:'Dragon'}, {id:'roulette', name:'Roulette'},
-].filter(b => b.id === 'classic' || BOARDS_LIVE).map(b => b.id === 'classic' ? b : Object.assign(b, {img:`boards/${b.id}.jpg`, thumb:`boards/${b.id}-t.jpg`, ring:'#e8bd5a', k:.87}));
+].filter(b => b.id === 'classic' || BOARDS_LIVE).map(b => b.id === 'classic' ? b : Object.assign(b, {img:`boards/${b.id}.jpg`, thumb:`boards/${b.id}-t.jpg`, ring:'#e8bd5a', fit:405}));
 var BOARD = LS.get('st.board', 'classic');
 if (!BOARDS.some(b => b.id === BOARD)) BOARD = 'classic';
 function BOARD_THEME(){ if (!BOARDS) return null; const b = BOARDS.find(x => x.id === BOARD); return b && b.img ? b : null; }
