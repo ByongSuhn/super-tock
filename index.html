@@ -546,6 +546,16 @@ input.locked{opacity:.85;cursor:default}
 .lh3 .prev{font:700 9px system-ui;font-style:normal;letter-spacing:1px;padding:2px 6px;border-radius:6px;background:#e0b04f;color:#2b1808;vertical-align:middle;margin-left:6px}
 #mpick .mgrid:not(.three){grid-template-columns:repeat(4,1fr)}
 #mpick .mtile b{font-size:11px;text-align:center;line-height:1.15}
+.orb.img.fx-swirl{animation:oswirl 22s linear infinite}
+@keyframes oswirl{to{transform:rotate(360deg)}}
+.orb.img.fx-glow{animation:oglow 2.2s ease-in-out infinite}
+@keyframes oglow{50%{box-shadow:0 0 0 2.5px var(--rc),0 0 14px 4px rgba(255,140,40,.8)}}
+.orb.img.fx-swirl.fx-glow{animation:oswirl 30s linear infinite,oglow 2.2s ease-in-out infinite}
+.orb.img.fx-shimmer,.orb.img.fx-flash{overflow:hidden}
+.orb.img.fx-shimmer::after{content:"";position:absolute;inset:0;border-radius:50%;background:linear-gradient(135deg,transparent 35%,rgba(255,255,255,.85) 50%,transparent 65%) no-repeat;background-size:300% 300%;animation:oshim 3.6s infinite}
+@keyframes oshim{0%,55%{background-position:100% 100%}80%,100%{background-position:0 0}}
+.orb.img.fx-flash::after{content:"";position:absolute;inset:0;border-radius:50%;background:#bfe3ff;opacity:0;animation:oflash 4.2s infinite}
+@keyframes oflash{0%,70%{opacity:0}73%{opacity:.75}76%{opacity:.1}79%{opacity:.55}84%,100%{opacity:0}}
 
 </style>
 </head>
@@ -1460,7 +1470,7 @@ if (BT) s += `<clipPath id="${P}bclip"><circle cx="${C}" cy="${C}" r="499"/></cl
   for (let p = 0; p < N; p++) for (let i = 0; i < 4; i++) {
     const k = p * 4 + i, loc = locOf(k); if (!loc) continue;
     const [x, y] = pos(loc), mr = g.mr;
-    s += `<g class="mb" id="${P}mb${k}" data-x="${x}" data-y="${y}" transform="translate(${x} ${y})"><circle class="ring" r="${mr * 1.45}"/><circle r="${mr}" fill="url(#${P}mg${p})" filter="url(#${P}sh)"/>${typeof marbleRing === 'function' && cols === PAL && marbleRing(p) ? `<circle r="${mr * .93}" fill="none" stroke="${marbleRing(p)}" stroke-width="${mr * .2}"/>` : ''}<ellipse cx="${-mr * .32}" cy="${-mr * .38}" rx="${mr * .32}" ry="${mr * .2}" fill="#fff" opacity=".75" transform="rotate(-30 ${-mr * .32} ${-mr * .38})"/></g>`;
+    s += `<g class="mb" id="${P}mb${k}" data-x="${x}" data-y="${y}" transform="translate(${x} ${y})"><circle class="ring" r="${mr * 1.45}"/><circle r="${mr}" fill="url(#${P}mg${p})" filter="url(#${P}sh)"/>${typeof marbleFx === 'function' && cols === PAL ? marbleFx(p, mr) : ''}${typeof marbleRing === 'function' && cols === PAL && marbleRing(p) ? `<circle r="${mr * .93}" fill="none" stroke="${marbleRing(p)}" stroke-width="${mr * .2}"/>` : ''}<ellipse cx="${-mr * .32}" cy="${-mr * .38}" rx="${mr * .32}" ry="${mr * .2}" fill="#fff" opacity=".75" transform="rotate(-30 ${-mr * .32} ${-mr * .38})"/></g>`;
   }
   return s + `</g><g id="${P}hl"></g>` + (BT && BT.k ? '</g>' : '');
 }
@@ -2776,7 +2786,7 @@ MSTYLES.forEach(m => m.img = `marbles/${m.id}.webp`);
 function MSTYLE(id){ return MARBLES_LIVE && id ? MSTYLES.find(m => m.id === id) || null : null; }
 function styleOrb(colorId, styleId, size, extra){
   const m = MSTYLE(styleId), c = (SKIN(colorId) || SKIN('c0')).base, st = size ? `width:${size}px;height:${size}px;` : '';
-  return m ? `<i class="orb img ${extra || ''}" style="background:center/cover url(${m.img});--rc:${c};${st}"></i>` : skinOrb(colorId, size, extra);
+  return m ? `<i class="orb img ${ANIMATE && MFX[m.id] ? 'fx fx-' + Object.keys(MFX[m.id]).join(' fx-') : ''} ${extra || ''}" style="background:center/cover url(${m.img});--rc:${c};${st}"></i>` : skinOrb(colorId, size, extra);
 }
 
 // ---------- the board ----------
@@ -2790,10 +2800,31 @@ gradDefs = function(n, P, cols){
   for (let p = 0; p < n; p++) {
     const m = MSTYLE(PSTYLE[p]); if (!m) continue;
     d = d.replace(new RegExp(`<(radial|linear)Gradient id="${P || ''}mg${p}"[\\s\\S]*?</(radial|linear)Gradient>`),
-      `<pattern id="${P || ''}mg${p}" patternContentUnits="objectBoundingBox" width="1" height="1"><image href="${m.img}" width="1" height="1" preserveAspectRatio="xMidYMid slice"/></pattern>`);
+      fxPattern(`${P || ''}mg${p}`, m));
   }
   return d;
 };
+// ---------- animated styles ----------
+var MFX = {
+  'galaxy':          {swirl:22, sparkle:'#fff'},
+  'inferno':         {swirl:30, glow:'#ff6a1a'},
+  'diamond':         {shimmer:true, sparkle:'#fff'},
+  'storm-lightning': {flash:'#bfe3ff', glow:'#3d8bff'},
+};
+var ANIMATE = LS.get('st.anim', true);
+function fxPattern(id, m){
+  const f = ANIMATE && MFX[m.id]; let inner = `<image href="${m.img}" width="1" height="1" preserveAspectRatio="xMidYMid slice">${f && f.swirl ? `<animateTransform attributeName="transform" type="rotate" from="0 .5 .5" to="360 .5 .5" dur="${f.swirl}s" repeatCount="indefinite"/>` : ''}</image>`;
+  if (f && f.shimmer) inner += `<linearGradient id="${id}sg" x1="0" y1="0" x2="1" y2="1"><stop offset=".35" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".85"/><stop offset=".65" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <rect x="-1" y="-1" width="1" height="1" fill="url(#${id}sg)"><animateTransform attributeName="transform" type="translate" values="0 0;0 0;2 2;2 2" keyTimes="0;.55;.8;1" dur="3.6s" repeatCount="indefinite"/></rect>`;
+  if (f && f.sparkle) [[.3,.35,0],[.68,.3,.9],[.6,.7,1.7],[.35,.68,2.5]].forEach(([x, y, b]) => inner += `<circle cx="${x}" cy="${y}" r=".03" fill="${f.sparkle}" opacity="0"><animate attributeName="opacity" values="0;1;0" dur="1.4s" begin="${b}s" repeatCount="indefinite"/><animate attributeName="r" values=".005;.035;.005" dur="1.4s" begin="${b}s" repeatCount="indefinite"/></circle>`);
+  if (f && f.flash) inner += `<rect width="1" height="1" fill="${f.flash}" opacity="0"><animate attributeName="opacity" values="0;0;.75;.1;.55;0;0" keyTimes="0;.7;.73;.76;.79;.84;1" dur="4.2s" repeatCount="indefinite"/></rect>`;
+  return `<pattern id="${id}" patternContentUnits="objectBoundingBox" width="1" height="1">${inner}</pattern>`;
+}
+function marbleFx(p, mr){
+  const m = MSTYLE(PSTYLE[p]), f = m && ANIMATE && MFX[m.id];
+  if (!f || !f.glow) return '';
+  return `<circle r="${mr * 1.08}" fill="none" stroke="${f.glow}" stroke-width="${mr * .35}" opacity=".5" style="filter:blur(${mr * .18}px)"><animate attributeName="opacity" values=".15;.75;.15" dur="${f.flash ? 4.2 : 2.2}s" repeatCount="indefinite"/></circle>`;
+}
 function marbleRing(p){ return PSTYLE[p] ? PAL[p] : null; }
 
 // ---------- the picker gets a second section ----------
