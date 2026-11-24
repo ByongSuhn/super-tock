@@ -561,6 +561,43 @@ input.locked{opacity:.85;cursor:default}
 .orb.img.fx-sparkle::before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 30% 34%,#fff 0 3%,transparent 5%),radial-gradient(circle at 70% 30%,#fff 0 2.5%,transparent 4.5%),radial-gradient(circle at 62% 72%,#fff 0 3%,transparent 5%),radial-gradient(circle at 34% 68%,#fff 0 2.5%,transparent 4.5%);animation:osp 1.6s steps(2) infinite}
 @keyframes osp{50%{opacity:.15}}
 .orb.img.fx-glow{overflow:visible}
+/* battle pass */
+.bpass .lvcard{display:flex;gap:14px;align-items:center;padding:14px;border-radius:18px;border:1.5px solid rgba(240,196,92,.5);background:linear-gradient(180deg,rgba(61,31,92,.7),rgba(28,15,44,.7));margin:4px 0 12px}
+.lvbadge{flex:none;width:78px;height:78px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 40% 30%,#fff1c4,#f0c45c 45%,#9a6a16);box-shadow:0 0 0 3px #2b1808,0 0 0 5px #e0b04f,0 0 18px rgba(240,196,92,.5);color:#2b1808}
+.lvbadge small{font:700 9px system-ui;letter-spacing:2px}.lvbadge b{font:700 32px/1 Cinzel,Georgia,serif}
+.lvinfo{flex:1;min-width:0}.lvinfo p{margin:6px 0 0;font:13px system-ui;color:#cbbfdc}
+.xprow{display:flex;justify-content:space-between;font:600 13px system-ui;color:#f3e6c8;margin-bottom:6px}
+.xpbar{height:8px;border-radius:5px;background:rgba(255,255,255,.1);overflow:hidden}.xpbar.big{height:12px}
+.xpbar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#c99434,#f0c45c,#fff1c4)}
+.xpkey{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:16px}
+.xpkey div{text-align:center;padding:8px 2px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(240,196,92,.22)}
+.xpkey b{display:block;font:700 15px Cinzel,Georgia,serif;color:#f0c45c}.xpkey span{font:11px/1.2 system-ui;color:#cbbfdc}
+.track{position:relative;padding-left:46px}
+.track .rail{position:absolute;left:19px;top:22px;bottom:22px;width:4px;border-radius:2px;background:rgba(255,255,255,.1)}
+.track .rail i{display:block;width:100%;border-radius:2px;background:linear-gradient(180deg,#fff1c4,#f0c45c)}
+.tier{position:relative;margin-bottom:10px}
+.tier .node{position:absolute;left:-46px;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:#1c1029;border:2px solid rgba(240,196,92,.35);font:700 14px Cinzel,Georgia,serif;color:#a99bbf}
+.tier.got .node{background:radial-gradient(circle at 40% 30%,#fff1c4,#f0c45c 50%,#9a6a16);border-color:#2b1808;color:#2b1808}
+.tier.next .node{border-color:#f0c45c;color:#f0c45c;box-shadow:0 0 12px rgba(240,196,92,.6)}
+.tcard{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.04);border:1.5px solid rgba(240,196,92,.22)}
+.tier.got .tcard{border-color:#f0c45c;background:rgba(240,196,92,.1)}
+.tier.next .tcard{border-color:rgba(240,196,92,.7)}
+.tier:not(.got) .tcard .orb,.tier:not(.got) .tcard .bthumb{filter:saturate(.35) brightness(.6)}
+.bthumb{flex:none;width:58px;height:58px;border-radius:50%;background:center/cover;box-shadow:0 0 0 2px #e0b04f,0 3px 8px rgba(0,0,0,.5)}
+.tcard .tx{flex:1;min-width:0}.tcard small{display:block;font:700 10px system-ui;letter-spacing:1.5px;color:#a99bbf}
+.tcard b{display:block;font:700 17px Cinzel,Georgia,serif;color:#f3e6c8}.tcard em{font:600 12px system-ui;font-style:normal;color:#cbbfdc}
+.tier.got .tcard em{color:#f0c45c}
+.crownb{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:8px;background:#e0b04f;color:#2b1808;font:700 10px system-ui}
+.tcard .state{flex:none;width:26px;height:26px;display:grid;place-items:center;color:#a99bbf}.tcard .state svg{width:18px;height:18px}
+.tier.got .tcard .state{color:#f0c45c}
+.pvw{margin:16px 0 4px;text-align:center}.pvw label{display:block;font:600 12px system-ui;color:#a99bbf;margin-bottom:6px}
+.pvw div{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
+.pvw button{min-width:44px;min-height:36px;border-radius:999px;border:1.5px solid rgba(240,196,92,.4);background:transparent;color:#f3e6c8;font:600 13px system-ui}
+.pvw button.on{background:#f0c45c;color:#2b1808}
+.lvdot{position:absolute;right:-4px;bottom:-4px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#f0c45c;color:#2b1808;font:700 11px/20px system-ui;text-align:center;box-shadow:0 0 0 2px #1c1029}
+.cbtn{position:relative}
+.xpgain{margin:0 auto 12px;max-width:300px}
+@media (max-width:380px){.xpkey{grid-template-columns:repeat(3,1fr)}}
 
 </style>
 </head>
@@ -2637,7 +2674,7 @@ function achMove(ev, mover){
     if (v === viewer) t.hit = true;
     else if (mover === viewer && v !== mate) mine++;
   }
-  if (mine) { ACH.stats.binks += mine; if (ACH.stats.binks >= 25) unlock('fire'); }
+  if (mine) { t.b = (t.b || 0) + mine; ACH.stats.binks += mine; if (ACH.stats.binks >= 25) unlock('fire'); }
   if (mine >= 3 && mover === viewer && card && card.r === 'K') unlock('royal');
   const home = G.m[viewer].filter(m => m.z === 'h').length;
   if (home > t.home && mover === viewer && card && card.r === '7') unlock('lucky7');
@@ -2897,6 +2934,104 @@ render = function(){
     }
   }
   _render3();
+};
+render();
+
+// ===================== Levels + Battle Pass =====================
+// XP per game: 100 for finishing, +100 for a win, +10 per bink, +10 per marble home, online games +25%.
+// Level n costs 110 + 3n XP: level 1 after about one game, level 50 after about 50 games (sooner if you win a lot).
+var PASS_LIVE = !!window.SUPER_TOCK_BOARDS;              // test copy only for now
+var MAXLV = 50;
+const lvCost = n => 110 + 3 * n;
+function levelOf(xp){
+  let lv = 0, left = xp || 0;
+  while (lv < MAXLV && left >= lvCost(lv + 1)) { left -= lvCost(lv + 1); lv++; }
+  return {lv, into: left, need: lv >= MAXLV ? 0 : lvCost(lv + 1)};
+}
+// placeholder rewards until the real list is decided
+var PASS = [
+  {lv:5,  kind:'marble', id:'golden-ember'}, {lv:10, kind:'board', id:'wood'},
+  {lv:15, kind:'marble', id:'frost-crystal'}, {lv:20, kind:'board', id:'whitemarble'},
+  {lv:25, kind:'marble', id:'cosmic-nebula'}, {lv:30, kind:'board', id:'blackmarble'},
+  {lv:35, kind:'marble', id:'fire-ice'}, {lv:40, kind:'board', id:'amethyst'},
+  {lv:45, kind:'marble', id:'aurora'}, {lv:50, kind:'board', id:'gold', crown:true},
+];
+function gameXP(won, binks, home, online){
+  return Math.round((100 + (won ? 100 : 0) + 10 * (binks || 0) + 10 * (home || 0)) * (online ? 1.25 : 1));
+}
+// award XP when a game ends (once per game, for the person on this device)
+const _achWin1 = achWin;
+achWin = function(w){
+  const t = gameTrack(), first = t && !t.done;
+  _achWin1(w);
+  if (!first || viewer < 0 || !G.players[viewer] || !G.players[viewer].human) return;
+  const before = levelOf(ACH.stats.xp).lv;
+  const won = w.players.includes(viewer), home = G.m[viewer].filter(m => m.z === 'h').length;
+  const xp = gameXP(won, t.b, home, !!G.online);
+  ACH.stats.xp = (ACH.stats.xp || 0) + xp; ACH.stats.games = (ACH.stats.games || 0) + 1;
+  t.xp = xp; t.lvUp = levelOf(ACH.stats.xp).lv > before;
+  achSave();
+};
+// the win/lose screen shows what you earned
+const _winHTML1 = winHTML;
+winHTML = function(w){
+  let h = _winHTML1(w);
+  if (!PASS_LIVE) return h;
+  const t = ACH.games[G && G.gid]; if (!t || !t.xp) return h;
+  const L = levelOf(ACH.stats.xp);
+  const bar = `<div class="xpgain"><div class="xprow"><b>+${t.xp} XP</b><span>${t.lvUp ? 'LEVEL UP! ' : ''}Level ${L.lv}</span></div>
+    <div class="xpbar"><i style="width:${L.need ? L.into / L.need * 100 : 100}%"></i></div></div>`;
+  return h.replace('<div class="winribbon">', bar + '<div class="winribbon">');
+};
+
+// ---------- the Battle Pass screen ----------
+let passPreview = null;
+function rewardInfo(r){
+  if (r.kind === 'marble') { const m = MSTYLES.find(x => x.id === r.id); return {name: m ? m.name : r.id, img: m ? m.img : '', type:'Marble', fx: m && MFX[m.id]}; }
+  const b = BOARDS.find(x => x.id === r.id); return {name: b ? b.name + ' board' : r.id, img: b ? b.thumb : '', type:'Board'};
+}
+function passHTML(){
+  const xp = passPreview !== null ? passPreview : (ACH.stats.xp || 0), L = levelOf(xp);
+  const pct = L.need ? L.into / L.need * 100 : 100;
+  const next = PASS.find(r => r.lv > L.lv);
+  const tier = r => {
+    const got = L.lv >= r.lv, i = rewardInfo(r), isNext = next === r;
+    const art = r.kind === 'marble'
+      ? `<i class="orb img ${i.fx ? 'fx fx-' + Object.keys(i.fx).map(k => k === 'flash' ? 'flash' : k).join(' fx-') : ''}" style="background:center/cover url(${i.img});--rc:#f0c45c;width:58px;height:58px"></i>`
+      : `<i class="bthumb" style="background-image:url(${i.img})"></i>`;
+    return `<div class="tier ${got ? 'got' : ''} ${isNext ? 'next' : ''}">
+      <div class="node"><span>${r.lv}</span></div>
+      <div class="tcard">${art}<div class="tx"><small>LEVEL ${r.lv} · ${i.type.toUpperCase()}</small><b>${esc(i.name)}</b>
+        <em>${got ? 'Unlocked' : isNext ? `${levelXPTo(xp, r.lv)} XP to go` : 'Locked'}</em>${r.crown ? '<span class="crownb">+ Level 50 crown</span>' : ''}</div>
+        <span class="state">${got ? ICON.check : ICON.lock || '🔒'}</span></div></div>`;
+  };
+  const fill = Math.min(100, L.lv / MAXLV * 100);
+  return `<div class="scr setup lux bpass">${lhdr('BATTLE PASS', 'tback')}
+    <div class="lvcard"><div class="lvbadge"><small>LEVEL</small><b>${L.lv}</b></div>
+      <div class="lvinfo"><div class="xprow"><span>${L.lv >= MAXLV ? 'Max level' : `Level ${L.lv + 1}`}</span><span>${L.need ? `${L.into} / ${L.need} XP` : 'Complete'}</span></div>
+        <div class="xpbar big"><i style="width:${pct}%"></i></div>
+        <p>${next ? `Next reward at level ${next.lv}` : 'Every reward unlocked'}</p></div></div>
+    <div class="xpkey"><div><b>100</b><span>Play a game</span></div><div><b>+100</b><span>Win</span></div><div><b>+10</b><span>Each bink</span></div><div><b>+10</b><span>Each marble home</span></div><div><b>+25%</b><span>Online</span></div></div>
+    <div class="track"><div class="rail"><i style="height:${fill}%"></i></div>${PASS.map(tier).join('')}</div>
+    <div class="pvw"><label>Preview at level</label><div>${[0, 7, 18, 33, 50].map(v => `<button data-a="pvlv" data-v="${v}" class="${(passPreview === null ? -1 : levelOf(passPreview).lv) === v ? 'on' : ''}">${v}</button>`).join('')}<button data-a="pvlv" data-v="me" class="${passPreview === null ? 'on' : ''}">Mine</button></div></div>
+    <p class="hint center">Rewards shown are placeholders. Test copy only.</p></div>`;
+}
+function levelXPTo(xp, lv){ let need = 0; for (let n = 1; n <= lv; n++) need += lvCost(n); return Math.max(0, need - xp); }
+function xpForLevel(lv){ let x = 0; for (let n = 1; n <= lv; n++) x += lvCost(n); return x; }
+window.addEventListener('click', e => {
+  if (!PASS_LIVE) return;
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  if (t.dataset.a === 'trophies' || t.dataset.a === 'bpass') { e.stopPropagation(); e.stopImmediatePropagation(); passPreview = null; screen = 'bpass'; render(); }
+  else if (t.dataset.a === 'pvlv') { e.stopPropagation(); passPreview = t.dataset.v === 'me' ? null : xpForLevel(+t.dataset.v) + (+t.dataset.v < 50 ? 60 : 0); render(); }
+}, true);
+const _render4 = render;
+render = function(){
+  if (screen === 'bpass') { if (PASS_LIVE && (typeof ME === 'undefined' || ME || !AUTH_ON)) { clearTimeout(aiTimer); app.innerHTML = passHTML(); return; } screen = 'home'; }
+  _render4();
+  if (PASS_LIVE && screen === 'home') {                // level chip under the logo
+    const L = levelOf(ACH.stats.xp), c = app.querySelector('[data-a="trophies"]');
+    if (c && !c.querySelector('.lvdot')) c.insertAdjacentHTML('beforeend', `<span class="lvdot">${L.lv}</span>`);
+  }
 };
 render();
 
