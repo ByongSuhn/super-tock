@@ -463,6 +463,16 @@ button.deck svg{width:22px;height:22px;color:var(--gold2);flex:none}
 .online .lux-cta svg{width:26px;height:26px}
 html,body{overflow-x:hidden;max-width:100%}html{overflow-x:clip}body{position:relative}
 .ding{white-space:normal!important;width:max-content;max-width:86%;text-align:center;line-height:1.15;font-size:clamp(15px,4.6vw,22px)!important}.ding.meh{font-size:clamp(14px,4vw,16px)!important}
+@media (orientation:landscape) and (max-height:620px){
+  .game.lux{display:grid;max-width:none;grid-template-columns:min(calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom) - 8px),58vw) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);column-gap:6px;padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}
+  .game.lux .boardwrap{grid-column:1;grid-row:1/4;margin:4px;min-height:0;aspect-ratio:1/1;align-self:center;width:calc(100% - 8px)}
+  .game.lux .ghdr{grid-column:2;grid-row:1}
+  .game.lux .topbar{grid-column:2;grid-row:2}
+  .game.lux .panel{grid-column:2;grid-row:3;overflow-y:auto;min-height:0;padding-bottom:6px}
+  .game.lux .hand{min-height:0;gap:5px}
+  .game.lux .hand .card{width:54px;height:76px}
+  .game.lux .status .msg{min-height:44px}
+}
 
 </style>
 </head>
