@@ -3096,8 +3096,8 @@ var BOARDS = [
   {id:'wood', name:'Walnut'}, {id:'whitemarble', name:'White Marble'}, {id:'blackmarble', name:'Black Marble'},
   {id:'gold', name:'Gold'}, {id:'amethyst', name:'Royal'}, {id:'frost', name:'Frost'},
   {id:'lava', name:'Lava'}, {id:'galaxy', name:'Galaxy'}, {id:'ruins', name:'Ruins'}, {id:'pirate', name:'Pirate'},
-  {id:'roman', name:'Roman'}, {id:'poker', name:'Poker Night', k:.92}, {id:'billiards', name:'Billiards', k:.88}, {id:'dragon', name:'Dragon'}, {id:'roulette', name:'Roulette', k:.85},
-].filter(b => b.id === 'classic' || BOARDS_LIVE).map(b => b.id === 'classic' ? b : Object.assign(b, {img:`boards/${b.id}.jpg`, thumb:`boards/${b.id}-t.jpg`, ring:'#e8bd5a'}));
+  {id:'roman', name:'Roman'}, {id:'poker', name:'Poker Night'}, {id:'billiards', name:'Billiards'}, {id:'dragon', name:'Dragon'}, {id:'roulette', name:'Roulette'},
+].filter(b => b.id === 'classic' || BOARDS_LIVE).map(b => b.id === 'classic' ? b : Object.assign(b, {img:`boards/${b.id}.jpg`, thumb:`boards/${b.id}-t.jpg`, ring:'#e8bd5a', k:.87}));
 var BOARD = LS.get('st.board', 'classic');
 if (!BOARDS.some(b => b.id === BOARD)) BOARD = 'classic';
 function BOARD_THEME(){ if (!BOARDS) return null; const b = BOARDS.find(x => x.id === BOARD); return b && b.img ? b : null; }
