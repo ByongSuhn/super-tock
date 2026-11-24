@@ -643,6 +643,8 @@ input.locked{opacity:.85;cursor:default}
 .achtoast .arts .orb,.achtoast .arts .bthumb{box-shadow:0 0 0 2px #f0c45c,0 2px 6px rgba(0,0,0,.5)}
 .achtoast .more{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#f0c45c;color:#2b1808;font:700 12px system-ui;font-style:normal}
 .achtoast.multi span{max-width:80vw}
+.pchip .lvp{display:inline-grid;place-items:center;min-width:22px;height:18px;padding:0 5px;margin-right:4px;border-radius:9px;background:linear-gradient(180deg,#f6d27a,#c9932f);color:#2b1808;font:800 10px/18px system-ui;font-style:normal;vertical-align:1px}
+.pchip .lvp.max{background:linear-gradient(180deg,#fff1c4,#f0c45c);box-shadow:0 0 8px rgba(240,196,92,.8)}
 
 </style>
 </head>
@@ -1875,7 +1877,7 @@ function drawGame(){
     const home = G.m[p].filter(m => m.z === 'h').length;
     const team = G.set.partners ? `<em>${String.fromCharCode(65 + (p % (G.N / 2)))}</em>` : '';
     const lead = G.phase === 'pass' && G.turn === p ? '<span class="lead">1st</span>' : '';
-    return `<div class="pchip ${G.turn === p && G.phase !== 'over' ? 'turn' : ''}"><i style="background:${PAL[p]}"></i>${esc(pl.name)} <b>${home}/4</b>${team}${lead}</div>`;
+    return `<div class="pchip ${G.turn === p && G.phase !== 'over' ? 'turn' : ''}"><i style="background:${PAL[p]}"></i>${typeof pl.lv === 'number' && typeof PASS_LIVE !== 'undefined' && PASS_LIVE ? `<em class="lvp ${pl.lv >= 50 ? 'max' : ''}">${pl.lv >= 50 ? '♛' : ''}${pl.lv}</em>` : ''}${esc(pl.name)} <b>${home}/4</b>${team}${lead}</div>`;
   }).join('');
   const cur = chips.querySelector('.turn'); if (cur && cur.scrollIntoView) cur.scrollIntoView({inline:'center', block:'nearest', behavior:'smooth'});
   // whose turn: glow their start tray
@@ -2075,7 +2077,7 @@ function startGame(again){
     const eff = assignSkins(setup.seats.map(x => x.skin || null));
     players = order.map(i => { const x = setup.seats[i], sk = SKIN(eff[i]);
       const nm = (x.name || '').trim();
-      return {name: x.human ? nm || sk.name : (CNAMES.includes(nm) || !nm ? sk.name : nm), human: x.human, color: sk.grp, skin: eff[i], mskin: x.mskin || null}; });
+      return {name: x.human ? nm || sk.name : (CNAMES.includes(nm) || !nm ? sk.name : nm), human: x.human, color: sk.grp, skin: eff[i], mskin: x.mskin || null, lv: x.human && typeof levelOf === 'function' ? levelOf(ACH.stats.xp).lv : undefined}; });
     set = {partners: setup.partners && setup.n % 2 === 0, hop: false, around: false, photo: setup.photo, center: setup.center, openHands: false, level: 'hard', speed: setup.speed, decks: 'auto', jokers: setup.jokers};
     cfg = rules;
   }
@@ -2486,7 +2488,7 @@ async function hostStart(){
   }
   const eff = assignSkins(L.seats.map(x => x.kind === 'human' ? x.skin || null : null));
   const players = order.map(i => { const x = L.seats[i]; const human = x.kind === 'human', sk = SKIN(eff[i]);
-    return {name: human ? (x.name || 'Player') : sk.name, human, pid: human ? x.pid : null, color:sk.grp, skin:eff[i], mskin: human ? x.mskin || null : null}; });
+    return {name: human ? (x.name || 'Player') : sk.name, human, pid: human ? x.pid : null, color:sk.grp, skin:eff[i], mskin: human ? x.mskin || null : null, lv: human && typeof x.lv === 'number' ? x.lv : undefined}; });
   const set = {partners:L.partners && L.n % 2 === 0, hop:false, around:false, center:L.center, openHands:false, level:'hard', speed:L.speed, decks:'auto', jokers:L.jokers};
   G = newGame({players, set, cfg:rules}); G.online = L.code; G.gid = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   L.started = true; await pushLobby();
@@ -3394,6 +3396,29 @@ render = function(){
 };
 achCheck();
 render();
+
+// ---------- your level travels with you into online games ----------
+const _apply3 = applyIntent;
+applyIntent = async function(it){
+  const L = ON.L;
+  if (it.kind === 'lv' && L && !L.started) {
+    const me = L.seats.findIndex(x => x.pid === it.pid); if (me < 0) return;
+    const v = Math.max(0, Math.min(MAXLV, Math.floor(+(it.data && it.data.lv) || 0)));
+    L.seats[me].lv = v; await pushLobby(); return;
+  }
+  return _apply3(it);
+};
+const _render7 = render;
+render = function(){
+  if (PASS_LIVE && screen === 'lobby' && ON.L && !ON.L.started) {
+    const me = ON.L.seats.findIndex(x => x.pid === ON.pid), lv = levelOf(ACH.stats.xp).lv;
+    if (me >= 0 && ON.L.seats[me].lv !== lv && ON._lvSent !== ON.L.code + me + ':' + lv) {
+      ON._lvSent = ON.L.code + me + ':' + lv;
+      if (ON.host) { ON.L.seats[me].lv = lv; pushLobby(); } else sendLobbyIntent('lv', {lv});
+    }
+  }
+  _render7();
+};
 
 // ===================== Accounts: pick a username + password, progress saved in the cloud =====================
 // Usernames are turned into a hidden sign-in address (name@players.supertock.com) so Firebase does the
