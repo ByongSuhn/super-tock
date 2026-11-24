@@ -477,6 +477,44 @@ html,body{overflow-x:hidden;max-width:100%}html{overflow-x:clip}body{position:re
 .winbox.lost .winribbon{background:linear-gradient(180deg,#3a3550,#1d1a2c);filter:saturate(.6)}
 .winbox.lost .winribbon span{color:#cfc6e4}
 .winbox.lost .pedestal{opacity:.85}
+/* ---- marbles & trophies ---- */
+.orb.sp{box-shadow:0 2px 5px rgba(0,0,0,.6),inset 0 -3px 6px rgba(0,0,0,.35),inset 0 2px 3px rgba(255,255,255,.35);position:relative;overflow:hidden}
+.orb.sp::after{content:"";position:absolute;left:18%;top:14%;width:34%;height:22%;border-radius:50%;background:rgba(255,255,255,.75);filter:blur(1px)}
+.orb.sp.stars::before{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 70% 60%,#fff 0 3%,transparent 4%),radial-gradient(circle at 55% 80%,#fff 0 2%,transparent 3%),radial-gradient(circle at 78% 35%,#fff 0 2%,transparent 3%),radial-gradient(circle at 30% 65%,#fff 0 2%,transparent 3%)}
+.orbbtn{position:relative;flex:none;background:none;border:0;padding:0;cursor:pointer;display:grid;place-items:center}
+.orbbtn .orb{box-shadow:0 0 0 2px #e0b04f,0 0 10px rgba(240,196,92,.7)}
+.orbbtn em{position:absolute;right:-6px;bottom:-5px;width:16px;height:16px;border-radius:50%;background:#e0b04f;color:#2b1808;font:700 10px/16px system-ui;font-style:normal;text-align:center}
+#mpick .mpicker{position:fixed;inset:0;z-index:80;background:rgba(8,4,16,.72);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+#mpick .mbox{width:min(560px,100%);max-height:86vh;overflow:auto;background:linear-gradient(180deg,#24153a,#120a20);border:2px solid rgba(224,176,79,.7);border-bottom:0;border-radius:24px 24px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom))}
+.mgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:8px}
+.mtile{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 4px 8px;border-radius:14px;background:rgba(255,255,255,.04);border:1.5px solid rgba(224,176,79,.25);color:#f3e6c8;font:600 12px system-ui;cursor:pointer}
+.mtile.on{border-color:#f0c45c;background:rgba(240,196,92,.16);box-shadow:0 0 12px rgba(240,196,92,.35)}
+.mtile.lock .orb{filter:saturate(.35) brightness(.55)}
+.mtile.lock b{opacity:.55}
+.mtile.taken{opacity:.35}
+.mtile>span{position:absolute;top:5px;right:6px;font-size:11px;color:#cdb98d}
+.mtile>span svg{width:13px;height:13px}
+.achtoast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translateX(-50%);z-index:90;display:flex;gap:12px;align-items:center;width:max-content;max-width:92vw;padding:12px 18px 12px 12px;border-radius:18px;background:linear-gradient(180deg,#3d1f5c,#1c0f2c);border:2px solid #f0c45c;box-shadow:0 10px 30px rgba(0,0,0,.6),0 0 24px rgba(240,196,92,.45);color:#fff;animation:achIn .45s cubic-bezier(.2,1.4,.4,1)}
+.achtoast.out{opacity:0;transform:translateX(-50%) translateY(-20px);transition:.45s}
+.achtoast small{display:block;font:700 10px system-ui;letter-spacing:2px;color:#f0c45c}
+.achtoast b{display:block;font:700 19px Cinzel,Georgia,serif}
+.achtoast span{display:block;font:12px system-ui;color:#d9cdea}
+@keyframes achIn{from{opacity:0;transform:translateX(-50%) translateY(-30px) scale(.9)}}
+.tstats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 4px}
+.tstats div{text-align:center;padding:12px 4px;border-radius:14px;border:1.5px solid rgba(224,176,79,.35);background:rgba(255,255,255,.04)}
+.tstats b{display:block;font:700 24px Cinzel,Georgia,serif;color:#f0c45c}
+.tstats span{font:12px system-ui;color:#d9cdea}
+.tlist{display:flex;flex-direction:column;gap:8px}
+.trow{display:flex;gap:14px;align-items:center;padding:12px;border-radius:16px;border:1.5px solid rgba(224,176,79,.3);background:rgba(255,255,255,.04)}
+.trow.got{border-color:#f0c45c;background:rgba(240,196,92,.1)}
+.trow.lock .orb{filter:saturate(.35) brightness(.55)}
+.trow .tx{flex:1;min-width:0}
+.trow b{display:block;font:700 17px Cinzel,Georgia,serif;color:#f3e6c8}
+.trow .tx>span{display:block;font:13px system-ui;color:#cbbfdc;margin:2px 0 6px}
+.trow em{font:600 12px system-ui;font-style:normal;color:#a99bbf}
+.trow em.got{color:#f0c45c}
+.trow .bar{height:6px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden;margin-bottom:4px}
+.trow .bar i{display:block;height:100%;background:linear-gradient(90deg,#c99434,#f0c45c)}
 
 </style>
 </head>
@@ -1891,11 +1929,14 @@ function startGame(again){
       order = new Array(setup.n);
       teams.forEach((t, k) => { order[k] = t[0]; order[k + half] = t[1]; });
     }
-    players = order.map(i => ({name: (setup.seats[i].name || '').trim() || CNAMES[i], human: setup.seats[i].human, color: i}));
+    const eff = assignSkins(setup.seats.map(x => x.skin || null));
+    players = order.map(i => { const x = setup.seats[i], sk = SKIN(eff[i]);
+      const nm = (x.name || '').trim();
+      return {name: x.human ? nm || sk.name : (CNAMES.includes(nm) || !nm ? sk.name : nm), human: x.human, color: sk.grp, skin: eff[i]}; });
     set = {partners: setup.partners && setup.n % 2 === 0, hop: false, around: false, photo: setup.photo, center: setup.center, openHands: false, level: setup.level, speed: setup.speed, decks: 'auto', jokers: setup.jokers};
     cfg = rules;
   }
-  G = newGame({players, set, cfg});
+  G = newGame({players, set, cfg}); G.gid = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   sel = null; curtain = null; busy = false; burnPick = false; menuOpen = false; undoSnap = null; trade = null;
   viewer = G.players.findIndex(p => p.human);
   if (humanCount() > 1 && !G.set.openHands) curtain = null;
@@ -1961,7 +2002,7 @@ function homeHTML(){
   const resume = saved && saved.G && saved.G.v === 3 && saved.G.phase !== 'over';
   return `<div class="scr home lux">
     <div class="drape l"></div><div class="drape r"></div><div class="candle c1"></div><div class="candle c2"></div>
-    <div class="corner-btns"><button class="cbtn gold" data-a="soon" data-w="Player profiles">${ICON.crown}</button><button class="cbtn gold" data-a="soon" data-w="Trophies and stats">${ICON.trophy}</button></div>
+    <div class="corner-btns"><button class="cbtn gold" data-a="soon" data-w="Player profiles">${ICON.crown}</button><button class="cbtn gold" data-a="trophies" aria-label="Trophies">${ICON.trophy}</button></div>
     <div class="fan">${fanCards()}</div>
     <div class="crest"><span class="gem t"></span><h1>SUPER<span>TOCK</span></h1><span class="gem b"></span></div>
     <div class="hero"><div class="tilt"><svg viewBox="0 0 1000 1000">${heroBoard()}</svg></div></div>
@@ -2302,10 +2343,11 @@ async function hostStart(){
     teams.sort((A, B) => Math.min(...A) - Math.min(...B));
     order = new Array(L.n); teams.forEach((t, k) => { order[k] = t[0]; order[k + half] = t[1]; });
   }
-  const players = order.map(i => { const x = L.seats[i]; const human = x.kind === 'human';
-    return {name: human ? (x.name || 'Player') : CNAMES[i], human, pid: human ? x.pid : null, color:i}; });
+  const eff = assignSkins(L.seats.map(x => x.kind === 'human' ? x.skin || null : null));
+  const players = order.map(i => { const x = L.seats[i]; const human = x.kind === 'human', sk = SKIN(eff[i]);
+    return {name: human ? (x.name || 'Player') : sk.name, human, pid: human ? x.pid : null, color:sk.grp, skin:eff[i]}; });
   const set = {partners:L.partners && L.n % 2 === 0, hop:false, around:false, center:L.center, openHands:false, level:L.level, speed:L.speed, decks:'auto', jokers:L.jokers};
-  G = newGame({players, set, cfg:rules}); G.online = L.code;
+  G = newGame({players, set, cfg:rules}); G.online = L.code; G.gid = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   L.started = true; await pushLobby();
   lastEv = []; ON.seq = 0; publishState();
   ON.stateWatched = true;                             // host doesn't need to follow itself
@@ -2425,6 +2467,260 @@ app.addEventListener('click', async e => {
 app.addEventListener('click', e => { const t = e.target.closest('[data-a]'); if (t && t.dataset.a === 'mquit' && ON.active) { onlineReset(); } }, true);
 // open straight to the join screen from an invite link
 if (/[?&]join=/.test(location.search) && NET) screen = 'online';
+render();
+
+// ===================== Marbles: pickable colours, unlockable special marbles, achievements =====================
+// Basic colours (c0..c11) are free for everyone. Special marbles unlock through achievements and are saved on this device.
+// Each special marble "uses up" one basic colour group, so two players never end up with look-alike boards.
+const SPECIALS = [
+  {id:'pearl',  name:'Pearl',   grp:10, base:'#e9e1f2', how:'Win your first game',
+    stops:[[0,'#ffffff'],[.35,'#f4ecff'],[.7,'#d8c4ea'],[1,'#8f7aa6']], css:'radial-gradient(circle at 35% 30%,#fff 0 10%,#f4ecff 30%,#dcc8ee 60%,#8f7aa6 100%)'},
+  {id:'fire',   name:'Fire',    grp:6,  base:'#ff5a1f', how:'Bink 25 marbles', goal:{stat:'binks', n:25},
+    stops:[[0,'#fff3a0'],[.3,'#ffb020'],[.65,'#f0441a'],[1,'#7a0d05']], css:'radial-gradient(circle at 35% 30%,#fff7c0 0 8%,#ffb020 28%,#f0441a 62%,#6d0b04 100%)'},
+  {id:'ice',    name:'Ice',     grp:5,  base:'#6fd0f5', how:'Get all 4 marbles home without ever getting binked',
+    stops:[[0,'#ffffff'],[.35,'#c9f1ff'],[.7,'#5cc4ee'],[1,'#1a5f9c']], css:'radial-gradient(circle at 35% 30%,#fff 0 10%,#c9f1ff 30%,#5cc4ee 65%,#1a5f9c 100%)'},
+  {id:'gold',   name:'Gold',    grp:3,  base:'#e0b04f', how:'Win 10 games', goal:{stat:'wins', n:10}, lin:true,
+    stops:[[0,'#fff3c2'],[.3,'#e8b84c'],[.55,'#9a6a16'],[.8,'#f3cf6c'],[1,'#7a5210']], css:'linear-gradient(135deg,#fff3c2 0%,#e8b84c 30%,#9a6a16 55%,#f3cf6c 80%,#7a5210 100%)'},
+  {id:'galaxy', name:'Galaxy',  grp:4,  base:'#6a3df0', how:'Beat Hard computers',
+    stops:[[0,'#ff8ae0'],[.25,'#8b4dff'],[.6,'#241066'],[1,'#05020f']], css:'radial-gradient(circle at 35% 30%,#ffd6f5 0 6%,#ff8ae0 14%,#8b4dff 35%,#241066 65%,#05020f 100%)', stars:true},
+  {id:'lucky7', name:'Lucky 7', grp:2,  base:'#10b981', how:'Get a marble home with a 7',
+    stops:[[0,'#fff6b0'],[.25,'#f2c94c'],[.5,'#10b981'],[1,'#03432c']], css:'radial-gradient(circle at 35% 30%,#fff6b0 0 8%,#f2c94c 22%,#10b981 50%,#03432c 100%)'},
+  {id:'royal',  name:'Royal',   grp:0,  base:'#b3123b', how:'Bink 3 marbles with one King', lin:true,
+    stops:[[0,'#f9d77e'],[.28,'#c99434'],[.42,'#b3123b'],[.75,'#5a0820'],[1,'#2a0410']], css:'linear-gradient(135deg,#f9d77e 0%,#c99434 28%,#b3123b 45%,#5a0820 78%,#2a0410 100%)'},
+  {id:'rainbow',name:'Rainbow', grp:7,  base:'#ff4fa3', how:'Unlock every other marble', lin:true,
+    stops:[[0,'#ff4d4d'],[.2,'#ffb020'],[.4,'#f5e400'],[.6,'#2fd36d'],[.8,'#3e7bfa'],[1,'#9b5de5']], css:'linear-gradient(135deg,#ff4d4d,#ffb020,#f5e400,#2fd36d,#3e7bfa,#9b5de5)'},
+];
+function SKIN(id){
+  if (id && id[0] === 'c' && /^c\d+$/.test(id)) { const i = +id.slice(1); return {id, name:CNAMES[i], grp:i, base:COLORS[i], basic:true}; }
+  return SPECIALS.find(s => s.id === id) || null;
+}
+// Everyone's actual marble: chosen ones first (first come, first served), then each open seat takes its own colour
+// if it's free, otherwise the next free basic colour.
+function assignSkins(chosen){
+  const n = chosen.length, out = new Array(n).fill(null), used = new Set();
+  chosen.forEach((id, i) => { const s = SKIN(id); if (s && !used.has(s.grp)) { out[i] = s.id; used.add(s.grp); } });
+  for (let i = 0; i < n; i++) if (!out[i]) {
+    let c = i; while (used.has(c)) c = (c + 1) % COLORS.length;
+    out[i] = 'c' + c; used.add(c);
+  }
+  return out;
+}
+function skinCSS(id){ const s = SKIN(id); return !s ? '#888' : s.basic ? null : s.css; }
+function skinOrb(id, size, extra){
+  const s = SKIN(id) || SKIN('c0'), st = size ? `width:${size}px;height:${size}px;` : '';
+  return s.basic ? `<i class="orb ${extra || ''}" style="--c:${s.base};${st}"></i>`
+    : `<i class="orb sp ${s.stars ? 'stars' : ''} ${extra || ''}" style="background:${s.css};${st}"></i>`;
+}
+// SVG gradient for a special marble on the board
+function skinGrad(id, gid){
+  const s = SKIN(id); if (!s || s.basic) return null;
+  const st = s.stops.map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`).join('');
+  return s.lin ? `<linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">${st}</linearGradient>`
+    : `<radialGradient id="${gid}" cx=".38" cy=".33" r=".75">${st}</radialGradient>`;
+}
+
+// ---------- the board picks up the players' marbles ----------
+let PSKIN = [];
+setPal = function(){
+  PSKIN = G.players.map((pl, i) => pl.skin || 'c' + (pl.color !== undefined ? pl.color : i));
+  PAL = PSKIN.map(id => (SKIN(id) || SKIN('c0')).base);
+};
+const _gradDefs0 = gradDefs;
+gradDefs = function(n, P, cols){
+  if (cols !== PAL || !PSKIN.length) return _gradDefs0(n, P, cols);
+  let d = '';
+  for (let p = 0; p < n; p++) d += skinGrad(PSKIN[p], `${P || ''}mg${p}`)
+    || `<radialGradient id="${P || ''}mg${p}" cx=".38" cy=".33" r=".75"><stop offset="0" stop-color="${shade(cols[p], .65)}"/><stop offset=".35" stop-color="${cols[p]}"/><stop offset="1" stop-color="${shade(cols[p], -.55)}"/></radialGradient>`;
+  return d;
+};
+
+// ---------- achievements ----------
+let ACH = LS.get('st.ach', null) || {stats:{wins:0, binks:0}, un:{}, games:{}};
+ACH.stats = ACH.stats || {wins:0, binks:0}; ACH.un = ACH.un || {}; ACH.games = ACH.games || {};
+function achSave(){ LS.set('st.ach', ACH); }
+function owned(id){ const s = SKIN(id); return !!s && (s.basic || !!ACH.un[id]); }
+let toastQ = [], toastOn = false;
+function unlock(id){
+  if (ACH.un[id]) return;
+  ACH.un[id] = Date.now(); achSave();
+  toastQ.push(id); showToast();
+  if (id !== 'rainbow' && SPECIALS.every(s => s.id === 'rainbow' || ACH.un[s.id])) unlock('rainbow');
+}
+function showToast(){
+  if (toastOn || !toastQ.length) return;
+  toastOn = true;
+  const id = toastQ.shift(), s = SKIN(id);
+  const el = document.createElement('div'); el.className = 'achtoast';
+  el.innerHTML = `${skinOrb(id, 40)}<div><small>NEW MARBLE UNLOCKED</small><b>${s.name}</b><span>${s.how}</span></div>`;
+  el.addEventListener('click', () => { el.remove(); });
+  document.body.appendChild(el);
+  setTimeout(() => el.classList.add('out'), 3400);
+  setTimeout(() => { el.remove(); toastOn = false; showToast(); }, 3900);
+}
+function gameTrack(){
+  if (!G) return null;
+  if (!G.gid) G.gid = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  let t = ACH.games[G.gid];
+  if (!t) {
+    const home = viewer >= 0 && G.m[viewer] ? G.m[viewer].filter(m => m.z === 'h').length : 0;
+    t = ACH.games[G.gid] = {home, hit: home > 0, t: Date.now()};       // joined mid-game: don't hand out "never binked"
+    const ks = Object.keys(ACH.games).sort((a, b) => ACH.games[a].t - ACH.games[b].t);
+    while (ks.length > 30) delete ACH.games[ks.shift()];
+  }
+  return t;
+}
+function achMove(ev, mover){
+  if (!G || viewer < 0 || viewer >= G.N || !G.players[viewer] || !G.players[viewer].human) return;
+  const t = gameTrack(); if (!t) return;
+  const card = G.last && G.last.card, mate = G.set.partners ? mateOf(G, viewer) : -1;
+  let mine = 0;
+  for (const e of ev || []) {
+    if (!e.bump) continue;
+    const v = e.key >> 2;
+    if (v === viewer) t.hit = true;
+    else if (mover === viewer && v !== mate) mine++;
+  }
+  if (mine) { ACH.stats.binks += mine; if (ACH.stats.binks >= 25) unlock('fire'); }
+  if (mine >= 3 && mover === viewer && card && card.r === 'K') unlock('royal');
+  const home = G.m[viewer].filter(m => m.z === 'h').length;
+  if (home > t.home && mover === viewer && card && card.r === '7') unlock('lucky7');
+  if (home === 4 && t.home < 4 && !t.hit) unlock('ice');
+  t.home = home;
+  achSave();
+}
+function achWin(w){
+  const t = gameTrack(); if (!t || t.done) return;
+  t.done = true;
+  if (viewer >= 0 && G.players[viewer] && G.players[viewer].human && w.players.includes(viewer)) {
+    ACH.stats.wins++;
+    unlock('pearl');
+    if (ACH.stats.wins >= 10) unlock('gold');
+    if (G.set.level === 'hard' && G.players.some((pl, p) => !pl.human && !w.players.includes(p))) unlock('galaxy');
+  }
+  achSave();
+}
+const _ding0 = dingFx;
+dingFx = function(ev, mover){ _ding0(ev, mover); try { achMove(ev, mover); } catch (e) { console.warn(e); } };
+const _win0 = winHTML;
+winHTML = function(w){ try { achWin(w); } catch (e) { console.warn(e); } return _win0(w); };
+
+// ---------- choosing your marble ----------
+let picker = null;           // {mode:'solo'|'online', seat}
+function takenGroups(chosen, mine){
+  const g = new Set();
+  chosen.forEach((id, i) => { if (i !== mine) { const s = SKIN(id); if (s) g.add(s.grp); } });
+  return g;
+}
+function pickerHTML(){
+  const chosen = picker.mode === 'online' ? ON.L.seats.map(x => x.kind === 'human' ? x.skin || null : null) : setup.seats.map(x => x.skin || null);
+  const eff = assignSkins(chosen), cur = eff[picker.seat], taken = takenGroups(chosen, picker.seat);
+  const tile = s => {
+    const lock = !owned(s.id), tk = taken.has(s.grp) && cur !== s.id;
+    return `<button class="mtile ${cur === s.id ? 'on' : ''} ${lock ? 'lock' : ''} ${tk ? 'taken' : ''}" data-a="${lock ? 'mlocked' : tk ? 'mtaken' : 'mpick'}" data-v="${s.id}">
+      ${skinOrb(s.id, 40)}<b>${s.name}</b>${lock ? `<span>${ICON.lock || '🔒'}</span>` : tk ? '<span>Taken</span>' : ''}</button>`;
+  };
+  return `<div class="mpicker" data-a="mclose"><div class="mbox" data-a="noop">
+    <h2 class="ltitle"><i></i>CHOOSE YOUR MARBLE<i></i></h2>
+    <h3 class="lh3">SPECIAL</h3><div class="mgrid">${SPECIALS.map(tile).join('')}</div>
+    <h3 class="lh3">CLASSIC</h3><div class="mgrid">${COLORS.map((c, i) => tile(SKIN('c' + i))).join('')}</div>
+    <p class="hint">Tap a locked marble to see how to unlock it.</p>
+    <button class="lux-btn" data-a="mclose"><span>DONE</span></button></div></div>`;
+}
+function drawPicker(){
+  let el = document.getElementById('mpick');
+  if (!picker) { if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'mpick'; document.body.appendChild(el); }
+  el.innerHTML = pickerHTML();
+}
+function chooseSkin(id){
+  profile.skin = id; LS.set('st.profile', profile);
+  if (picker.mode === 'solo') { setup.seats[picker.seat].skin = id; }
+  else if (ON.host) { ON.L.seats[picker.seat].skin = id; pushLobby(); }
+  else sendLobbyIntent('skin', {skin:id});
+  picker = null; drawPicker(); render();
+}
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  const a = t.dataset.a;
+  if (a === 'pickm') {
+    e.stopPropagation();
+    picker = {mode: screen === 'lobby' ? 'online' : 'solo', seat: +t.dataset.i}; drawPicker();
+  } else if (a === 'mpick') { e.stopPropagation(); chooseSkin(t.dataset.v); }
+  else if (a === 'mlocked') { e.stopPropagation(); const s = SKIN(t.dataset.v); flash(`Locked · ${s.how}`); }
+  else if (a === 'mtaken') { e.stopPropagation(); flash('Someone else has that one'); }
+  else if (a === 'mclose') { e.stopPropagation(); picker = null; drawPicker(); }
+  else if (a === 'noop') { e.stopPropagation(); }
+  else if (a === 'trophies') { e.stopPropagation(); screen = 'trophies'; render(); }
+  else if (a === 'tback') { e.stopPropagation(); screen = 'home'; render(); }
+}, true);
+
+// ---------- the trophy room ----------
+function trophiesHTML(){
+  const n = SPECIALS.filter(s => ACH.un[s.id]).length;
+  const prog = s => {
+    if (ACH.un[s.id]) return `<em class="got">Unlocked</em>`;
+    if (s.goal) { const v = Math.min(ACH.stats[s.goal.stat] || 0, s.goal.n); return `<div class="bar"><i style="width:${v / s.goal.n * 100}%"></i></div><em>${v} of ${s.goal.n}</em>`; }
+    if (s.id === 'rainbow') return `<em>${n} of ${SPECIALS.length - 1} unlocked</em>`;
+    return `<em>Locked</em>`;
+  };
+  return `<div class="scr setup lux trophies">
+    ${lhdr('TROPHIES', 'tback')}
+    <div class="tstats"><div><b>${ACH.stats.wins}</b><span>Wins</span></div><div><b>${ACH.stats.binks}</b><span>Binks</span></div><div><b>${n}/${SPECIALS.length}</b><span>Marbles</span></div></div>
+    <h3 class="lh3">SPECIAL MARBLES</h3>
+    <div class="tlist">${SPECIALS.map(s => `<div class="trow ${ACH.un[s.id] ? 'got' : 'lock'}">${skinOrb(s.id, 44)}<div class="tx"><b>${s.name}</b><span>${s.how}</span>${prog(s)}</div></div>`).join('')}</div>
+    <p class="hint">Unlocked marbles show up when you tap your marble before a game. Progress is saved on this device.</p>
+  </div>`;
+}
+
+// ---------- screens that show marbles ----------
+const _render1 = render;
+render = function(){
+  if (screen === 'trophies') { clearTimeout(aiTimer); app.innerHTML = trophiesHTML(); window.scrollTo(0, 0); return; }
+  if (screen === 'setup' && setup && setup.seats[0] && setup.seats[0].human && setup.seats[0].skin === undefined) setup.seats[0].skin = profile.skin && owned(profile.skin) ? profile.skin : null;
+  if (screen === 'lobby' && ON.L && !ON.L.started) {
+    const me = ON.L.seats.findIndex(x => x.pid === ON.pid);
+    if (me >= 0 && ON.L.seats[me].skin === undefined && profile.skin && owned(profile.skin) && ON._skinSent !== ON.L.code + me) {
+      ON._skinSent = ON.L.code + me;
+      if (ON.host) { ON.L.seats[me].skin = profile.skin; pushLobby(); } else sendLobbyIntent('skin', {skin:profile.skin});
+    }
+  }
+  _render1();
+  if (screen === 'setup' || screen === 'lobby') decorateSeats();
+  if (picker && screen !== 'setup' && screen !== 'lobby') { picker = null; drawPicker(); }
+};
+// swap the plain colour dots on the seat rows for each player's real marble; your own one is tappable
+function decorateSeats(){
+  const rows = app.querySelectorAll('.seats .seat');
+  let eff, mine = -1, names = null;
+  if (screen === 'setup') { eff = assignSkins(setup.seats.map(x => x.skin || null)); mine = setup.seats.findIndex(x => x.human); }
+  else { const L = ON.L; if (!L) return; eff = assignSkins(L.seats.map(x => x.kind === 'human' ? x.skin || null : null)); mine = L.seats.findIndex(x => x.pid === ON.pid);
+    names = L.seats.map((x, i) => x.kind === 'cpu' ? SKIN(eff[i]).name : null); }
+  rows.forEach((row, i) => {
+    const o = row.querySelector('.orb'); if (!o || !eff[i]) return;
+    const tmp = document.createElement('div'); tmp.innerHTML = skinOrb(eff[i], 26, i === mine ? 'pick' : '');
+    const n = tmp.firstChild;
+    if (i === mine) { const b = document.createElement('button'); b.className = 'orbbtn'; b.dataset.a = 'pickm'; b.dataset.i = i; b.setAttribute('aria-label', 'Choose your marble'); b.appendChild(n); b.insertAdjacentHTML('beforeend', '<em>✎</em>'); o.replaceWith(b); }
+    else o.replaceWith(n);
+    if (names && names[i]) { const nm = row.querySelector('.nm'); if (nm) nm.textContent = names[i]; }
+  });
+  if (screen === 'setup') {                // computer seats are named after their colour
+    setup.seats.forEach((x, i) => { if (!x.human) { const inp = rows[i] && rows[i].querySelector('input'); const s = SKIN(eff[i]); if (inp && CNAMES.includes(inp.value) && s.basic) inp.value = s.name; } });
+  }
+}
+
+// ---------- online: the host keeps marbles unique ----------
+const _apply0 = applyIntent;
+applyIntent = async function(it){
+  const L = ON.L;
+  if (it.kind === 'skin' && L && !L.started) {
+    const me = L.seats.findIndex(x => x.pid === it.pid), s = SKIN(it.data && it.data.skin);
+    if (me < 0 || !s) return;
+    const taken = takenGroups(L.seats.map(x => x.kind === 'human' ? x.skin || null : null), me);
+    if (taken.has(s.grp)) return;
+    L.seats[me].skin = s.id; await pushLobby(); return;
+  }
+  return _apply0(it);
+};
 render();
 
 </script>
