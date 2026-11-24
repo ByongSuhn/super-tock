@@ -473,6 +473,10 @@ html,body{overflow-x:hidden;max-width:100%}html{overflow-x:clip}body{position:re
   .game.lux .hand .card{width:54px;height:76px}
   .game.lux .status .msg{min-height:44px}
 }
+.winsub{margin:10px 0 0;text-align:center;color:var(--gold1);font:600 16px system-ui}
+.winbox.lost .winribbon{background:linear-gradient(180deg,#3a3550,#1d1a2c);filter:saturate(.6)}
+.winbox.lost .winribbon span{color:#cfc6e4}
+.winbox.lost .pedestal{opacity:.85}
 
 </style>
 </head>
@@ -2064,13 +2068,14 @@ function settingsHTML(){
 }
 function winHTML(w){
   const names = w.players.map(pname).join(' &amp; ');
-  const youWon = w.players.some(p => G.players[p].human);
-  const title = youWon ? 'YOU WIN!' : `${names.toUpperCase()} ${w.players.length > 1 ? 'WIN' : 'WINS'}!`;
+  const youWon = w.players.includes(viewer);           // only the winner (or winning team) gets the celebration
+  const title = youWon ? 'YOU WIN!' : 'YOU LOST';
+  const sub = youWon ? (w.players.length > 1 ? `With your partner ${pname(w.players.find(p => p !== viewer))}` : '') : `${names} ${w.players.length > 1 ? 'win' : 'wins'} this one`;
   const main = PAL[w.players[0]], others = PAL.filter((c, i) => !w.players.includes(i)).slice(0, 4);
-  return `<div class="winbox">
-    <div class="rays"></div>
-    <div class="laurel">${ICON.crown}</div>
+  return `<div class="winbox ${youWon ? '' : 'lost'}">
+    ${youWon ? '<div class="rays"></div><div class="laurel">' + ICON.crown + '</div>' : ''}
     <div class="winribbon"><span>${title}</span></div>
+    ${sub ? `<p class="winsub">${sub}</p>` : ''}
     <div class="pedestal">${others.map((c, i) => `<i class="orb sm o${i}" style="--c:${c}"></i>`).join('')}<i class="orb big" style="--c:${main}"></i><div class="base"></div></div>
     <button class="lux-cta" data-a="again"><span>▶</span> PLAY AGAIN</button>
     <button class="lux-btn" data-a="newgame">${ICON.people}<span>NEW GAME</span></button>
