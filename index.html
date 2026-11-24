@@ -666,7 +666,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124174639';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124174918';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -2482,7 +2482,7 @@ async function followState(v){
     if (first) { enterOnlineGame(); return; }
     const ev = JSON.parse(v.ev || '[]');
     if (step && ev.length && !document.hidden) { busy = true; sel = null; drawGame(); await animate(ev); busy = false; dingFx(ev, G.last ? G.last.p : -1); }
-    else placeMarbles();
+    else { placeMarbles(); if (ev.length && typeof achMove === 'function') try { achMove(ev, G.last ? G.last.p : -1); } catch (e) {} }   // still count it when the app was in the background
     sel = null; burnPick = false; drawGame();
   }
 }
@@ -3057,7 +3057,7 @@ achWin = function(w){
   if (!first || viewer < 0 || !G.players[viewer] || !G.players[viewer].human) return;
   const before = levelOf(ACH.stats.xp).lv;
   const won = w.players.includes(viewer), home = G.m[viewer].filter(m => m.z === 'h').length;
-  const xp = gameXP(won, t.b, home, !!G.online);
+  const xp = gameXP(won, t.b, home, !!G.online && G.players.filter(q => q.human).length >= 2);
   ACH.stats.xp = (ACH.stats.xp || 0) + xp; ACH.stats.games = (ACH.stats.games || 0) + 1;
   t.xp = xp; t.lvUp = levelOf(ACH.stats.xp).lv > before;
   achSave();
@@ -3317,6 +3317,18 @@ function achShowToast(){
 
 // ---------- counting during a game ----------
 const cnt = (p, z) => G.m[p].filter(m => m.z === z).length;
+// online games only count as online when another real person is playing
+const realOnline = () => !!(G && G.online && G.players.filter(p => p.human).length >= 2);
+// walking away from a game (starting another before it ends) breaks your win streak
+const _gameTrack0 = gameTrack;
+gameTrack = function(){
+  const isNew = G && G.gid && !ACH.games[G.gid];
+  const t = _gameTrack0();
+  if (isNew && t) {
+    for (const [k, v] of Object.entries(ACH.games)) if (k !== G.gid && !v.done && !v.quit) { v.quit = true; ACH.stats.streak = 0; }
+  }
+  return t;
+};
 const _achMove2 = achMove;
 achMove = function(ev, mover){
   _achMove2(ev, mover);
@@ -3351,7 +3363,7 @@ achWin = function(w){
   // (games and wins are counted by the level system and the old tracker)
   if (won) {
     if (G.set.partners) s.pWins = (s.pWins || 0) + 1;
-    if (G.online) s.oWins = (s.oWins || 0) + 1;
+    if (realOnline()) s.oWins = (s.oWins || 0) + 1;
     if (G.N === 6) s.wins6 = (s.wins6 || 0) + 1;
     if (G.N === 5) s.wins5 = (s.wins5 || 0) + 1;
     s.streak = (s.streak || 0) + 1; s.bestStreak = Math.max(s.bestStreak || 0, s.streak);
@@ -3408,6 +3420,7 @@ boardStageHTML = function(){
 // a board or marble you don't own can't stay selected
 const _render6 = render;
 render = function(){
+  if (PASS_LIVE && screen === 'game' && G && G.phase !== 'over' && viewer >= 0 && G.players[viewer] && G.players[viewer].human) { try { gameTrack(); } catch (e) {} }
   if (PASS_LIVE && !boardOwned(BOARD)) BOARD = 'classic';
   if (PASS_LIVE && screen === 'setup' && setup) setup.seats.forEach(x => { if (x.human && x.mskin && !styleOwned(x.mskin)) x.mskin = null; });
   _render6();
