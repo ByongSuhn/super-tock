@@ -529,6 +529,11 @@ html,body{overflow-x:hidden;max-width:100%}html{overflow-x:clip}body{position:re
 input.locked{opacity:.85;cursor:default}
 .namefield:has(input.locked)::after{content:"🔒";font-size:12px;margin-left:4px;opacity:.7}
 .lockedh{display:block;margin-top:4px;font:12px system-ui;color:#a99bbf}
+.acct.gate .gatehead{display:flex;flex-direction:column;align-items:center;text-align:center;padding:calc(30px + env(safe-area-inset-top)) 0 6px}
+.splash{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px}
+.spin{width:34px;height:34px;border-radius:50%;border:3px solid rgba(240,196,92,.25);border-top-color:#f0c45c;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.splash .ribbon,.splash>*:first-child{margin:0 auto}.splash{align-items:center}
 
 </style>
 </head>
@@ -2742,7 +2747,7 @@ render();
 // Usernames are turned into a hidden sign-in address (name@players.supertock.com) so Firebase does the
 // password checking. Nobody ever types or sees an email. Signed-in phones stay signed in until you sign out.
 const AUTH_ON = !!(FIREBASE_CONFIG && typeof firebase !== 'undefined' && firebase.auth);
-let ME = null;                    // {uid, name} when signed in
+let ME = null, authReady = false;                    // {uid, name} when signed in
 let authBusy = false, authTab = 'new', authMsg = '', pendingName = null;
 const nameKey = n => n.trim().toLowerCase();
 const nameOk = n => /^[A-Za-z0-9_]{3,14}$/.test(n.trim());
@@ -2782,7 +2787,8 @@ if (AUTH_ON) {
   firebase.auth().onAuthStateChanged(async user => {
     if (user) { try { await loadAccount(user); } catch (e) { console.warn(e); ME = {uid:user.uid, name:user.email.split('@')[0]}; } }
     else ME = null;
-    if (['home', 'profile', 'trophies'].includes(screen)) render();
+    const first = !authReady; authReady = true;
+    if (first || !ME || ['home', 'profile', 'trophies'].includes(screen)) { if (ME && screen === 'profile') screen = 'home'; render(); }
   });
 }
 function authError(e){
@@ -2815,6 +2821,7 @@ async function doAuth(){
 }
 async function doSignOut(){
   await firebase.auth().signOut();
+  screen = 'home'; authTab = 'in';
   ME = null;
   ACH = {stats:{wins:0, binks:0}, un:{}, games:{}};                  // next person on this phone starts fresh
   _achSave0();
@@ -2834,8 +2841,8 @@ function profileHTML(){
       <button class="lux-btn" data-a="asignout"><span>SIGN OUT</span></button>
       <p class="hint center">You’ll stay signed in on this device until you sign out.</p></div>`;
   }
-  const isNew = authTab === 'new';
-  return `<div class="scr setup lux acct">${lhdr('PROFILE', 'tback')}
+  const isNew = authTab === 'new', gate = screen !== 'profile';
+  return `<div class="scr setup lux acct ${gate ? 'gate' : ''}">${gate ? `<div class="gatehead">${ribbon('SUPER TOCK')}<h2 class="ltitle"><i></i>WELCOME<i></i></h2></div>` : lhdr('PROFILE', 'tback')}
     <div class="lseg"><button data-a="atab" data-v="new" class="${isNew ? 'on' : ''}">New account</button><button data-a="atab" data-v="in" class="${!isNew ? 'on' : ''}">Sign in</button></div>
     <p class="hint">${isNew ? 'Pick a username nobody else has. Your marbles and trophies save to it, so they follow you to any phone or iPad.' : 'Welcome back. Sign in to get your marbles and trophies.'}</p>
     <label class="lbl">USERNAME</label><input class="txt" id="au" maxlength="14" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="e.g. Brys">
@@ -2843,10 +2850,19 @@ function profileHTML(){
     ${authMsg ? `<p class="amsg">${esc(authMsg)}</p>` : ''}
     <button class="lux-cta" data-a="ago" ${authBusy ? 'disabled' : ''}>${authBusy ? 'ONE SEC…' : isNew ? 'CREATE ACCOUNT' : 'SIGN IN'}</button>
     ${isNew && SPECIALS.some(s => ACH.un[s.id]) ? '<p class="hint center">Marbles you’ve already unlocked on this phone come with you.</p>' : ''}
-    <p class="hint center">No account needed to play. This just saves your progress.</p></div>`;
+    ${gate ? '<p class="hint center">Make a free account to play. Your username is locked to you, and your marbles and trophies are saved to it.</p>' : ''}</div>`;
 }
 const _render2 = render;
+if (AUTH_ON) setTimeout(() => { if (!authReady) { authReady = true; render(); } }, 8000);   // no answer from the server: show sign-in anyway
 render = function(){
+  if (AUTH_ON && !ME) {                                  // you need an account to play
+    clearTimeout(aiTimer);
+    if (!authReady) { app.innerHTML = `<div class="scr lux splash">${ribbon('SUPER TOCK')}<div class="spin"></div></div>`; return; }
+    const u = document.getElementById('au'), keep = u ? u.value : '';
+    app.innerHTML = profileHTML(); window.scrollTo(0, 0);
+    const u2 = document.getElementById('au'); if (u2 && keep) u2.value = keep;
+    return;
+  }
   if (screen === 'profile') {
     const u = document.getElementById('au'), keep = u ? u.value : '';
     clearTimeout(aiTimer); app.innerHTML = profileHTML(); window.scrollTo(0, 0);
