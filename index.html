@@ -652,7 +652,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"};</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true;</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -2679,7 +2679,8 @@ gradDefs = function(n, P, cols){
 };
 
 // ---------- achievements ----------
-let ACH = LS.get('st.ach', null) || {stats:{wins:0, binks:0}, un:{}, games:{}};
+let ACH = LS.get('st.ach', null);
+if (!ACH || ACH.v !== 2) ACH = {v:2, stats:{wins:0, binks:0}, un:{}, games:{}};   // launch reset: older progress is thrown out
 ACH.stats = ACH.stats || {wins:0, binks:0}; ACH.un = ACH.un || {}; ACH.games = ACH.games || {};
 function achSave(){ LS.set('st.ach', ACH); }
 function owned(id){ const s = SKIN(id); return !!s && (s.basic || (!TROPHIES_SOON && !!ACH.un[id])); }
@@ -3085,7 +3086,7 @@ function passHTML(){
         <div class="xpbar big"><i style="width:${pct}%"></i></div>
         <p>${next ? `Next reward at level ${next.lv}` : 'Every reward unlocked'}</p></div></div>
     <div class="track"><div class="rail"><i style="height:${fill}%"></i></div>${PASS.map(tier).join('')}</div>
-    <div class="pvw"><label>Preview at level</label><div>${[0, 7, 18, 33, 50].map(v => `<button data-a="pvlv" data-v="${v}" class="${(passPreview === null ? -1 : levelOf(passPreview).lv) === v ? 'on' : ''}">${v}</button>`).join('')}<button data-a="pvlv" data-v="me" class="${passPreview === null ? 'on' : ''}">Mine</button></div></div>
+    ${!window.SUPER_TOCK_TEST ? '' : `<div class="pvw"><label>Preview at level</label><div>${[0, 7, 18, 33, 50].map(v => `<button data-a="pvlv" data-v="${v}" class="${(passPreview === null ? -1 : levelOf(passPreview).lv) === v ? 'on' : ''}">${v}</button>`).join('')}<button data-a="pvlv" data-v="me" class="${passPreview === null ? 'on' : ''}">Mine</button></div></div>`}
     </div>`;
 }
 function levelXPTo(xp, lv){ let need = 0; for (let n = 1; n <= lv; n++) need += lvCost(n); return Math.max(0, need - xp); }
@@ -3235,7 +3236,8 @@ var ACHS = [
   {id:'galaxy-board', name:'Master of Tock',   how:'Unlock everything else',                 stat:'allElse',    n:1,   tier:5, kind:'board',  reward:'galaxy'},
 ];
 var TIER = {1:'Starter', 2:'Skill', 3:'Hard', 4:'Legendary', 5:'Legendary'};
-var TESTALL = LS.get('st.testall', false);                     // test copy: see everything unlocked
+var TESTMODE = !!window.SUPER_TOCK_TEST;
+var TESTALL = TESTMODE && LS.get('st.testall', false);                     // test copy: see everything unlocked
 const achDone = a => !!(ACH.un && ACH.un['a:' + a.id]);
 function passUnlocked(kind, id){ const L = levelOf(ACH.stats.xp).lv; return PASS.some(r => r.kind === kind && r.id === id && L >= r.lv); }
 function itemOwned(kind, id){
@@ -3359,7 +3361,7 @@ const _passHTML0 = passHTML;
 passHTML = function(){
   let h = _passHTML0();
   const tabs = `<div class="ltabs trtabs"><button data-a="trtab" data-v="pass" class="${trophyTab === 'pass' ? 'on' : ''}">Battle Pass</button><button data-a="trtab" data-v="ach" class="${trophyTab === 'ach' ? 'on' : ''}">Achievements</button></div>`;
-  const test = `<div class="pvw"><button data-a="testall" class="${TESTALL ? 'on' : ''}">${TESTALL ? 'Test: everything unlocked' : 'Test: unlock everything'}</button></div>`;
+  const test = !TESTMODE ? '' : `<div class="pvw"><button data-a="testall" class="${TESTALL ? 'on' : ''}">${TESTALL ? 'Test: everything unlocked' : 'Test: unlock everything'}</button></div>`;
   h = h.replace('<h2 class="ltitle"><i></i>BATTLE PASS<i></i></h2>', '<h2 class="ltitle"><i></i>TROPHIES<i></i></h2>' + tabs);
   if (trophyTab === 'ach') {
     const a = h.indexOf('<div class="lvcard">'), b = h.lastIndexOf('</div>');
@@ -3433,8 +3435,8 @@ function cloud(){ return firebase.database(); }
 
 // merge two progress records: keep every unlock, keep the bigger number for each stat
 function mergeAch(a, b){
-  const out = {stats:{}, un:{}};
-  for (const s of [a, b]) if (s) {
+  const out = {v:2, stats:{}, un:{}};
+  for (const s of [a, b]) if (s && s.v === 2) {
     for (const [k, v] of Object.entries(s.stats || {})) out.stats[k] = Math.max(out.stats[k] || 0, +v || 0);
     for (const [k, v] of Object.entries(s.un || {})) out.un[k] = out.un[k] || v;
   }
@@ -3447,7 +3449,7 @@ achSave = function(){
   _achSave0();
   if (!ME || !AUTH_ON) return;
   clearTimeout(pushT);
-  pushT = setTimeout(() => { cloud().ref('users/' + ME.uid + '/ach').set({stats:ACH.stats, un:ACH.un}).catch(e => console.warn('save failed', e)); }, 600);
+  pushT = setTimeout(() => { cloud().ref('users/' + ME.uid + '/ach').set({v:2, stats:ACH.stats, un:ACH.un}).catch(e => console.warn('save failed', e)); }, 600);
 };
 async function loadAccount(user){
   const snap = await cloud().ref('users/' + user.uid).once('value');
@@ -3457,7 +3459,7 @@ async function loadAccount(user){
   const m = mergeAch(d.ach, local);
   ACH = Object.assign({games:ACH.games || {}}, m, {owner:user.uid});
   _achSave0();
-  await cloud().ref('users/' + user.uid).update({name:ME.name, ach:{stats:ACH.stats, un:ACH.un}});
+  await cloud().ref('users/' + user.uid).update({name:ME.name, ach:{v:2, stats:ACH.stats, un:ACH.un}});
   profile.name = ME.name; LS.set('st.profile', profile);
 }
 if (AUTH_ON) {
@@ -3513,8 +3515,8 @@ function profileHTML(){
     const n = SPECIALS.filter(s => ACH.un[s.id]).length;
     return `<div class="scr setup lux acct">${lhdr('PROFILE', 'tback')}
       <div class="me">${skinOrb(profile.skin && owned(profile.skin) ? profile.skin : 'c0', 64)}<b>${esc(ME.name)}</b><span>Signed in · progress saved to your account</span></div>
-      <div class="tstats"><div><b>${ACH.stats.wins}</b><span>Wins</span></div><div><b>${ACH.stats.binks}</b><span>Binks</span></div>${TROPHIES_SOON ? '' : `<div><b>${n}/${SPECIALS.length}</b><span>Marbles</span></div>`}</div>
-      <button class="lux-btn" data-a="trophies">${ICON.trophy}<span>TROPHIES${TROPHIES_SOON ? ' · COMING SOON' : ''}</span></button>
+      <div class="tstats"><div><b>${ACH.stats.wins}</b><span>Wins</span></div><div><b>${ACH.stats.binks}</b><span>Binks</span></div>${typeof PASS_LIVE !== 'undefined' && PASS_LIVE ? `<div><b>${levelOf(ACH.stats.xp).lv}</b><span>Level</span></div>` : ''}</div>
+      <button class="lux-btn" data-a="trophies">${ICON.trophy}<span>TROPHIES${TROPHIES_SOON && !(typeof PASS_LIVE !== 'undefined' && PASS_LIVE) ? ' · COMING SOON' : ''}</span></button>
       <button class="lux-btn" data-a="asignout"><span>SIGN OUT</span></button>
       <p class="hint center">You’ll stay signed in on this device until you sign out.</p></div>`;
   }
