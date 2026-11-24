@@ -710,7 +710,7 @@ function describeCardLong(c) {
 // Each player's stretch of track: start corner, up the + leg (K holes), the shared corner hole where the
 // two legs meet (the star point), down the next player's - leg (K holes), then 3 holes along the next
 // player's rim row. Home lane runs up the middle of each finger from the middle rim hole.
-const LAYOUT_K = {2:7,3:7,4:7,5:7,6:7,7:7,8:7,9:6,10:6,11:6,12:6};
+const LAYOUT_K = {2:7,3:7,4:5,5:7,6:7,7:7,8:7,9:6,10:6,11:6,12:6};
 function layoutFor(N){
   const K = LAYOUT_K[N] || 6, th = 2 * Math.PI / N;
   const r0 = N === 2 ? 0 : 2 / Math.tan(th / 2);      // where the legs meet, in hole spacings (legs sit 2 holes off the axis)
