@@ -661,7 +661,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124174244';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124174410';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -3525,7 +3525,7 @@ function profileHTML(){
   if (ME) {
     const n = SPECIALS.filter(s => ACH.un[s.id]).length;
     return `<div class="scr setup lux acct">${lhdr('PROFILE', 'tback')}
-      <div class="me">${skinOrb(profile.skin && owned(profile.skin) ? profile.skin : 'c0', 64)}<b>${esc(ME.name)}</b><span>Signed in · progress saved to your account</span></div>
+      <div class="me">${(() => { const c = profile.skin && owned(profile.skin) ? profile.skin : 'c0', st = typeof styleOwned === 'function' && profile.mskin && styleOwned(profile.mskin) ? profile.mskin : null; return typeof styleOrb === 'function' ? styleOrb(c, st, 72) : skinOrb(c, 72); })()}<b>${esc(ME.name)}</b><span>Signed in · progress saved to your account</span></div>
       <div class="tstats"><div><b>${ACH.stats.wins}</b><span>Wins</span></div><div><b>${ACH.stats.binks}</b><span>Binks</span></div>${typeof PASS_LIVE !== 'undefined' && PASS_LIVE ? `<div><b>${levelOf(ACH.stats.xp).lv}</b><span>Level</span></div>` : ''}</div>
       <button class="lux-btn" data-a="trophies">${ICON.trophy}<span>TROPHIES${TROPHIES_SOON && !(typeof PASS_LIVE !== 'undefined' && PASS_LIVE) ? ' · COMING SOON' : ''}</span></button>
       <button class="lux-btn" data-a="asignout"><span>SIGN OUT</span></button>
