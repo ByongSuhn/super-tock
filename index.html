@@ -826,7 +826,7 @@ function newDeck(decks, jokers){
 }
 // Three deals per shuffle, as even as possible: e.g. 6 players, 2 decks with jokers -> 6, 6, 6; without -> 6, 6, 5
 function dealPlan(N, decks, jokers){
-  if (N === 5) return [5, 5, 5];   // 5 players: 5 cards a deal (the rest of the two decks sit out until the reshuffle)
+  if (N === 5) return jokers ? [6, 5, 5, 5] : [5, 5, 5, 5];   // 5 players: four deals that run through both decks
   const size = decks * (52 + (jokers ? 2 : 0)), total = Math.floor(size / N);
   const base = Math.floor(total / 3), rem = total % 3, plan = [];
   for (let i = 0; i < 3; i++) plan.push(base + (i < rem ? 1 : 0));
@@ -1978,7 +1978,7 @@ function howHTML(){
   return `<div class="scr how lux">
     ${lhdr('HOW TO PLAY', 'home')}
     ${step(1, ICON.flag, 'Goal', 'Be the first to move all 4 of your marbles out of start, around the board and into your home lane. With partners, your team wins when both of you are home.')}
-    ${step(2, ICON.people, 'Setup', 'Choose 4, 5 or 6 players (fill empty spots with computers) and your options (jokers, partners, center hole). One deck for 4 players, two decks for 5 or 6, dealt in three rounds.')}
+    ${step(2, ICON.people, 'Setup', 'Choose 4, 5 or 6 players (fill empty spots with computers) and your options (jokers, partners, center hole). One deck for 4 players, two decks for 5 or 6, dealt in three rounds (four with 5 players).')}
     ${step(3, ICON.cards, 'Take Turns', 'Play one card and move with it. If any of your own marbles can move, you must play. If none can, you may burn a card (or play a special card). Skipped? Discard one.')}
     ${step(4, ICON.house, 'Home', 'Your home lane branches off just before your start spot. You need the exact count to get in. Land on a marble to send it back to start; a marble on its own start spot is safe.')}
     ${step(5, ICON.trophy, 'Win', 'The first player, or team, to get all 4 marbles home wins!')}
