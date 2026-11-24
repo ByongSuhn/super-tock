@@ -826,6 +826,7 @@ function newDeck(decks, jokers){
 }
 // Three deals per shuffle, as even as possible: e.g. 6 players, 2 decks with jokers -> 6, 6, 6; without -> 6, 6, 5
 function dealPlan(N, decks, jokers){
+  if (N === 5) return [5, 5, 5];   // 5 players: 5 cards a deal (the rest of the two decks sit out until the reshuffle)
   const size = decks * (52 + (jokers ? 2 : 0)), total = Math.floor(size / N);
   const base = Math.floor(total / 3), rem = total % 3, plan = [];
   for (let i = 0; i < 3; i++) plan.push(base + (i < rem ? 1 : 0));
