@@ -654,6 +654,11 @@ input.locked{opacity:.85;cursor:default}
 .home.lux .tilt svg{animation:boardturn 80s linear infinite;transform-origin:50% 50%;will-change:transform}
 @keyframes boardturn{to{transform:rotate(360deg)}}
 @media (prefers-reduced-motion:reduce){.home.lux .tilt svg{animation-duration:240s}}
+#rsask .mpicker{position:fixed;inset:0;z-index:85;background:rgba(8,4,16,.72);display:flex;align-items:center;justify-content:center;padding:18px;backdrop-filter:blur(3px)}
+#rsask .mbox{width:min(420px,100%);background:linear-gradient(180deg,#24153a,#120a20);border:2px solid rgba(224,176,79,.7);border-radius:24px;padding:20px 18px}
+#rsask .lux-cta,#rsask .lux-btn{width:100%;margin-top:10px}
+.lux-cta.rejoin{background:linear-gradient(180deg,#2fa36b,#14653f);margin-bottom:10px}
+#rsask .lux-cta svg,.lux-cta.rejoin svg{width:22px;height:22px;flex:none}#rsask .lux-cta{display:flex;align-items:center;justify-content:center;gap:10px}
 
 </style>
 </head>
@@ -661,7 +666,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124174410';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124174639';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -3604,6 +3609,83 @@ window.addEventListener('pageshow', e => { if (e.persisted) checkUpdate(); });
 setInterval(checkUpdate, 5 * 60 * 1000);
 const _renderU = render;
 render = function(){ _renderU(); if (updWaiting) setTimeout(applyUpdate, 0); };
+
+// ===================== Resuming games =====================
+// Computer games: "Play vs Computer" asks whether to pick up the unfinished game or start a new one.
+// Online games: the app remembers the game you're in, so you can jump back in from Play Online.
+
+// an online game is never saved as your computer game
+const _saveR = save;
+save = function(){
+  if (ON.active) { if (ON.host) publishState(); return; }
+  _saveR();
+};
+function soloSaved(){
+  const s = LS.get('st.game2', null);
+  return s && s.G && s.G.v === 3 && s.G.phase !== 'over' && !s.G.online ? s.G : null;
+}
+let resumeAsk = false;
+function resumeAskHTML(g){
+  const me = g.players.findIndex(p => p.human), home = me >= 0 ? g.m[me].filter(m => m.z === 'h').length : 0;
+  return `<div class="mpicker" data-a="rsno"><div class="mbox rsbox" data-a="noop">
+    <h2 class="ltitle"><i></i>UNFINISHED GAME<i></i></h2>
+    <p class="hint center">You have a game in progress: ${g.N} players, ${home} of 4 marbles home.</p>
+    <button class="lux-cta" data-a="rsgo">${ICON.bookmark}<span>RESUME GAME</span></button>
+    <button class="lux-btn" data-a="rsnew"><span>START A NEW GAME</span></button>
+    <p class="hint center">Starting a new game ends the old one.</p></div></div>`;
+}
+function drawResumeAsk(){
+  let el = document.getElementById('rsask');
+  if (!resumeAsk) { if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'rsask'; document.body.appendChild(el); }
+  el.innerHTML = resumeAskHTML(soloSaved());
+}
+// remember the online game you're in
+function trackOnline(){
+  if (!ON.active || !G || !G.online) return;
+  if (G.phase === 'over') LS.del('st.lastOnline');
+  else LS.set('st.lastOnline', {code: G.online, t: Date.now()});
+}
+function lastOnline(){
+  const x = LS.get('st.lastOnline', null);
+  return x && x.code && Date.now() - x.t < 3 * 24 * 3600 * 1000 ? x : null;     // forget after 3 days
+}
+window.addEventListener('click', async e => {
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  const a = t.dataset.a;
+  if (a === 'setup' && t.dataset.mode === 'solo' && screen === 'home' && soloSaved()) {
+    e.stopPropagation(); e.stopImmediatePropagation(); resumeAsk = true; drawResumeAsk();
+  } else if (a === 'rsgo') {
+    e.stopPropagation(); resumeAsk = false; drawResumeAsk();
+    const g = soloSaved(); if (!g) return;
+    G = g; sel = null; curtain = null; busy = false; burnPick = false; menuOpen = false;
+    viewer = G.players.findIndex(p => p.human); if (viewer < 0) viewer = 0; screen = 'game'; render();
+  } else if (a === 'rsnew') {
+    e.stopPropagation(); resumeAsk = false; drawResumeAsk(); LS.del('st.game2');
+    setup = defaultSetup('solo'); screen = 'setup'; render();
+  } else if (a === 'rsno') { e.stopPropagation(); resumeAsk = false; drawResumeAsk(); }
+  else if (a === 'orejoin') {
+    e.stopPropagation(); const x = lastOnline(); if (!x) return;
+    const before = ON.code; await joinGame(x.code);
+    if (!ON.active) { LS.del('st.lastOnline'); render(); flash('That game has ended'); }
+  } else if (a === 'oleave') LS.del('st.lastOnline');
+}, true);
+const _onlineHTMLR = onlineHTML;
+onlineHTML = function(){
+  let h = _onlineHTMLR(); const x = lastOnline();
+  if (x && NET) h = h.replace('<button class="lux-cta" data-a="ohost">', `<button class="lux-cta rejoin" data-a="orejoin">${ICON.bookmark}<span>REJOIN GAME ${esc(x.code)}</span></button>
+    <button class="lux-cta" data-a="ohost">`);
+  return h;
+};
+const _renderR = render;
+render = function(){
+  _renderR();
+  trackOnline();
+  if (screen === 'home') { const r = app.querySelector('[data-a="resume"]'); if (r) r.remove(); }
+};
+render();
+const _winHTMLR = winHTML;
+winHTML = function(w){ if (G && G.online) LS.del('st.lastOnline'); return _winHTMLR(w); };
 
 </script>
 </body>
