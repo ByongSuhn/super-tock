@@ -535,6 +535,7 @@ input.locked{opacity:.85;cursor:default}
 @keyframes spin{to{transform:rotate(360deg)}}
 .splash .ribbon,.splash>*:first-child{margin:0 auto}.splash{align-items:center}
 .acct .tstats:has(> div:nth-child(2):last-child){grid-template-columns:repeat(2,1fr)}
+.mgrid.three{grid-template-columns:repeat(3,1fr)}
 
 </style>
 </head>
@@ -2491,7 +2492,8 @@ if (/[?&]join=/.test(location.search) && NET) screen = 'online';
 render();
 
 // ===================== Marbles: pickable colours, unlockable special marbles, achievements =====================
-const TROPHIES_SOON = true;   // trophy room + special marbles hidden while they're being redesigned (progress still counts)
+const TROPHIES_SOON = true;
+const BASE_N = 6;             // the six base colours everyone has: Red, Blue, Green, Gold, Purple, Teal   // trophy room + special marbles hidden while they're being redesigned (progress still counts)
 // Basic colours (c0..c11) are free for everyone. Special marbles unlock through achievements and are saved on this device.
 // Each special marble "uses up" one basic colour group, so two players never end up with look-alike boards.
 const SPECIALS = [
@@ -2513,7 +2515,7 @@ const SPECIALS = [
     stops:[[0,'#ff4d4d'],[.2,'#ffb020'],[.4,'#f5e400'],[.6,'#2fd36d'],[.8,'#3e7bfa'],[1,'#9b5de5']], css:'linear-gradient(135deg,#ff4d4d,#ffb020,#f5e400,#2fd36d,#3e7bfa,#9b5de5)'},
 ];
 function SKIN(id){
-  if (id && id[0] === 'c' && /^c\d+$/.test(id)) { const i = +id.slice(1); return {id, name:CNAMES[i], grp:i, base:COLORS[i], basic:true}; }
+  if (id && id[0] === 'c' && /^c\d+$/.test(id)) { const i = +id.slice(1); if (i >= BASE_N) return null; return {id, name:CNAMES[i], grp:i, base:COLORS[i], basic:true}; }
   return SPECIALS.find(s => s.id === id) || null;
 }
 // Everyone's actual marble: chosen ones first (first come, first served), then each open seat takes its own colour
@@ -2522,7 +2524,7 @@ function assignSkins(chosen){
   const n = chosen.length, out = new Array(n).fill(null), used = new Set();
   chosen.forEach((id, i) => { const s = SKIN(id); if (s && !used.has(s.grp)) { out[i] = s.id; used.add(s.grp); } });
   for (let i = 0; i < n; i++) if (!out[i]) {
-    let c = i; while (used.has(c)) c = (c + 1) % COLORS.length;
+    let c = i % BASE_N; while (used.has(c)) c = (c + 1) % BASE_N;
     out[i] = 'c' + c; used.add(c);
   }
   return out;
@@ -2644,7 +2646,7 @@ function pickerHTML(){
   return `<div class="mpicker" data-a="mclose"><div class="mbox" data-a="noop">
     <h2 class="ltitle"><i></i>CHOOSE YOUR MARBLE<i></i></h2>
     ${TROPHIES_SOON ? '' : `<h3 class="lh3">SPECIAL</h3><div class="mgrid">${SPECIALS.map(tile).join('')}</div>`}
-    <h3 class="lh3">${TROPHIES_SOON ? 'COLORS' : 'CLASSIC'}</h3><div class="mgrid">${COLORS.map((c, i) => tile(SKIN('c' + i))).join('')}</div>
+    <h3 class="lh3">${TROPHIES_SOON ? 'COLORS' : 'CLASSIC'}</h3><div class="mgrid three">${COLORS.slice(0, BASE_N).map((c, i) => tile(SKIN('c' + i))).join('')}</div>
     <p class="hint">${TROPHIES_SOON ? 'Special unlockable marbles are coming soon.' : 'Tap a locked marble to see how to unlock it.'}</p>
     <button class="lux-btn" data-a="mclose"><span>DONE</span></button></div></div>`;
 }
