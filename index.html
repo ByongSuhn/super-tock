@@ -3045,7 +3045,7 @@ winHTML = function(w){
 let passPreview = null;
 function rewardInfo(r){
   if (r.kind === 'marble') { const m = MSTYLES.find(x => x.id === r.id); return {name: m ? m.name : r.id, img: m ? m.img : '', type:'Marble', fx: m && MFX[m.id]}; }
-  const b = BOARDS.find(x => x.id === r.id); return {name: b ? b.name + ' board' : r.id, img: b ? b.thumb : '', type:'Board'};
+  const b = BOARDS.find(x => x.id === r.id); return {name: b ? b.name + ' Board' : r.id, img: b ? b.thumb : '', type:'Board'};
 }
 function passHTML(){
   const xp = passPreview !== null ? passPreview : (ACH.stats.xp || 0), L = levelOf(xp);
