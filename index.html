@@ -1255,7 +1255,7 @@ function heroBoard(){
 }
 function defaultSetup(mode){
   const n = mode === 'solo' ? 4 : 4;
-  const s = {mode, n, level:'medium', speed:'normal', partners:false, around:true, center:'off', decks:'auto', jokers:true, photo:photoOn(), seats:[]};
+  const s = {mode, n, level:'hard', speed:'normal', partners:false, around:true, center:'off', decks:'auto', jokers:true, photo:photoOn(), seats:[]};
   fitSeats(s);
   return s;
 }
@@ -1990,7 +1990,7 @@ function startGame(again){
     players = order.map(i => { const x = setup.seats[i], sk = SKIN(eff[i]);
       const nm = (x.name || '').trim();
       return {name: x.human ? nm || sk.name : (CNAMES.includes(nm) || !nm ? sk.name : nm), human: x.human, color: sk.grp, skin: eff[i], mskin: x.mskin || null}; });
-    set = {partners: setup.partners && setup.n % 2 === 0, hop: false, around: false, photo: setup.photo, center: setup.center, openHands: false, level: setup.level, speed: setup.speed, decks: 'auto', jokers: setup.jokers};
+    set = {partners: setup.partners && setup.n % 2 === 0, hop: false, around: false, photo: setup.photo, center: setup.center, openHands: false, level: 'hard', speed: setup.speed, decks: 'auto', jokers: setup.jokers};
     cfg = rules;
   }
   G = newGame({players, set, cfg}); G.gid = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
@@ -2089,7 +2089,6 @@ function setupHTML(){
       <label class="namefield">${x.human ? ICON.user : ICON.monitor}<input data-in="seat" data-i="${i}" maxlength="12" value="${esc(x.name)}"></label>
       ${s.partners ? `<button class="team t${x.team}" data-a="team" data-i="${i}">Team ${String.fromCharCode(65 + x.team)}</button>` : `<span class="who ${x.human ? 'h' : ''}">${x.human ? 'You' : 'Computer'}</span>`}</div>`).join('')}</div>
     ${s.partners ? `<p class="hint">${teamsOk(s) ? 'Tap a team to change who’s with who. Partners sit across from each other.' : '<b class="warn">Each team needs exactly 2 players.</b> Tap a team to change it.'}</p>` : ''}
-    ${anyAI ? `<h3 class="lh3">COMPUTER STRENGTH</h3>${lseg('level', ['easy','medium','hard'], ['Relaxed','Medium','Hard'])}` : ''}
     <h3 class="lh3">GAME SPEED</h3>${lseg('speed', ['slow','normal','fast'], ['Relaxed','Normal','Fast'])}
     <h3 class="lh3">GAME OPTIONS</h3>
     <div class="otiles">
@@ -2255,7 +2254,7 @@ const isHostOnline = () => ON.active && ON.host;
 // ---------- lobby ----------
 function defaultLobby(code){
   const s = defaultSetup('solo');
-  return {code, host:ON.pid, started:false, n:4, level:'medium', speed:'normal', partners:false, center:'off', jokers:true,
+  return {code, host:ON.pid, started:false, n:4, level:'hard', speed:'normal', partners:false, center:'off', jokers:true,
     seats:[0,1,2,3].map(i => i === 0 ? {kind:'human', pid:ON.pid, name:(profile.name || 'Host').trim(), team:0} : {kind:'open', pid:null, name:'', team:i % 2})};
 }
 function fitLobby(L){
@@ -2403,7 +2402,7 @@ async function hostStart(){
   const eff = assignSkins(L.seats.map(x => x.kind === 'human' ? x.skin || null : null));
   const players = order.map(i => { const x = L.seats[i]; const human = x.kind === 'human', sk = SKIN(eff[i]);
     return {name: human ? (x.name || 'Player') : sk.name, human, pid: human ? x.pid : null, color:sk.grp, skin:eff[i], mskin: human ? x.mskin || null : null}; });
-  const set = {partners:L.partners && L.n % 2 === 0, hop:false, around:false, center:L.center, openHands:false, level:L.level, speed:L.speed, decks:'auto', jokers:L.jokers};
+  const set = {partners:L.partners && L.n % 2 === 0, hop:false, around:false, center:L.center, openHands:false, level:'hard', speed:L.speed, decks:'auto', jokers:L.jokers};
   G = newGame({players, set, cfg:rules}); G.online = L.code; G.gid = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   L.started = true; await pushLobby();
   lastEv = []; ON.seq = 0; publishState();
@@ -2448,7 +2447,6 @@ function lobbyHTML(){
     <div class="seats">${L.seats.map(seatRow).join('')}</div>
     ${me < 0 && !host ? '<p class="hint center"><b>Tap “Sit here” to take a seat.</b></p>' : ''}
     ${L.partners ? `<p class="hint">${lobbyTeamsOk(L) ? 'Partners sit across from each other.' : '<b class="warn">Each team needs exactly 2 players.</b>'}</p>` : ''}
-    ${L.seats.some(x => x.kind === 'cpu' || x.kind === 'open') ? `<h3 class="lh3">COMPUTER STRENGTH</h3>${lseg('level', ['easy','medium','hard'], ['Relaxed','Medium','Hard'])}` : ''}
     <h3 class="lh3">GAME SPEED</h3>${lseg('speed', ['slow','normal','fast'], ['Relaxed','Normal','Fast'])}
     <h3 class="lh3">GAME OPTIONS</h3>
     <div class="otiles">
