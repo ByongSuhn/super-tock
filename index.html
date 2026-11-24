@@ -526,6 +526,9 @@ html,body{overflow-x:hidden;max-width:100%}html{overflow-x:clip}body{position:re
 .hint.center{text-align:center}
 .cbtn.signed{box-shadow:0 0 0 2px #f0c45c,0 0 14px rgba(240,196,92,.6)}
 .scr.acct,.scr.trophies{min-height:100vh}
+input.locked{opacity:.85;cursor:default}
+.namefield:has(input.locked)::after{content:"🔒";font-size:12px;margin-left:4px;opacity:.7}
+.lockedh{display:block;margin-top:4px;font:12px system-ui;color:#a99bbf}
 
 </style>
 </head>
@@ -2850,7 +2853,14 @@ render = function(){
     const u2 = document.getElementById('au'); if (u2 && keep) u2.value = keep;
     return;
   }
+  if (ME && screen === 'setup' && setup) setup.seats.forEach(x => { if (x.human) x.name = ME.name; });
+  if (ME) { profile.name = ME.name; }
   _render2();
+  if (ME) {                          // signed in: your name is your username, everywhere
+    const lock = inp => { inp.value = ME.name; inp.readOnly = true; inp.classList.add('locked'); inp.title = 'Signed in as ' + ME.name; };
+    if (screen === 'setup') setup.seats.forEach((x, i) => { const inp = x.human && app.querySelector(`input[data-in="seat"][data-i="${i}"]`); if (inp) lock(inp); });
+    if (screen === 'online') { const inp = app.querySelector('input[data-in="pname"]'); if (inp) { lock(inp); inp.insertAdjacentHTML('afterend', '<small class="lockedh">Signed in · sign out from the crown to change</small>'); } }
+  }
   if (screen === 'home' && ME) { const c = app.querySelector('[data-a="profile"]'); if (c) c.classList.add('signed'); }
 };
 document.addEventListener('click', e => {
