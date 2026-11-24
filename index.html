@@ -667,7 +667,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124175859';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124183831';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -2807,7 +2807,7 @@ document.addEventListener('click', e => {
   if (a === 'pickm') {
     e.stopPropagation();
     picker = {mode: screen === 'lobby' ? 'online' : 'solo', seat: +t.dataset.i}; drawPicker();
-  } else if (a === 'mpick') { e.stopPropagation(); if (typeof MSTYLES !== 'undefined' && MARBLES_LIVE && !MSTYLES.some(x => styleOwned(x.id))) return; chooseSkin(t.dataset.v); }
+  } else if (a === 'mpick') { e.stopPropagation(); if (typeof MSTYLES !== 'undefined' && MARBLES_LIVE) return; chooseSkin(t.dataset.v); }
   else if (a === 'mlocked') { e.stopPropagation(); const s = SKIN(t.dataset.v); flash(`Locked · ${s.how}`); }
   else if (a === 'mtaken') { e.stopPropagation(); flash('Someone else has that one'); }
   else if (a === 'mclose') { e.stopPropagation(); picker = null; drawPicker(); }
@@ -2947,15 +2947,15 @@ pickerHTML = function(){
   const fx = pm && MFX[pm.id] ? Object.keys(MFX[pm.id]).map(k => ({swirl:'Swirl', sparkle:'Sparkle', shimmer:'Shimmer', flash:'Lightning'})[k]).filter(Boolean) : [];
   const stage = `<div class="mstage"><div class="mbig">${pm ? styleOrb(colorId, pm.id, 150) : skinOrb(colorId, 150)}</div>
     <div class="minfo"><b>${pm ? esc(pm.name) : 'Plain'}</b>${fx.length ? `<span class="fxtag">${fx.join(' · ')}</span>` : ''}
-    <em>${plock ? 'Locked' : (cur || null) === (pv || null) ? 'Equipped' : pm && takenS.has(pm.id) ? 'Someone in this game has it' : 'Tap again to use'}</em></div></div>`;
+    <em>${plock ? 'Locked' : (cur || null) === (pv || null) ? 'Equipped' : pm && takenS.has(pm.id) ? 'Someone in this game has it' : ''}</em></div></div>`;
   const sec = `<h3 class="lh3">MARBLE STYLE</h3>${stage}<div class="mgrid">${tile(null)}${MSTYLES.map(tile).join('')}</div>`;
   h = h.replace('<h3 class="lh3">COLORS</h3>', '<h3 class="lh3">YOUR COLOR</h3>');
-  if (!MSTYLES.some(m => styleOwned(m.id))) {                 // nothing unlocked yet: you keep your seat's colour
+  {                                                            // your colour is always your seat's colour
     h = h.replace(/<h3 class="lh3">YOUR COLOR<\/h3><div class="mgrid three">[\s\S]*?<\/div>(?=\s*<p class="hint">)/, '');
   }
   if (typeof lookTabs === 'function' && BOARDS.length > 1) h = h.replace(/<h2 class="ltitle">.*?<\/h2>/, lookTabs('marble'));
   h = h.replace('<p class="hint">', sec + '<p class="hint">');
-  h = h.replace('Special unlockable marbles are coming soon.', 'Your color stays on your holes, home and start box, and rings every marble. Styles only change the look.');
+  h = h.replace('Special unlockable marbles are coming soon.', 'The ring around your marbles is your color for that game.');
   return h;
 };
 // picking a colour keeps the picker open now that there are two sections
@@ -2978,10 +2978,10 @@ function chooseStyle(id){
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-a="mstyle"]'); if (!t) return;
   e.stopPropagation();
-  const id = t.dataset.v, shown = pickPrev === null ? (picker && (picker.mode === 'online' ? ON.L.seats : setup.seats)[picker.seat].mskin) || '' : pickPrev;
+  const id = t.dataset.v;
   const others = picker && picker.mode === 'online' ? ON.L.seats.filter((x, i) => i !== picker.seat && x.kind === 'human').map(x => x.mskin) : [];
-  if (id && (shown !== id || !styleOwned(id) || others.includes(id))) { pickPrev = id; drawPicker(); if (shown === id && others.includes(id)) flash('Someone in this game has that one'); return; }   // first tap: look at it up close
-  pickPrev = null; chooseStyle(id);                                                       // second tap: use it
+  if (id && (!styleOwned(id) || others.includes(id))) { pickPrev = id; drawPicker(); return; }   // locked or taken: just show it
+  pickPrev = null; chooseStyle(id);                                                       // one tap picks it
 }, true);
 // "Done" while looking at an unlocked marble puts it on
 window.addEventListener('click', e => {
@@ -3164,7 +3164,7 @@ function boardStageHTML(){
   try { svg = boardSVG(g, N, false, locOf, 'pv', COLORS.slice(0, N), null); } finally { BOARD = keep; }
   const lock = !boardOwned(b.id), on = b.id === BOARD;
   return `<div class="bstage"><svg viewBox="0 0 1000 1000">${svg}</svg>
-    <div class="binfo"><b>${esc(b.name)}</b><em>${lock ? 'Locked' : on ? 'In use' : 'Tap again to use'}</em></div></div>`;
+    <div class="binfo"><b>${esc(b.name)}</b><em>${lock ? 'Locked' : on ? 'In use' : ''}</em></div></div>`;
 }
 var boardSheet = false;
 function mySeat(){ return screen === 'setup' ? setup.seats.findIndex(x => x.human) : (ON.L ? ON.L.seats.findIndex(x => x.pid === ON.pid) : -1); }
@@ -3201,8 +3201,8 @@ document.addEventListener('click', e => {
   if (a === 'pickboard') {
     e.stopPropagation();
     const id = t.dataset.v, shown = boardPrev || BOARD;
-    if (shown !== id || !boardOwned(id)) boardPrev = id;                     // first tap: look at it
-    else { BOARD = id; LS.set('st.board', BOARD); boardPrev = null; }         // second tap: use it
+    if (!boardOwned(id)) boardPrev = id;                                     // locked: just show it
+    else { BOARD = id; LS.set('st.board', BOARD); boardPrev = null; }         // one tap picks it
     drawBoardSheet(); render();
   } else if (a === 'lookopen' || a === 'looktab') { e.stopPropagation(); openLook(t.dataset.v); }
   else if (a === 'bopen') { e.stopPropagation(); boardSheet = true; boardPrev = null; drawBoardSheet(); }
@@ -3336,8 +3336,8 @@ gameTrack = function(){
   if (isNew && t) {
     t.off = !G.online;
     for (const [k, v] of Object.entries(ACH.games)) if (k !== G.gid && !v.done && !v.quit) {
-      v.quit = true; ACH.stats.streak = 0;
-      if (v.off) ACH.stats.losses = (ACH.stats.losses || 0) + 1;    // walking away from a computer game is a loss
+      v.quit = true;
+      if (v.off && v.far && !v.lossCounted) { v.lossCounted = true; ACH.stats.losses = (ACH.stats.losses || 0) + 1; ACH.stats.streak = 0; }
     }
     achSave();
   }
@@ -3437,7 +3437,7 @@ render = function(){
   if (PASS_LIVE && screen === 'game' && G && G.phase !== 'over' && viewer >= 0 && G.players[viewer] && G.players[viewer].human) { try { gameTrack(); } catch (e) {} }
   if (PASS_LIVE && !boardOwned(BOARD)) BOARD = 'classic';
   if (PASS_LIVE && screen === 'setup' && setup) setup.seats.forEach(x => { if (x.human && x.mskin && !styleOwned(x.mskin)) x.mskin = null; });
-  if (PASS_LIVE && !MSTYLES.some(m => styleOwned(m.id))) {          // no marbles unlocked yet: everyone keeps their seat colour
+  if (PASS_LIVE) {                                                  // everyone keeps their seat colour
     if (profile.skin) { profile.skin = null; LS.set('st.profile', profile); }
     if (screen === 'setup' && setup) setup.seats.forEach(x => { if (x.human) x.skin = null; });
   }
@@ -3467,6 +3467,42 @@ render = function(){
     }
   }
   _render7();
+};
+
+// ---------- leaving a computer game part-way counts as a loss ----------
+// It only counts once the game is well under way: someone has 2+ marbles home, or you're past the first deal.
+// Leave early (wrong rules, wrong settings) and nothing happens. Come back and finish, and the loss is taken back.
+function gameFar(g){ return g && (g.hand >= 2 || g.m.some(ms => ms.filter(m => m.z === 'h').length >= 2)); }
+function soloTrack(){ return PASS_LIVE && G && !G.online && G.phase !== 'over' && viewer >= 0 && G.players[viewer] && G.players[viewer].human ? gameTrack() : null; }
+function markLeft(){
+  const t = soloTrack(); if (!t) return;
+  t.far = gameFar(G);
+  if (t.far && !t.lossCounted) {
+    t.lossCounted = true; t.prevStreak = ACH.stats.streak || 0;
+    ACH.stats.losses = (ACH.stats.losses || 0) + 1; ACH.stats.streak = 0; achSave();
+  }
+}
+function markBack(){                                    // you came back to the same game: undo the pending loss
+  const t = soloTrack(); if (!t || !t.lossCounted || t.quit) return;
+  t.lossCounted = false; ACH.stats.losses = Math.max(0, (ACH.stats.losses || 0) - 1);
+  ACH.stats.streak = t.prevStreak || 0; achSave();
+}
+let lastScreen = null;
+const _render8 = render;
+render = function(){
+  const was = lastScreen; lastScreen = screen;
+  if (was === 'game' && screen !== 'game') markLeft();
+  if (was !== 'game' && screen === 'game') markBack();
+  _render8();
+};
+document.addEventListener('visibilitychange', () => { if (screen !== 'game') return; if (document.hidden) markLeft(); else markBack(); });
+window.addEventListener('pagehide', () => { if (screen === 'game') markLeft(); });
+// a finished game that already had a pending loss: settle it properly
+const _achWin3 = achWin;
+achWin = function(w){
+  const t = G && G.gid && ACH.games[G.gid];
+  if (t && t.lossCounted && !t.done) { t.lossCounted = false; ACH.stats.losses = Math.max(0, (ACH.stats.losses || 0) - 1); ACH.stats.streak = t.prevStreak || 0; }
+  return _achWin3(w);
 };
 
 // ===================== Accounts: pick a username + password, progress saved in the cloud =====================
