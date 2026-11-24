@@ -612,6 +612,14 @@ input.locked{opacity:.85;cursor:default}
 .binfo{display:flex;justify-content:space-between;align-items:baseline;padding:8px 6px 2px}
 .binfo b{font:700 20px Cinzel,Georgia,serif;color:#f3e6c8}.binfo em{font:600 13px system-ui;font-style:normal;color:#cbbfdc}
 .theme.pv{outline:2px dashed rgba(240,196,92,.8);outline-offset:3px}
+#bpick .mpicker{position:fixed;inset:0;z-index:80;background:rgba(8,4,16,.72);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+#bpick .mbox{width:min(560px,100%);max-height:90vh;overflow:auto;background:linear-gradient(180deg,#24153a,#120a20);border:2px solid rgba(224,176,79,.7);border-bottom:0;border-radius:24px 24px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom))}
+#bpick .bstage{position:sticky;top:-18px;z-index:3}
+#bpick .themes{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;row-gap:24px;padding-bottom:14px}
+.brow{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border-radius:16px;background:rgba(255,255,255,.04);border:1.5px solid rgba(240,196,92,.4);color:#f3e6c8;text-align:left;cursor:pointer}
+.brow .bthumb{width:48px;height:48px}
+.brow span{flex:1;min-width:0}.brow b{display:block;font:700 17px Cinzel,Georgia,serif}.brow small{font:12px system-ui;color:#cbbfdc}
+.brow em{font-style:normal;width:26px;height:26px;border-radius:50%;background:#e0b04f;color:#2b1808;display:grid;place-items:center;font:700 13px system-ui}
 
 </style>
 </head>
@@ -2208,8 +2216,7 @@ function settingsHTML(){
     <div class="sgroup">
       <div class="srow">${ICON.sound}<span>Sound Effects <em class="soon">SOON</em></span>${sw(false, false, 'soon')}</div>
       <div class="srow">${ICON.music}<span>Music <em class="soon">SOON</em></span>${sw(false, false, 'soon')}</div>
-      ${BOARDS.length < 2 ? `<div class="srow">${ICON.palette}<span>Boards <em class="soon">SOON</em></span></div>` : ''}<div class="srow col" ${BOARDS.length < 2 ? 'hidden' : ''}>${ICON.palette}<span>Board</span>
-        ${typeof boardStageHTML === 'function' ? boardStageHTML() : ''}<div class="themes">${BOARDS.map(b => `<button class="theme ${b.id === BOARD ? 'on' : ''} ${typeof boardPrev !== 'undefined' && boardPrev === b.id ? 'pv' : ''}" data-a="pickboard" data-v="${b.id}" style="${b.thumb ? `background:center/cover url(${b.thumb})` : ''}" aria-label="${b.name}">${b.thumb ? '' : '<i class="classic"></i>'}${b.id === BOARD ? `<i class="tick">${ICON.check}</i>` : ''}<em>${b.name}</em></button>`).join('')}</div></div>
+
     </div>
     <button class="lux-cta" data-a="settingsx">BACK TO GAME</button>
   </div>`;
@@ -3099,17 +3106,48 @@ function boardStageHTML(){
   return `<div class="bstage"><svg viewBox="0 0 1000 1000">${svg}</svg>
     <div class="binfo"><b>${esc(b.name)}</b><em>${lock ? 'Locked' : on ? 'In use' : 'Tap again to use'}</em></div></div>`;
 }
+var boardSheet = false;
+function boardSheetHTML(){
+  const tile = b => `<button class="theme ${b.id === BOARD ? 'on' : ''} ${boardPrev === b.id ? 'pv' : ''}" data-a="pickboard" data-v="${b.id}" style="${b.thumb ? `background:center/cover url(${b.thumb})` : ''}" aria-label="${b.name}">${b.thumb ? '' : '<i class="classic"></i>'}${b.id === BOARD ? `<i class="tick">${ICON.check}</i>` : ''}<em>${b.name}</em></button>`;
+  return `<div class="mpicker" data-a="bclose"><div class="mbox" data-a="noop">
+    <h2 class="ltitle"><i></i>CHOOSE YOUR BOARD<i></i></h2>
+    ${boardStageHTML()}
+    <div class="themes">${BOARDS.map(tile).join('')}</div>
+    <p class="hint">Your board is just for you, and it's locked in once the game starts.</p>
+    <button class="lux-btn" data-a="bclose"><span>DONE</span></button></div></div>`;
+}
+function drawBoardSheet(){
+  let el = document.getElementById('bpick');
+  if (!boardSheet) { if (el) el.remove(); boardPrev = null; return; }
+  const box = el && el.querySelector('.mbox'), y = box ? box.scrollTop : 0;
+  if (!el) { el = document.createElement('div'); el.id = 'bpick'; document.body.appendChild(el); }
+  el.innerHTML = boardSheetHTML();
+  const b2 = el.querySelector('.mbox'); if (b2) b2.scrollTop = y;
+}
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-a="pickboard"]'); if (!t) return;
-  e.stopPropagation();
-  const id = t.dataset.v, shown = boardPrev || BOARD;
-  if (shown !== id || !boardOwned(id)) boardPrev = id;                       // first tap: look at it
-  else { BOARD = id; LS.set('st.board', BOARD); boardPrev = null;              // second tap: use it
-    if (typeof G !== 'undefined' && G && document.getElementById('board') && typeof buildBoard === 'function') { try { buildBoard(); } catch (x) {} } }
-  const box = document.querySelector('.settings'), y = box ? box.scrollTop : 0;
-  render();
-  const b2 = document.querySelector('.settings'); if (b2) b2.scrollTop = y;
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  const a = t.dataset.a;
+  if (a === 'pickboard') {
+    e.stopPropagation();
+    const id = t.dataset.v, shown = boardPrev || BOARD;
+    if (shown !== id || !boardOwned(id)) boardPrev = id;                     // first tap: look at it
+    else { BOARD = id; LS.set('st.board', BOARD); boardPrev = null; }         // second tap: use it
+    drawBoardSheet(); render();
+  } else if (a === 'bopen') { e.stopPropagation(); boardSheet = true; boardPrev = null; drawBoardSheet(); }
+  else if (a === 'bclose') { e.stopPropagation(); boardSheet = false; drawBoardSheet(); }
 }, true);
+// a "Board" row on the new-game screen and in the online lobby, before the game starts
+const _render5 = render;
+render = function(){
+  _render5();
+  if (boardSheet && screen !== 'setup' && screen !== 'lobby') { boardSheet = false; drawBoardSheet(); }
+  if (BOARDS.length < 2 || (screen !== 'setup' && !(screen === 'lobby' && ON.L && !ON.L.started))) return;
+  const seats = app.querySelector('.seats'); if (!seats || app.querySelector('.brow')) return;
+  const b = BOARDS.find(x => x.id === BOARD) || BOARDS[0];
+  seats.insertAdjacentHTML('afterend', `<h3 class="lh3">YOUR BOARD</h3><button class="brow" data-a="bopen">
+    <i class="bthumb" style="${b.thumb ? `background-image:url(${b.thumb})` : 'background:radial-gradient(circle at 42% 36%,#f6c886,#dfa560 55%,#b47a3c)'}"></i>
+    <span><b>${esc(b.name)}</b><small>Tap to change</small></span><em>✎</em></button>`);
+};
 render();
 
 // ===================== Accounts: pick a username + password, progress saved in the cloud =====================
