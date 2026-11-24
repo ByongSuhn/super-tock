@@ -638,6 +638,11 @@ input.locked{opacity:.85;cursor:default}
 .tierl.t4,.tierl.t5{background:rgba(240,196,92,.22);color:#f0c45c}
 .trow .bthumb{flex:none}
 .pvw button[data-a=testall]{padding:0 14px}
+.achtoast.multi{flex-direction:column;align-items:stretch;text-align:center;padding:12px 16px}
+.achtoast .arts{display:flex;gap:6px;justify-content:center;flex-wrap:nowrap;margin:8px 0 6px}
+.achtoast .arts .orb,.achtoast .arts .bthumb{box-shadow:0 0 0 2px #f0c45c,0 2px 6px rgba(0,0,0,.5)}
+.achtoast .more{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:#f0c45c;color:#2b1808;font:700 12px system-ui;font-style:normal}
+.achtoast.multi span{max-width:80vw}
 
 </style>
 </head>
@@ -3267,15 +3272,27 @@ function rewardName(kind, id){
   if (kind === 'marble') { const m = MSTYLES.find(x => x.id === id); return m ? m.name : id; }
   const b = BOARDS.find(x => x.id === id); return b ? b.name + ' Board' : id;
 }
+let achT = null;
 function achShowToast(){
   if (achShowing || !achQ.length) return;
-  achShowing = true;
-  const a = achQ.shift(), el = document.createElement('div'); el.className = 'achtoast';
-  el.innerHTML = `${rewardArt(a.kind, a.reward, 44)}<div><small>ACHIEVEMENT UNLOCKED</small><b>${esc(a.name)}</b><span>New ${a.kind}: ${esc(rewardName(a.kind, a.reward))}</span></div>`;
-  el.addEventListener('click', () => el.remove());
-  document.body.appendChild(el);
-  setTimeout(() => el.classList.add('out'), 3600);
-  setTimeout(() => { el.remove(); achShowing = false; achShowToast(); }, 4100);
+  clearTimeout(achT);
+  achT = setTimeout(() => {                         // wait a moment so everything from one turn lands in one pop-up
+    if (achShowing || !achQ.length) return;
+    achShowing = true;
+    const list = achQ.splice(0), el = document.createElement('div'); el.className = 'achtoast' + (list.length > 1 ? ' multi' : '');
+    if (list.length === 1) { const x = list[0];
+      el.innerHTML = `${rewardArt(x.kind, x.reward, 44)}<div><small>ACHIEVEMENT UNLOCKED</small><b>${esc(x.name)}</b><span>New ${x.kind}: ${esc(rewardName(x.kind, x.reward))}</span></div>`;
+    } else {
+      el.innerHTML = `<div><small>${list.length} ACHIEVEMENTS UNLOCKED</small>
+        <div class="arts">${list.slice(0, 6).map(x => rewardArt(x.kind, x.reward, 34)).join('')}${list.length > 6 ? `<i class="more">+${list.length - 6}</i>` : ''}</div>
+        <span>${esc(list.map(x => x.name).join(' · '))}</span></div>`;
+    }
+    el.addEventListener('click', () => el.remove());
+    document.body.appendChild(el);
+    const ms = list.length > 1 ? 5200 : 3600;
+    setTimeout(() => el.classList.add('out'), ms);
+    setTimeout(() => { el.remove(); achShowing = false; achShowToast(); }, ms + 500);
+  }, 400);
 }
 
 // ---------- counting during a game ----------
