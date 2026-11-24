@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Super Tock">
 <meta name="theme-color" content="#17121f">
 <title>Super Tock</title>
@@ -531,8 +533,8 @@ input.locked{opacity:.85;cursor:default}
 .lockedh{display:block;margin-top:4px;font:12px system-ui;color:#a99bbf}
 .acct.gate .gatehead{display:flex;flex-direction:column;align-items:center;text-align:center;padding:calc(30px + env(safe-area-inset-top)) 0 6px}
 .splash{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px}
-.spin{width:34px;height:34px;border-radius:50%;border:3px solid rgba(240,196,92,.25);border-top-color:#f0c45c;animation:spin 1s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
+.spin{width:34px;height:34px;border-radius:50%;border:3px solid rgba(240,196,92,.25);border-top-color:#f0c45c;animation:spinner 1s linear infinite}
+@keyframes spinner{to{transform:rotate(360deg)}}
 .splash .ribbon,.splash>*:first-child{margin:0 auto}.splash{align-items:center}
 .acct .tstats:has(> div:nth-child(2):last-child){grid-template-columns:repeat(2,1fr)}
 .mgrid.three{grid-template-columns:repeat(3,1fr)}
@@ -646,13 +648,20 @@ input.locked{opacity:.85;cursor:default}
 .pchip .lvp{display:inline-grid;place-items:center;min-width:22px;height:18px;padding:0 5px;margin-right:4px;border-radius:9px;background:linear-gradient(180deg,#f6d27a,#c9932f);color:#2b1808;font:800 10px/18px system-ui;font-style:normal;vertical-align:1px}
 .pchip .lvp.max{background:linear-gradient(180deg,#fff1c4,#f0c45c);box-shadow:0 0 8px rgba(240,196,92,.8)}
 
+.home.lux .tilt{will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+/* home board: the tilt stays still, only the board inside turns, so it can never drift off center */
+.home.lux .tilt{animation:none!important;transform:perspective(900px) rotateX(52deg)}
+.home.lux .tilt svg{animation:boardturn 80s linear infinite;transform-origin:50% 50%;will-change:transform}
+@keyframes boardturn{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.home.lux .tilt svg{animation-duration:240s}}
+
 </style>
 </head>
 <body>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true;</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124174244';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -1329,12 +1338,14 @@ function photoOn(){ return LS.get('st.photoOn', true); }
 let _hero = null;
 function heroBoard(){
   if (_hero) return _hero;
+  const keepB = typeof BOARD !== 'undefined' ? BOARD : null; if (keepB !== null) BOARD = 'classic';   // the home screen always shows the classic board
   const g = buildGeom(6); g.stars = [];
   const spots = {0:[2, 9, 30], 1:[44, 60], 2:[75], 3:[90, 101], 4:[14], 5:[52, 66, 80]};
   _hero = boardSVG(g, 6, false, k => { const p = k >> 2, i = k & 3, t = spots[p] || [];
     if (i < t.length) return {z:'t', p, i:t[i] % g.L};
     if (p === 0 && i === 3) return {z:'h', p, i:3};
     return {z:'s', p, i}; }, 'hb', null, null);
+  if (keepB !== null) BOARD = keepB;
   return _hero;
 }
 function defaultSetup(mode){
@@ -2150,7 +2161,7 @@ function homeHTML(){
     <div class="corner-btns"><button class="cbtn gold" data-a="profile" aria-label="Profile">${ICON.crown}</button><button class="cbtn gold" data-a="trophies" aria-label="Trophies">${ICON.trophy}</button></div>
     <div class="fan">${fanCards()}</div>
     <div class="crest"><span class="gem t"></span><h1>SUPER<span>TOCK</span></h1><span class="gem b"></span></div>
-    <div class="hero"><div class="tilt"><svg viewBox="0 0 1000 1000">${heroBoard()}</svg></div></div>
+    <div class="hero"><div class="tilt"><svg style="animation-delay:-${((Date.now() / 1000) % 80).toFixed(2)}s" viewBox="0 0 1000 1000">${heroBoard()}</svg></div></div>
     <p class="tag">YOUR CARDS. YOUR RULES.<br>RACE HOME.</p>
     <button class="lux-cta" data-a="setup" data-mode="solo"><span>▶</span> PLAY GAME</button>
     ${resume ? `<button class="lux-btn" data-a="resume">${ICON.bookmark}<span>RESUME GAME</span><small>${saved.G.N} players</small></button>` : ''}
@@ -3568,6 +3579,31 @@ document.addEventListener('click', e => {
 }, true);
 document.addEventListener('keydown', e => { if (e.key === 'Enter' && screen === 'profile' && (e.target.id === 'au' || e.target.id === 'ap')) doAuth(); });
 render();
+
+// ===================== Auto-update for the home-screen app =====================
+// Apps saved to the home screen don't refresh on their own. When the app comes back to the front (or every few
+// minutes), check whether a newer version is up; if so, reload right away on a menu screen, or after the game ends.
+var BUILD = window.SUPER_TOCK_BUILD || '';
+let updWaiting = false;
+async function checkUpdate(){
+  if (!BUILD || location.protocol === 'file:') return;
+  try {
+    const r = await fetch(location.pathname + '?v=' + Date.now(), {cache:'no-store'});
+    const t = await r.text(), m = t.match(/SUPER_TOCK_BUILD = '([^']+)'/);
+    if (m && m[1] !== BUILD) { updWaiting = true; applyUpdate(); }
+  } catch (e) {}
+}
+function applyUpdate(){
+  if (!updWaiting) return;
+  const inGame = typeof G !== 'undefined' && G && G.phase !== 'over' && (screen === 'game' || document.getElementById('board'));
+  if (inGame) return;                                    // never interrupt a game in progress
+  location.replace(location.pathname + location.search);
+}
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(); });
+window.addEventListener('pageshow', e => { if (e.persisted) checkUpdate(); });
+setInterval(checkUpdate, 5 * 60 * 1000);
+const _renderU = render;
+render = function(){ _renderU(); if (updWaiting) setTimeout(applyUpdate, 0); };
 
 </script>
 </body>
