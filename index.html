@@ -629,6 +629,15 @@ input.locked{opacity:.85;cursor:default}
 .ltabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(240,196,92,.3);margin:0 0 14px}
 .ltabs button{min-height:42px;border-radius:999px;border:0;background:transparent;color:#f3e6c8;font:700 15px Cinzel,Georgia,serif;letter-spacing:1px}
 .ltabs button.on{background:linear-gradient(180deg,#f6d27a,#c9932f);color:#2b1808}
+#bpick .theme.lock{filter:saturate(.3) brightness(.55)}
+#bpick .theme.lock::after{content:"🔒";position:absolute;top:4px;right:6px;font-size:12px}
+.trtabs{margin:2px 0 14px}
+.trow .rw{display:block;font:600 12px system-ui;color:#f0c45c;margin:-2px 0 6px}
+.tierl{display:inline-block;font:700 9px system-ui;letter-spacing:1.5px;padding:2px 6px;border-radius:6px;margin-bottom:3px;background:rgba(255,255,255,.08);color:#cbbfdc}
+.tierl.t2{background:rgba(62,123,250,.2);color:#9dbbff}.tierl.t3{background:rgba(155,93,229,.25);color:#d3b6ff}
+.tierl.t4,.tierl.t5{background:rgba(240,196,92,.22);color:#f0c45c}
+.trow .bthumb{flex:none}
+.pvw button[data-a=testall]{padding:0 14px}
 
 </style>
 </head>
@@ -3137,7 +3146,7 @@ function openLook(tab){
   else { picker = null; drawPicker(); boardSheet = true; boardPrev = null; drawBoardSheet(); }
 }
 function boardSheetHTML(){
-  const tile = b => `<button class="theme ${b.id === BOARD ? 'on' : ''} ${boardPrev === b.id ? 'pv' : ''}" data-a="pickboard" data-v="${b.id}" style="${b.thumb ? `background:center/cover url(${b.thumb})` : ''}" aria-label="${b.name}">${b.thumb ? '' : '<i class="classic"></i>'}${b.id === BOARD ? `<i class="tick">${ICON.check}</i>` : ''}<em>${b.name}</em></button>`;
+  const tile = b => `<button class="theme ${b.id === BOARD ? 'on' : ''} ${boardPrev === b.id ? 'pv' : ''} ${boardOwned(b.id) ? '' : 'lock'}" data-a="pickboard" data-v="${b.id}" style="${b.thumb ? `background:center/cover url(${b.thumb})` : ''}" aria-label="${b.name}">${b.thumb ? '' : '<i class="classic"></i>'}${b.id === BOARD ? `<i class="tick">${ICON.check}</i>` : ''}<em>${b.name}</em></button>`;
   return `<div class="mpicker" data-a="bclose"><div class="mbox" data-a="noop">
     ${lookTabs('board')}
     ${boardStageHTML()}
@@ -3182,6 +3191,191 @@ render = function(){
     <button data-a="lookopen" data-v="marble" ${me < 0 ? 'disabled' : ''}>${orb || '<i class="orb" style="width:48px;height:48px;opacity:.3"></i>'}<span><small>MARBLE</small><b>${me < 0 ? 'Take a seat' : esc(lookMarbleName(me))}</b></span></button>
     <button data-a="lookopen" data-v="board"><i class="bthumb" style="${b.thumb ? `background-image:url(${b.thumb})` : 'background:radial-gradient(circle at 42% 36%,#f6c886,#dfa560 55%,#b47a3c)'}"></i><span><small>BOARD</small><b>${esc(b.name)}</b></span></button></div>`);
 };
+render();
+
+// ===================== Achievements: 30 unlocks on top of the battle pass =====================
+// Only finished games count. Progress lives in ACH.stats (numbers) and ACH.un['a:<id>'] (done), which sync to the account.
+var ACHS = [
+  {id:'first-steps',  name:'First Steps',      how:'Finish your first game',                 stat:'games',      n:1,   tier:1, kind:'marble', reward:'toxic-lime'},
+  {id:'first-blood',  name:'First Blood',      how:'Bink your first marble',                 stat:'binks',      n:1,   tier:1, kind:'marble', reward:'violet-magic'},
+  {id:'winner',       name:'Winner Winner',    how:'Win your first game',                    stat:'wins',       n:1,   tier:1, kind:'marble', reward:'obsidian-gold'},
+  {id:'grinder',      name:'Grinder',          how:'Finish 10 games',                        stat:'games',      n:10,  tier:1, kind:'marble', reward:'steampunk'},
+  {id:'teamwork',     name:'Teamwork',         how:'Win a partner game',                     stat:'pWins',      n:1,   tier:1, kind:'marble', reward:'prism-opal'},
+  {id:'online-debut', name:'Online Debut',     how:'Win an online game',                     stat:'oWins',      n:1,   tier:1, kind:'board',  reward:'whitemarble'},
+  {id:'lucky-seven',  name:'Lucky Seven',      how:'Get a marble home using a 7',            stat:'sevenHome',  n:1,   tier:2, kind:'marble', reward:'emerald'},
+  {id:'wild-card',    name:'Wild Card',        how:'Get 10 marbles out with a Joker',        stat:'jokerOuts',  n:10,  tier:2, kind:'marble', reward:'frost-crystal'},
+  {id:'bullseye',     name:'Bullseye',         how:'Land in the center hole 10 times',       stat:'center',     n:10,  tier:2, kind:'marble', reward:'royal-amethyst'},
+  {id:'crowded-house',name:'Crowded House',    how:'Win a 6-player game',                    stat:'wins6',      n:1,   tier:2, kind:'board',  reward:'blackmarble'},
+  {id:'odd-one-out',  name:'Odd One Out',      how:'Win a 5-player game',                    stat:'wins5',      n:1,   tier:2, kind:'marble', reward:'prismatic'},
+  {id:'collector',    name:'Collector',        how:'Unlock 15 marbles',                      stat:'marblesOwned', n:15, tier:2, kind:'board', reward:'pirate'},
+  {id:'bink-machine', name:'Bink Machine',     how:'Bink 50 marbles',                        stat:'binks',      n:50,  tier:2, kind:'marble', reward:'titanium'},
+  {id:'royal-decree', name:'Royal Decree',     how:'Bink with a King 10 times',              stat:'kingBinks',  n:10,  tier:2, kind:'board',  reward:'amethyst'},
+  {id:'dynamic-duo',  name:'Dynamic Duo',      how:'Win 10 partner games',                   stat:'pWins',      n:10,  tier:2, kind:'board',  reward:'poker'},
+  {id:'veteran',      name:'Veteran',          how:'Finish 25 games',                        stat:'games',      n:25,  tier:2, kind:'board',  reward:'roman'},
+  {id:'hat-trick',    name:'Hat Trick',        how:'Win 3 games in a row',                   stat:'bestStreak', n:3,   tier:2, kind:'marble', reward:'aurora'},
+  {id:'social',       name:'Social Butterfly', how:'Win 10 online games',                    stat:'oWins',      n:10,  tier:2, kind:'marble', reward:'dark-aurora'},
+  {id:'bink-25',      name:'Sharpshooter',     how:'Bink 25 marbles',                        stat:'binks',      n:25,  tier:2, kind:'marble', reward:'black-diamond'},
+  {id:'double-trouble',name:'Double Trouble',  how:'Bink 2 marbles in one turn',             stat:'bestTurn',   n:2,   tier:3, kind:'marble', reward:'stormborn'},
+  {id:'storm-front',  name:'Storm Front',      how:'Bink 3 marbles in one turn',             stat:'bestTurn',   n:3,   tier:3, kind:'marble', reward:'storm-lightning'},
+  {id:'golden',       name:'Golden Touch',     how:'Win 25 games',                           stat:'wins',       n:25,  tier:4, kind:'marble', reward:'golden-dragon'},
+  {id:'fire-ice',     name:'Six Shooter',      how:'Win 10 six-player games',                stat:'wins6',      n:10,  tier:4, kind:'marble', reward:'fire-ice'},
+  {id:'nebula',       name:'Out of This World',how:'Get all 4 marbles home before any opponent gets 2 home', stat:'nebula', n:1, tier:4, kind:'marble', reward:'cosmic-nebula'},
+  {id:'bink-lord',    name:'Bink Lord',        how:'Bink 100 marbles',                       stat:'binks',      n:100, tier:4, kind:'marble', reward:'inferno'},
+  {id:'half-century', name:'Half Century',     how:'Finish 50 games',                        stat:'games',      n:50,  tier:4, kind:'marble', reward:'dragon-scale'},
+  {id:'high-roller',  name:'High Roller',      how:'Win 5 games in a row',                   stat:'bestStreak', n:5,   tier:4, kind:'board',  reward:'roulette'},
+  {id:'dragon-slayer',name:'Dragon Slayer',    how:'Win 25 online games',                    stat:'oWins',      n:25,  tier:4, kind:'board',  reward:'dragon'},
+  {id:'lava',         name:'Scorched Earth',   how:'Bink 200 marbles',                       stat:'binks',      n:200, tier:4, kind:'board',  reward:'lava'},
+  {id:'galaxy-board', name:'Master of Tock',   how:'Unlock everything else',                 stat:'allElse',    n:1,   tier:5, kind:'board',  reward:'galaxy'},
+];
+var TIER = {1:'Starter', 2:'Skill', 3:'Hard', 4:'Legendary', 5:'Legendary'};
+var TESTALL = LS.get('st.testall', false);                     // test copy: see everything unlocked
+const achDone = a => !!(ACH.un && ACH.un['a:' + a.id]);
+function passUnlocked(kind, id){ const L = levelOf(ACH.stats.xp).lv; return PASS.some(r => r.kind === kind && r.id === id && L >= r.lv); }
+function itemOwned(kind, id){
+  if (!PASS_LIVE || TESTALL) return true;
+  if (kind === 'board' && id === 'classic') return true;
+  if (passUnlocked(kind, id)) return true;
+  return ACHS.some(a => a.kind === kind && a.reward === id && achDone(a));
+}
+styleOwned = id => itemOwned('marble', id);
+boardOwned = id => itemOwned('board', id);
+function unlockHow(kind, id){
+  const p = PASS.find(r => r.kind === kind && r.id === id); if (p) return `Reach level ${p.lv}`;
+  const a = ACHS.find(x => x.kind === kind && x.reward === id); return a ? `${a.name}: ${a.how}` : '';
+}
+function statOf(a){
+  const s = ACH.stats;
+  if (a.stat === 'marblesOwned') return MSTYLES.filter(m => itemOwned('marble', m.id)).length;
+  if (a.stat === 'allElse') return ACHS.every(x => x === a || achDone(x)) && PASS.every(r => levelOf(s.xp).lv >= r.lv) ? 1 : 0;
+  return s[a.stat] || 0;
+}
+// check everything after any change; show a pop-up for each new one
+let achQ = [], achShowing = false;
+function achCheck(){
+  if (!PASS_LIVE) return;
+  let any = true;
+  while (any) { any = false;
+    for (const a of ACHS) if (!achDone(a) && statOf(a) >= a.n) { ACH.un['a:' + a.id] = Date.now(); achQ.push(a); any = true; }
+  }
+  achShowToast();
+}
+function rewardArt(kind, id, size){
+  if (kind === 'marble') { const m = MSTYLES.find(x => x.id === id); return m ? `<i class="orb img" style="background:center/cover url(${m.img});--rc:#f0c45c;width:${size}px;height:${size}px"></i>` : ''; }
+  const b = BOARDS.find(x => x.id === id); return b ? `<i class="bthumb" style="width:${size}px;height:${size}px;background-image:url(${b.thumb})"></i>` : '';
+}
+function rewardName(kind, id){
+  if (kind === 'marble') { const m = MSTYLES.find(x => x.id === id); return m ? m.name : id; }
+  const b = BOARDS.find(x => x.id === id); return b ? b.name + ' Board' : id;
+}
+function achShowToast(){
+  if (achShowing || !achQ.length) return;
+  achShowing = true;
+  const a = achQ.shift(), el = document.createElement('div'); el.className = 'achtoast';
+  el.innerHTML = `${rewardArt(a.kind, a.reward, 44)}<div><small>ACHIEVEMENT UNLOCKED</small><b>${esc(a.name)}</b><span>New ${a.kind}: ${esc(rewardName(a.kind, a.reward))}</span></div>`;
+  el.addEventListener('click', () => el.remove());
+  document.body.appendChild(el);
+  setTimeout(() => el.classList.add('out'), 3600);
+  setTimeout(() => { el.remove(); achShowing = false; achShowToast(); }, 4100);
+}
+
+// ---------- counting during a game ----------
+const cnt = (p, z) => G.m[p].filter(m => m.z === z).length;
+const _achMove2 = achMove;
+achMove = function(ev, mover){
+  _achMove2(ev, mover);
+  if (!PASS_LIVE || !G || viewer < 0 || viewer >= G.N || !G.players[viewer] || !G.players[viewer].human) return;
+  const t = gameTrack(); if (!t) return;
+  const s = ACH.stats, card = G.last && G.last.card, mate = G.set.partners ? mateOf(G, viewer) : -1;
+  const pv = t.pv || {s: 4, ms: mate >= 0 ? 4 : 0, c: 0, h: 0};
+  const now = {s: cnt(viewer, 's'), ms: mate >= 0 ? cnt(mate, 's') : 0, c: cnt(viewer, 'c'), h: cnt(viewer, 'h')};
+  if (mover === viewer && card) {
+    let mine = 0;
+    for (const e of ev || []) if (e.bump) { const v = e.key >> 2; if (v !== viewer && v !== mate) mine++; }
+    if (mine) { s.bestTurn = Math.max(s.bestTurn || 0, mine); if (card.r === 'K') s.kingBinks = (s.kingBinks || 0) + 1; }
+    if (card.r === 'JK') { const outs = Math.max(0, pv.s - now.s) + Math.max(0, pv.ms - now.ms); if (outs) s.jokerOuts = (s.jokerOuts || 0) + outs; }
+    if (now.c > pv.c) s.center = (s.center || 0) + 1;
+    if (card.r === '7' && now.h > pv.h) s.sevenHome = (s.sevenHome || 0) + 1;
+  }
+  if (now.h === 4 && pv.h < 4 && !t.neb) {
+    t.neb = true;
+    let worst = 0; for (let q = 0; q < G.N; q++) if (q !== viewer && q !== mate) worst = Math.max(worst, cnt(q, 'h'));
+    if (worst < 2) s.nebula = 1;
+  }
+  t.pv = now;
+  achCheck(); achSave();
+};
+// a finished game
+const _achWin2 = achWin;
+achWin = function(w){
+  const t = gameTrack(), first = t && !t.done;
+  _achWin2(w);
+  if (!PASS_LIVE || !first || viewer < 0 || !G.players[viewer] || !G.players[viewer].human) return;
+  const s = ACH.stats, won = w.players.includes(viewer);
+  // (games and wins are counted by the level system and the old tracker)
+  if (won) {
+    if (G.set.partners) s.pWins = (s.pWins || 0) + 1;
+    if (G.online) s.oWins = (s.oWins || 0) + 1;
+    if (G.N === 6) s.wins6 = (s.wins6 || 0) + 1;
+    if (G.N === 5) s.wins5 = (s.wins5 || 0) + 1;
+    s.streak = (s.streak || 0) + 1; s.bestStreak = Math.max(s.bestStreak || 0, s.streak);
+  } else s.streak = 0;
+  achCheck(); achSave();
+};
+
+// ---------- the Trophies screen: Battle Pass + Achievements tabs ----------
+var trophyTab = 'pass';
+function achListHTML(){
+  const done = ACHS.filter(achDone).length;
+  const row = a => {
+    const d = achDone(a) || TESTALL, v = Math.min(statOf(a), a.n);
+    return `<div class="trow ${d ? 'got' : 'lock'}">${rewardArt(a.kind, a.reward, 48)}<div class="tx">
+      <small class="tierl t${a.tier}">${TIER[a.tier].toUpperCase()}</small><b>${esc(a.name)}</b><span>${esc(a.how)}</span>
+      <span class="rw">${a.kind === 'marble' ? 'Marble' : 'Board'}: ${esc(rewardName(a.kind, a.reward))}</span>
+      ${d ? '<em class="got">Unlocked</em>' : a.n > 1 ? `<div class="bar"><i style="width:${v / a.n * 100}%"></i></div><em>${v} of ${a.n}</em>` : '<em>Locked</em>'}</div></div>`;
+  };
+  return `<div class="tstats"><div><b>${done}</b><span>of ${ACHS.length} done</span></div><div><b>${ACH.stats.wins || 0}</b><span>Wins</span></div><div><b>${ACH.stats.binks || 0}</b><span>Binks</span></div></div>
+    <div class="tlist">${ACHS.map(row).join('')}</div>`;
+}
+const _passHTML0 = passHTML;
+passHTML = function(){
+  let h = _passHTML0();
+  const tabs = `<div class="ltabs trtabs"><button data-a="trtab" data-v="pass" class="${trophyTab === 'pass' ? 'on' : ''}">Battle Pass</button><button data-a="trtab" data-v="ach" class="${trophyTab === 'ach' ? 'on' : ''}">Achievements</button></div>`;
+  const test = `<div class="pvw"><button data-a="testall" class="${TESTALL ? 'on' : ''}">${TESTALL ? 'Test: everything unlocked' : 'Test: unlock everything'}</button></div>`;
+  h = h.replace('<h2 class="ltitle"><i></i>BATTLE PASS<i></i></h2>', '<h2 class="ltitle"><i></i>TROPHIES<i></i></h2>' + tabs);
+  if (trophyTab === 'ach') {
+    const a = h.indexOf('<div class="lvcard">'), b = h.lastIndexOf('</div>');
+    h = h.slice(0, a) + achListHTML() + test + h.slice(b);
+  } else h = h.replace(/<\/div>\s*$/, test + '</div>');
+  return h;
+};
+window.addEventListener('click', e => {
+  if (!PASS_LIVE) return;
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  if (t.dataset.a === 'trtab') { e.stopPropagation(); trophyTab = t.dataset.v; render(); window.scrollTo(0, 0); }
+  else if (t.dataset.a === 'testall') { e.stopPropagation(); TESTALL = !TESTALL; LS.set('st.testall', TESTALL); render(); }
+}, true);
+// locked things in the choosers say how to get them
+const _pickerHTML2 = pickerHTML;
+pickerHTML = function(){
+  let h = _pickerHTML2();
+  if (!PASS_LIVE) return h;
+  const pv = pickPrev; if (pv && !styleOwned(pv)) h = h.replace('<em>Locked</em>', `<em>Locked · ${esc(unlockHow('marble', pv))}</em>`);
+  return h;
+};
+const _boardStage0 = boardStageHTML;
+boardStageHTML = function(){
+  let h = _boardStage0(); const id = boardPrev || BOARD;
+  if (PASS_LIVE && !boardOwned(id)) h = h.replace('<em>Locked</em>', `<em>Locked · ${esc(unlockHow('board', id))}</em>`);
+  return h;
+};
+// a board or marble you don't own can't stay selected
+const _render6 = render;
+render = function(){
+  if (PASS_LIVE && !boardOwned(BOARD)) BOARD = 'classic';
+  if (PASS_LIVE && screen === 'setup' && setup) setup.seats.forEach(x => { if (x.human && x.mskin && !styleOwned(x.mskin)) x.mskin = null; });
+  _render6();
+};
+achCheck();
 render();
 
 // ===================== Accounts: pick a username + password, progress saved in the cloud =====================
