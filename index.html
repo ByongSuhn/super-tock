@@ -2135,7 +2135,7 @@ function settingsHTML(){
     <div class="sgroup">
       <div class="srow">${ICON.sound}<span>Sound Effects <em class="soon">SOON</em></span>${sw(false, false, 'soon')}</div>
       <div class="srow">${ICON.music}<span>Music <em class="soon">SOON</em></span>${sw(false, false, 'soon')}</div>
-      <div class="srow col">${ICON.palette}<span>Board</span>
+      ${BOARDS.length < 2 ? `<div class="srow">${ICON.palette}<span>Boards <em class="soon">SOON</em></span></div>` : ''}<div class="srow col" ${BOARDS.length < 2 ? 'hidden' : ''}>${ICON.palette}<span>Board</span>
         <div class="themes">${BOARDS.map(b => `<button class="theme ${b.id === BOARD ? 'on' : ''}" data-a="pickboard" data-v="${b.id}" style="${b.thumb ? `background:center/cover url(${b.thumb})` : ''}" aria-label="${b.name}">${b.thumb ? '' : '<i class="classic"></i>'}${b.id === BOARD ? `<i class="tick">${ICON.check}</i>` : ''}<em>${b.name}</em></button>`).join('')}</div></div>
     </div>
     <button class="lux-cta" data-a="settingsx">BACK TO GAME</button>
@@ -2760,12 +2760,14 @@ applyIntent = async function(it){
 render();
 
 // ===================== Boards: picture boards drawn under the real holes =====================
+// BOARDS_LIVE = false keeps every picture board off the public site (only Classic shows). The test copy turns them on.
+var BOARDS_LIVE = !!window.SUPER_TOCK_BOARDS;
 var BOARDS = [
   {id:'classic', name:'Classic'},
   {id:'wood', name:'Walnut'}, {id:'whitemarble', name:'White Marble'}, {id:'blackmarble', name:'Black Marble'},
   {id:'gold', name:'Gold'}, {id:'amethyst', name:'Royal'}, {id:'frost', name:'Frost'},
   {id:'lava', name:'Lava'}, {id:'galaxy', name:'Galaxy'}, {id:'ruins', name:'Ruins'}, {id:'pirate', name:'Pirate'},
-].map(b => b.id === 'classic' ? b : Object.assign(b, {img:`boards/${b.id}.jpg`, thumb:`boards/${b.id}-t.jpg`, ring:'#e8bd5a'}));
+].filter(b => b.id === 'classic' || BOARDS_LIVE).map(b => b.id === 'classic' ? b : Object.assign(b, {img:`boards/${b.id}.jpg`, thumb:`boards/${b.id}-t.jpg`, ring:'#e8bd5a'}));
 var BOARD = LS.get('st.board', 'classic');
 if (!BOARDS.some(b => b.id === BOARD)) BOARD = 'classic';
 function BOARD_THEME(){ if (!BOARDS) return null; const b = BOARDS.find(x => x.id === BOARD); return b && b.img ? b : null; }
