@@ -3006,13 +3006,12 @@ function levelOf(xp){
   while (lv < MAXLV && left >= lvCost(lv + 1)) { left -= lvCost(lv + 1); lv++; }
   return {lv, into: left, need: lv >= MAXLV ? 0 : lvCost(lv + 1)};
 }
-// placeholder rewards until the real list is decided
 var PASS = [
   {lv:5,  kind:'marble', id:'golden-ember'}, {lv:10, kind:'board', id:'wood'},
-  {lv:15, kind:'marble', id:'frost-crystal'}, {lv:20, kind:'board', id:'whitemarble'},
-  {lv:25, kind:'marble', id:'cosmic-nebula'}, {lv:30, kind:'board', id:'blackmarble'},
-  {lv:35, kind:'marble', id:'fire-ice'}, {lv:40, kind:'board', id:'amethyst'},
-  {lv:45, kind:'marble', id:'aurora'}, {lv:50, kind:'board', id:'gold', crown:true},
+  {lv:15, kind:'marble', id:'turquoise'},    {lv:20, kind:'board', id:'frost'},
+  {lv:25, kind:'marble', id:'diamond'},      {lv:30, kind:'board', id:'ruins'},
+  {lv:35, kind:'marble', id:'storm-cloud'},  {lv:40, kind:'board', id:'billiards'},
+  {lv:45, kind:'marble', id:'galaxy'},       {lv:50, kind:'board', id:'gold', crown:true},
 ];
 function gameXP(won, binks, home, online){
   return Math.round((100 + (won ? 100 : 0) + 10 * (binks || 0) + 10 * (home || 0)) * (online ? 1.25 : 1));
@@ -3071,7 +3070,7 @@ function passHTML(){
         <p>${next ? `Next reward at level ${next.lv}` : 'Every reward unlocked'}</p></div></div>
     <div class="track"><div class="rail"><i style="height:${fill}%"></i></div>${PASS.map(tier).join('')}</div>
     <div class="pvw"><label>Preview at level</label><div>${[0, 7, 18, 33, 50].map(v => `<button data-a="pvlv" data-v="${v}" class="${(passPreview === null ? -1 : levelOf(passPreview).lv) === v ? 'on' : ''}">${v}</button>`).join('')}<button data-a="pvlv" data-v="me" class="${passPreview === null ? 'on' : ''}">Mine</button></div></div>
-    <p class="hint center">Rewards shown are placeholders. Test copy only.</p></div>`;
+    </div>`;
 }
 function levelXPTo(xp, lv){ let need = 0; for (let n = 1; n <= lv; n++) need += lvCost(n); return Math.max(0, need - xp); }
 function xpForLevel(lv){ let x = 0; for (let n = 1; n <= lv; n++) x += lvCost(n); return x; }
