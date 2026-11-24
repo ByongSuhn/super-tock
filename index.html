@@ -659,6 +659,7 @@ input.locked{opacity:.85;cursor:default}
 #rsask .lux-cta,#rsask .lux-btn{width:100%;margin-top:10px}
 .lux-cta.rejoin{background:linear-gradient(180deg,#2fa36b,#14653f);margin-bottom:10px}
 #rsask .lux-cta svg,.lux-cta.rejoin svg{width:22px;height:22px;flex:none}#rsask .lux-cta{display:flex;align-items:center;justify-content:center;gap:10px}
+.acct .tstats+.tstats{margin-top:0}
 
 </style>
 </head>
@@ -666,7 +667,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124174918';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124175531';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -3325,7 +3326,12 @@ gameTrack = function(){
   const isNew = G && G.gid && !ACH.games[G.gid];
   const t = _gameTrack0();
   if (isNew && t) {
-    for (const [k, v] of Object.entries(ACH.games)) if (k !== G.gid && !v.done && !v.quit) { v.quit = true; ACH.stats.streak = 0; }
+    t.off = !G.online;
+    for (const [k, v] of Object.entries(ACH.games)) if (k !== G.gid && !v.done && !v.quit) {
+      v.quit = true; ACH.stats.streak = 0;
+      if (v.off) ACH.stats.losses = (ACH.stats.losses || 0) + 1;    // walking away from a computer game is a loss
+    }
+    achSave();
   }
   return t;
 };
@@ -3367,7 +3373,7 @@ achWin = function(w){
     if (G.N === 6) s.wins6 = (s.wins6 || 0) + 1;
     if (G.N === 5) s.wins5 = (s.wins5 || 0) + 1;
     s.streak = (s.streak || 0) + 1; s.bestStreak = Math.max(s.bestStreak || 0, s.streak);
-  } else s.streak = 0;
+  } else { s.streak = 0; s.losses = (s.losses || 0) + 1; }
   achCheck(); achSave();
 };
 
@@ -3544,7 +3550,9 @@ function profileHTML(){
     const n = SPECIALS.filter(s => ACH.un[s.id]).length;
     return `<div class="scr setup lux acct">${lhdr('PROFILE', 'tback')}
       <div class="me">${(() => { const c = profile.skin && owned(profile.skin) ? profile.skin : 'c0', st = typeof styleOwned === 'function' && profile.mskin && styleOwned(profile.mskin) ? profile.mskin : null; return typeof styleOrb === 'function' ? styleOrb(c, st, 72) : skinOrb(c, 72); })()}<b>${esc(ME.name)}</b><span>Signed in · progress saved to your account</span></div>
-      <div class="tstats"><div><b>${ACH.stats.wins}</b><span>Wins</span></div><div><b>${ACH.stats.binks}</b><span>Binks</span></div>${typeof PASS_LIVE !== 'undefined' && PASS_LIVE ? `<div><b>${levelOf(ACH.stats.xp).lv}</b><span>Level</span></div>` : ''}</div>
+      ${(() => { const s = ACH.stats, w = s.wins || 0, l = s.losses || 0, pct = w + l ? Math.round(w / (w + l) * 100) + '%' : '–';
+        return `<div class="tstats"><div><b>${w}</b><span>Wins</span></div><div><b>${l}</b><span>Losses</span></div><div><b>${pct}</b><span>Win %</span></div></div>
+        <div class="tstats"><div><b>${typeof levelOf === 'function' ? levelOf(s.xp).lv : 0}</b><span>Level</span></div><div><b>${s.binks || 0}</b><span>Binks</span></div><div><b>${s.games || 0}</b><span>Games</span></div></div>`; })()}
       <button class="lux-btn" data-a="trophies">${ICON.trophy}<span>TROPHIES${TROPHIES_SOON && !(typeof PASS_LIVE !== 'undefined' && PASS_LIVE) ? ' · COMING SOON' : ''}</span></button>
       <button class="lux-btn" data-a="asignout"><span>SIGN OUT</span></button>
       <p class="hint center">You’ll stay signed in on this device until you sign out.</p></div>`;
