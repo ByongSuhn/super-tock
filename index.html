@@ -462,6 +462,7 @@ button.deck svg{width:22px;height:22px;color:var(--gold2);flex:none}
 .lobby .namefield .nm{padding:9px 0;font:600 15px system-ui;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .online .lux-cta svg{width:26px;height:26px}
 html,body{overflow-x:hidden;max-width:100%}html{overflow-x:clip}body{position:relative}
+.ding{white-space:normal!important;width:max-content;max-width:86%;text-align:center;line-height:1.15;font-size:clamp(15px,4.6vw,22px)!important}.ding.meh{font-size:clamp(14px,4vw,16px)!important}
 
 </style>
 </head>
@@ -1542,7 +1543,7 @@ function dingFx(ev, mover){
   const meTeam = teamOf(G, viewer), mine = q => teamOf(G, q) === meTeam;
   const moverMine = mine(mover), hitMine = hits.filter(mine), hitOther = hits.filter(q => !mine(q));
   if (!moverMine && !hitMine.length) return;                       // nothing to do with you or your team
-  const who = q => q === viewer ? 'you' : (G.set.partners && q === mateOf(G, viewer) ? 'your partner ' + pname(q) : pname(q));
+  const who = q => q === viewer ? 'you' : (G.set.partners && q === mateOf(G, viewer) ? 'your partner' : pname(q));
   const list = qs => qs.map(who).join(' &amp; ');
   const by = mover === viewer ? 'You' : (G.set.partners && mover === mateOf(G, viewer) ? 'Your partner' : pname(mover));
   let cls, txt;
