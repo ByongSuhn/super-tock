@@ -620,6 +620,15 @@ input.locked{opacity:.85;cursor:default}
 .brow .bthumb{width:48px;height:48px}
 .brow span{flex:1;min-width:0}.brow b{display:block;font:700 17px Cinzel,Georgia,serif}.brow small{font:12px system-ui;color:#cbbfdc}
 .brow em{font-style:normal;width:26px;height:26px;border-radius:50%;background:#e0b04f;color:#2b1808;display:grid;place-items:center;font:700 13px system-ui}
+.lookrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.lookrow button{display:flex;align-items:center;gap:10px;padding:10px;border-radius:16px;background:rgba(255,255,255,.04);border:1.5px solid rgba(240,196,92,.45);color:#f3e6c8;text-align:left;cursor:pointer;min-width:0}
+.lookrow button[disabled]{opacity:.5}
+.lookrow .bthumb{width:48px;height:48px}
+.lookrow span{min-width:0}.lookrow small{display:block;font:700 10px system-ui;letter-spacing:1.5px;color:#a99bbf}
+.lookrow b{display:block;font:700 15px/1.15 Cinzel,Georgia,serif;overflow:hidden;text-overflow:ellipsis}
+.ltabs{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid rgba(240,196,92,.3);margin:0 0 14px}
+.ltabs button{min-height:42px;border-radius:999px;border:0;background:transparent;color:#f3e6c8;font:700 15px Cinzel,Georgia,serif;letter-spacing:1px}
+.ltabs button.on{background:linear-gradient(180deg,#f6d27a,#c9932f);color:#2b1808}
 
 </style>
 </head>
@@ -2902,6 +2911,7 @@ pickerHTML = function(){
     <em>${plock ? 'Locked' : (cur || null) === (pv || null) ? 'Equipped' : 'Tap again to use'}</em></div></div>`;
   const sec = `<h3 class="lh3">MARBLE STYLE</h3>${stage}<div class="mgrid">${tile(null)}${MSTYLES.map(tile).join('')}</div>`;
   h = h.replace('<h3 class="lh3">COLORS</h3>', '<h3 class="lh3">YOUR COLOR</h3>');
+  if (typeof lookTabs === 'function' && BOARDS.length > 1) h = h.replace(/<h2 class="ltitle">.*?<\/h2>/, lookTabs('marble'));
   h = h.replace('<p class="hint">', sec + '<p class="hint">');
   h = h.replace('Special unlockable marbles are coming soon.', 'Your color stays on your holes, home and start box, and rings every marble. Styles only change the look.');
   return h;
@@ -2929,6 +2939,11 @@ document.addEventListener('click', e => {
   const id = t.dataset.v, shown = pickPrev === null ? (picker && (picker.mode === 'online' ? ON.L.seats : setup.seats)[picker.seat].mskin) || '' : pickPrev;
   if (id && (shown !== id || !styleOwned(id))) { pickPrev = id; drawPicker(); return; }   // first tap: look at it up close
   pickPrev = null; chooseStyle(id);                                                       // second tap: use it
+}, true);
+// "Done" while looking at an unlocked marble puts it on
+window.addEventListener('click', e => {
+  const t = e.target.closest('#mpick .lux-btn[data-a="mclose"]'); if (!t || !pickPrev || !styleOwned(pickPrev) || !picker) return;
+  const id = pickPrev; pickPrev = null; chooseStyle(id);
 }, true);
 const _drawPicker0 = drawPicker;
 drawPicker = function(){
@@ -3107,10 +3122,21 @@ function boardStageHTML(){
     <div class="binfo"><b>${esc(b.name)}</b><em>${lock ? 'Locked' : on ? 'In use' : 'Tap again to use'}</em></div></div>`;
 }
 var boardSheet = false;
+function mySeat(){ return screen === 'setup' ? setup.seats.findIndex(x => x.human) : (ON.L ? ON.L.seats.findIndex(x => x.pid === ON.pid) : -1); }
+function lookMarbleName(me){
+  const list = screen === 'setup' ? setup.seats : ON.L.seats, m = typeof MSTYLE === 'function' && MSTYLE(list[me].mskin);
+  const eff = assignSkins(screen === 'setup' ? list.map(x => x.skin || null) : list.map(x => x.kind === 'human' ? x.skin || null : null));
+  return m ? m.name : (SKIN(eff[me]) || {}).name || 'Plain';
+}
+function lookTabs(on){ return `<div class="ltabs"><button data-a="looktab" data-v="marble" class="${on === 'marble' ? 'on' : ''}">Marble</button><button data-a="looktab" data-v="board" class="${on === 'board' ? 'on' : ''}">Board</button></div>`; }
+function openLook(tab){
+  if (tab === 'marble') { const me = mySeat(); if (me < 0) return; boardSheet = false; drawBoardSheet(); picker = {mode: screen === 'lobby' ? 'online' : 'solo', seat: me}; drawPicker(); }
+  else { picker = null; drawPicker(); boardSheet = true; boardPrev = null; drawBoardSheet(); }
+}
 function boardSheetHTML(){
   const tile = b => `<button class="theme ${b.id === BOARD ? 'on' : ''} ${boardPrev === b.id ? 'pv' : ''}" data-a="pickboard" data-v="${b.id}" style="${b.thumb ? `background:center/cover url(${b.thumb})` : ''}" aria-label="${b.name}">${b.thumb ? '' : '<i class="classic"></i>'}${b.id === BOARD ? `<i class="tick">${ICON.check}</i>` : ''}<em>${b.name}</em></button>`;
   return `<div class="mpicker" data-a="bclose"><div class="mbox" data-a="noop">
-    <h2 class="ltitle"><i></i>CHOOSE YOUR BOARD<i></i></h2>
+    ${lookTabs('board')}
     ${boardStageHTML()}
     <div class="themes">${BOARDS.map(tile).join('')}</div>
     <p class="hint">Your board is just for you, and it's locked in once the game starts.</p>
@@ -3133,8 +3159,9 @@ document.addEventListener('click', e => {
     if (shown !== id || !boardOwned(id)) boardPrev = id;                     // first tap: look at it
     else { BOARD = id; LS.set('st.board', BOARD); boardPrev = null; }         // second tap: use it
     drawBoardSheet(); render();
-  } else if (a === 'bopen') { e.stopPropagation(); boardSheet = true; boardPrev = null; drawBoardSheet(); }
-  else if (a === 'bclose') { e.stopPropagation(); boardSheet = false; drawBoardSheet(); }
+  } else if (a === 'lookopen' || a === 'looktab') { e.stopPropagation(); openLook(t.dataset.v); }
+  else if (a === 'bopen') { e.stopPropagation(); boardSheet = true; boardPrev = null; drawBoardSheet(); }
+  else if (a === 'bclose') { e.stopPropagation(); if (t.classList.contains('lux-btn') && boardPrev && boardOwned(boardPrev)) { BOARD = boardPrev; LS.set('st.board', BOARD); } render(); boardSheet = false; drawBoardSheet(); }
 }, true);
 // a "Board" row on the new-game screen and in the online lobby, before the game starts
 const _render5 = render;
@@ -3142,11 +3169,15 @@ render = function(){
   _render5();
   if (boardSheet && screen !== 'setup' && screen !== 'lobby') { boardSheet = false; drawBoardSheet(); }
   if (BOARDS.length < 2 || (screen !== 'setup' && !(screen === 'lobby' && ON.L && !ON.L.started))) return;
-  const seats = app.querySelector('.seats'); if (!seats || app.querySelector('.brow')) return;
-  const b = BOARDS.find(x => x.id === BOARD) || BOARDS[0];
-  seats.insertAdjacentHTML('afterend', `<h3 class="lh3">YOUR BOARD</h3><button class="brow" data-a="bopen">
-    <i class="bthumb" style="${b.thumb ? `background-image:url(${b.thumb})` : 'background:radial-gradient(circle at 42% 36%,#f6c886,#dfa560 55%,#b47a3c)'}"></i>
-    <span><b>${esc(b.name)}</b><small>Tap to change</small></span><em>✎</em></button>`);
+  const seats = app.querySelector('.seats'); if (!seats || app.querySelector('.lookrow')) return;
+  const b = BOARDS.find(x => x.id === BOARD) || BOARDS[0], me = mySeat();
+  let orb = '';
+  if (me >= 0) { const list = screen === 'setup' ? setup.seats : ON.L.seats;
+    const eff = assignSkins(screen === 'setup' ? list.map(x => x.skin || null) : list.map(x => x.kind === 'human' ? x.skin || null : null));
+    orb = typeof styleOrb === 'function' ? styleOrb(eff[me], list[me].mskin, 48) : skinOrb(eff[me], 48); }
+  seats.insertAdjacentHTML('afterend', `<h3 class="lh3">YOUR LOOK</h3><div class="lookrow">
+    <button data-a="lookopen" data-v="marble" ${me < 0 ? 'disabled' : ''}>${orb || '<i class="orb" style="width:48px;height:48px;opacity:.3"></i>'}<span><small>MARBLE</small><b>${me < 0 ? 'Take a seat' : esc(lookMarbleName(me))}</b></span></button>
+    <button data-a="lookopen" data-v="board"><i class="bthumb" style="${b.thumb ? `background-image:url(${b.thumb})` : 'background:radial-gradient(circle at 42% 36%,#f6c886,#dfa560 55%,#b47a3c)'}"></i><span><small>BOARD</small><b>${esc(b.name)}</b></span></button></div>`);
 };
 render();
 
