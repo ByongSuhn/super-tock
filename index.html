@@ -2315,8 +2315,9 @@ function lobbyHTML(){
       ${opt('ltog', 'partners', L.partners, ICON.people, 'Partners', L.n % 2 ? 'not with 5' : '(teams of 2)', L.n % 2)}
       ${opt('lcyc', 'center', L.center !== 'off', ICON.ring, 'Center Hole', centerSub)}
     </div>
-    <p class="hint center">${host ? 'Open seats left empty become computer players when you start. Card rules use your current set.' : 'Waiting for the host to start the game…'}</p>
-    ${host ? `<div class="sticky"><button class="lux-cta" data-a="ostart">START GAME <span>▶</span></button></div>` : '<div style="height:40px"></div>'}
+    <p class="hint center">${host ? 'Open seats left empty become computer players when you start. Tap Card Rules below to change any card before you start.' : 'Waiting for the host to start the game…'}</p>
+    ${host ? `<div class="sticky"><button class="lux-cta" data-a="ostart">START GAME <span>▶</span></button></div>
+    <button class="lux-btn rulesbtn2" data-a="rules" data-from="lobby">${ICON.cards}<span>CARD RULES: ${(sameCfg(rules, CLASSIC) ? 'Ron’s Rules' : 'Custom').toUpperCase()}</span></button>` : '<div style="height:40px"></div>'}
   </div>`;
 }
 
