@@ -1943,7 +1943,7 @@ function setupHTML(){
   return `<div class="scr setup lux">
     ${lhdr('NEW GAME', 'home')}
     <h3 class="lh3">PLAYERS</h3>
-    <div class="nums">${[2,3,4,5,6,7,8,9,10,11,12].map(n => `<button data-a="n" data-v="${n}" class="${s.n === n ? 'on' : ''}">${n}</button>`).join('')}</div>
+    <div class="nums">${[4,5,6].map(n => `<button data-a="n" data-v="${n}" class="${s.n === n ? 'on' : ''}">${n}</button>`).join('')}</div>
     <h3 class="lh3">PLAYERS AT THE TABLE</h3>
     <div class="seats">${s.seats.map((x, i) => `<div class="seat">${orb(COLORS[i], 26)}
       <label class="namefield">${x.human ? ICON.user : ICON.monitor}<input data-in="seat" data-i="${i}" maxlength="12" value="${esc(x.name)}"></label>
@@ -1954,7 +1954,7 @@ function setupHTML(){
     <h3 class="lh3">GAME OPTIONS</h3>
     <div class="otiles">
       ${opt('tog', 'jokers', s.jokers, ICON.joker, 'Jokers', '(2 per deck)')}
-      ${opt('tog', 'partners', s.partners, ICON.people, 'Partners', s.n % 2 ? 'needs even #' : '(teams of 2)', s.n % 2)}
+      ${opt('tog', 'partners', s.partners, ICON.people, 'Partners', s.n % 2 ? 'not with 5' : '(teams of 2)', s.n % 2)}
       ${opt('cyc', 'center', s.center !== 'off', ICON.ring, 'Center Hole', centerSub)}
     </div>
     <p class="hint center">${dk} ${dk > 1 ? 'decks' : 'deck'} for ${s.n} players · deals of ${pl.join(', ')} cards, then reshuffle${s.center !== 'off' ? `<br>${s.center === 'count' ? 'Center: land in the middle with the exact count from a star corner.' : 'Center: from a star corner, play a get-out card to jump in.'} Tap again to change.` : ''}</p>
@@ -1977,7 +1977,7 @@ function howHTML(){
   return `<div class="scr how lux">
     ${lhdr('HOW TO PLAY', 'home')}
     ${step(1, ICON.flag, 'Goal', 'Be the first to move all 4 of your marbles out of start, around the board and into your home lane. With partners, your team wins when both of you are home.')}
-    ${step(2, ICON.people, 'Setup', 'Choose 2 to 12 players and your options (jokers, partners, center hole). One deck for 4 players or fewer, two decks for 5 or more, dealt in three rounds.')}
+    ${step(2, ICON.people, 'Setup', 'Choose 4, 5 or 6 players (fill empty spots with computers) and your options (jokers, partners, center hole). One deck for 4 players, two decks for 5 or 6, dealt in three rounds.')}
     ${step(3, ICON.cards, 'Take Turns', 'Play one card and move with it. If any of your own marbles can move, you must play. If none can, you may burn a card (or play a special card). Skipped? Discard one.')}
     ${step(4, ICON.house, 'Home', 'Your home lane branches off just before your start spot. You need the exact count to get in. Land on a marble to send it back to start; a marble on its own start spot is safe.')}
     ${step(5, ICON.trophy, 'Win', 'The first player, or team, to get all 4 marbles home wins!')}
@@ -2301,7 +2301,7 @@ function lobbyHTML(){
   return `<div class="scr setup lux lobby">
     ${lhdr('GAME LOBBY', 'oleave')}
     <div class="codebox"><span>GAME CODE</span><b>${L.code}</b><button class="lux-btn" data-a="oshare" data-link="${esc(link)}">${ICON.people}<span>INVITE FRIENDS</span></button><small>${esc(link)}</small></div>
-    ${host ? `<h3 class="lh3">PLAYERS</h3><div class="nums">${[2,3,4,5,6,7,8,9,10,11,12].map(n => `<button data-a="ln" data-v="${n}" class="${L.n === n ? 'on' : ''}">${n}</button>`).join('')}</div>` : ''}
+    ${host ? `<h3 class="lh3">PLAYERS</h3><div class="nums">${[4,5,6].map(n => `<button data-a="ln" data-v="${n}" class="${L.n === n ? 'on' : ''}">${n}</button>`).join('')}</div>` : ''}
     <h3 class="lh3">PLAYERS AT THE TABLE</h3>
     <div class="seats">${L.seats.map(seatRow).join('')}</div>
     ${me < 0 && !host ? '<p class="hint center"><b>Tap “Sit here” to take a seat.</b></p>' : ''}
@@ -2311,7 +2311,7 @@ function lobbyHTML(){
     <h3 class="lh3">GAME OPTIONS</h3>
     <div class="otiles">
       ${opt('ltog', 'jokers', L.jokers, ICON.joker, 'Jokers', '(2 per deck)')}
-      ${opt('ltog', 'partners', L.partners, ICON.people, 'Partners', L.n % 2 ? 'needs even #' : '(teams of 2)', L.n % 2)}
+      ${opt('ltog', 'partners', L.partners, ICON.people, 'Partners', L.n % 2 ? 'not with 5' : '(teams of 2)', L.n % 2)}
       ${opt('lcyc', 'center', L.center !== 'off', ICON.ring, 'Center Hole', centerSub)}
     </div>
     <p class="hint center">${host ? 'Open seats left empty become computer players when you start. Card rules use your current set.' : 'Waiting for the host to start the game…'}</p>
