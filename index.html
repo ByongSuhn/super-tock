@@ -534,6 +534,7 @@ input.locked{opacity:.85;cursor:default}
 .spin{width:34px;height:34px;border-radius:50%;border:3px solid rgba(240,196,92,.25);border-top-color:#f0c45c;animation:spin 1s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .splash .ribbon,.splash>*:first-child{margin:0 auto}.splash{align-items:center}
+.acct .tstats:has(> div:nth-child(2):last-child){grid-template-columns:repeat(2,1fr)}
 
 </style>
 </head>
@@ -2490,6 +2491,7 @@ if (/[?&]join=/.test(location.search) && NET) screen = 'online';
 render();
 
 // ===================== Marbles: pickable colours, unlockable special marbles, achievements =====================
+const TROPHIES_SOON = true;   // trophy room + special marbles hidden while they're being redesigned (progress still counts)
 // Basic colours (c0..c11) are free for everyone. Special marbles unlock through achievements and are saved on this device.
 // Each special marble "uses up" one basic colour group, so two players never end up with look-alike boards.
 const SPECIALS = [
@@ -2558,12 +2560,12 @@ gradDefs = function(n, P, cols){
 let ACH = LS.get('st.ach', null) || {stats:{wins:0, binks:0}, un:{}, games:{}};
 ACH.stats = ACH.stats || {wins:0, binks:0}; ACH.un = ACH.un || {}; ACH.games = ACH.games || {};
 function achSave(){ LS.set('st.ach', ACH); }
-function owned(id){ const s = SKIN(id); return !!s && (s.basic || !!ACH.un[id]); }
+function owned(id){ const s = SKIN(id); return !!s && (s.basic || (!TROPHIES_SOON && !!ACH.un[id])); }
 let toastQ = [], toastOn = false;
 function unlock(id){
   if (ACH.un[id]) return;
   ACH.un[id] = Date.now(); achSave();
-  toastQ.push(id); showToast();
+  if (!TROPHIES_SOON) { toastQ.push(id); showToast(); }
   if (id !== 'rainbow' && SPECIALS.every(s => s.id === 'rainbow' || ACH.un[s.id])) unlock('rainbow');
 }
 function showToast(){
@@ -2641,9 +2643,9 @@ function pickerHTML(){
   };
   return `<div class="mpicker" data-a="mclose"><div class="mbox" data-a="noop">
     <h2 class="ltitle"><i></i>CHOOSE YOUR MARBLE<i></i></h2>
-    <h3 class="lh3">SPECIAL</h3><div class="mgrid">${SPECIALS.map(tile).join('')}</div>
-    <h3 class="lh3">CLASSIC</h3><div class="mgrid">${COLORS.map((c, i) => tile(SKIN('c' + i))).join('')}</div>
-    <p class="hint">Tap a locked marble to see how to unlock it.</p>
+    ${TROPHIES_SOON ? '' : `<h3 class="lh3">SPECIAL</h3><div class="mgrid">${SPECIALS.map(tile).join('')}</div>`}
+    <h3 class="lh3">${TROPHIES_SOON ? 'COLORS' : 'CLASSIC'}</h3><div class="mgrid">${COLORS.map((c, i) => tile(SKIN('c' + i))).join('')}</div>
+    <p class="hint">${TROPHIES_SOON ? 'Special unlockable marbles are coming soon.' : 'Tap a locked marble to see how to unlock it.'}</p>
     <button class="lux-btn" data-a="mclose"><span>DONE</span></button></div></div>`;
 }
 function drawPicker(){
@@ -2670,7 +2672,7 @@ document.addEventListener('click', e => {
   else if (a === 'mtaken') { e.stopPropagation(); flash('Someone else has that one'); }
   else if (a === 'mclose') { e.stopPropagation(); picker = null; drawPicker(); }
   else if (a === 'noop') { e.stopPropagation(); }
-  else if (a === 'trophies') { e.stopPropagation(); screen = 'trophies'; render(); }
+  else if (a === 'trophies') { e.stopPropagation(); if (TROPHIES_SOON) flash('Trophies coming soon'); else { screen = 'trophies'; render(); } }
   else if (a === 'tback') { e.stopPropagation(); screen = 'home'; render(); }
 }, true);
 
@@ -2836,8 +2838,8 @@ function profileHTML(){
     const n = SPECIALS.filter(s => ACH.un[s.id]).length;
     return `<div class="scr setup lux acct">${lhdr('PROFILE', 'tback')}
       <div class="me">${skinOrb(profile.skin && owned(profile.skin) ? profile.skin : 'c0', 64)}<b>${esc(ME.name)}</b><span>Signed in · progress saved to your account</span></div>
-      <div class="tstats"><div><b>${ACH.stats.wins}</b><span>Wins</span></div><div><b>${ACH.stats.binks}</b><span>Binks</span></div><div><b>${n}/${SPECIALS.length}</b><span>Marbles</span></div></div>
-      <button class="lux-btn" data-a="trophies">${ICON.trophy}<span>TROPHIES</span></button>
+      <div class="tstats"><div><b>${ACH.stats.wins}</b><span>Wins</span></div><div><b>${ACH.stats.binks}</b><span>Binks</span></div>${TROPHIES_SOON ? '' : `<div><b>${n}/${SPECIALS.length}</b><span>Marbles</span></div>`}</div>
+      <button class="lux-btn" data-a="trophies">${ICON.trophy}<span>TROPHIES${TROPHIES_SOON ? ' · COMING SOON' : ''}</span></button>
       <button class="lux-btn" data-a="asignout"><span>SIGN OUT</span></button>
       <p class="hint center">You’ll stay signed in on this device until you sign out.</p></div>`;
   }
@@ -2849,7 +2851,7 @@ function profileHTML(){
     <label class="lbl">PASSWORD</label><input class="txt" id="ap" type="password" maxlength="64" autocomplete="${isNew ? 'new-password' : 'current-password'}" placeholder="At least 6 characters">
     ${authMsg ? `<p class="amsg">${esc(authMsg)}</p>` : ''}
     <button class="lux-cta" data-a="ago" ${authBusy ? 'disabled' : ''}>${authBusy ? 'ONE SEC…' : isNew ? 'CREATE ACCOUNT' : 'SIGN IN'}</button>
-    ${isNew && SPECIALS.some(s => ACH.un[s.id]) ? '<p class="hint center">Marbles you’ve already unlocked on this phone come with you.</p>' : ''}
+    ${!TROPHIES_SOON && isNew && SPECIALS.some(s => ACH.un[s.id]) ? '<p class="hint center">Marbles you’ve already unlocked on this phone come with you.</p>' : ''}
     ${gate ? '<p class="hint center">Make a free account to play. Your username is locked to you, and your marbles and trophies are saved to it.</p>' : ''}</div>`;
 }
 const _render2 = render;
