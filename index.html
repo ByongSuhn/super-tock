@@ -515,12 +515,24 @@ html,body{overflow-x:hidden;max-width:100%}html{overflow-x:clip}body{position:re
 .trow em.got{color:#f0c45c}
 .trow .bar{height:6px;border-radius:3px;background:rgba(255,255,255,.1);overflow:hidden;margin-bottom:4px}
 .trow .bar i{display:block;height:100%;background:linear-gradient(90deg,#c99434,#f0c45c)}
+.acct .txt{width:100%;box-sizing:border-box;margin:4px 0 12px}
+.acct .lseg{margin:6px 0 10px}
+.amsg{margin:0 0 10px;padding:10px 12px;border-radius:12px;background:rgba(229,72,77,.15);border:1px solid rgba(229,72,77,.5);color:#ffb4b6;font:600 14px system-ui}
+.acct .lux-cta[disabled]{opacity:.6}
+.acct .me{display:flex;flex-direction:column;align-items:center;gap:6px;margin:10px 0 14px}
+.acct .me b{font:700 26px Cinzel,Georgia,serif;color:#f3e6c8}
+.acct .me span{font:13px system-ui;color:#cbbfdc}
+.acct .lux-btn{margin-top:10px}
+.hint.center{text-align:center}
+.cbtn.signed{box-shadow:0 0 0 2px #f0c45c,0 0 14px rgba(240,196,92,.6)}
+.scr.acct,.scr.trophies{min-height:100vh}
 
 </style>
 </head>
 <body>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"};</script>
 <div id="app"></div>
 <script>
@@ -2002,7 +2014,7 @@ function homeHTML(){
   const resume = saved && saved.G && saved.G.v === 3 && saved.G.phase !== 'over';
   return `<div class="scr home lux">
     <div class="drape l"></div><div class="drape r"></div><div class="candle c1"></div><div class="candle c2"></div>
-    <div class="corner-btns"><button class="cbtn gold" data-a="soon" data-w="Player profiles">${ICON.crown}</button><button class="cbtn gold" data-a="trophies" aria-label="Trophies">${ICON.trophy}</button></div>
+    <div class="corner-btns"><button class="cbtn gold" data-a="profile" aria-label="Profile">${ICON.crown}</button><button class="cbtn gold" data-a="trophies" aria-label="Trophies">${ICON.trophy}</button></div>
     <div class="fan">${fanCards()}</div>
     <div class="crest"><span class="gem t"></span><h1>SUPER<span>TOCK</span></h1><span class="gem b"></span></div>
     <div class="hero"><div class="tilt"><svg viewBox="0 0 1000 1000">${heroBoard()}</svg></div></div>
@@ -2721,6 +2733,135 @@ applyIntent = async function(it){
   }
   return _apply0(it);
 };
+render();
+
+// ===================== Accounts: pick a username + password, progress saved in the cloud =====================
+// Usernames are turned into a hidden sign-in address (name@players.supertock.com) so Firebase does the
+// password checking. Nobody ever types or sees an email. Signed-in phones stay signed in until you sign out.
+const AUTH_ON = !!(FIREBASE_CONFIG && typeof firebase !== 'undefined' && firebase.auth);
+let ME = null;                    // {uid, name} when signed in
+let authBusy = false, authTab = 'new', authMsg = '', pendingName = null;
+const nameKey = n => n.trim().toLowerCase();
+const nameOk = n => /^[A-Za-z0-9_]{3,14}$/.test(n.trim());
+const mailOf = n => nameKey(n) + '@players.supertock.com';
+function cloud(){ return firebase.database(); }
+
+// merge two progress records: keep every unlock, keep the bigger number for each stat
+function mergeAch(a, b){
+  const out = {stats:{}, un:{}};
+  for (const s of [a, b]) if (s) {
+    for (const [k, v] of Object.entries(s.stats || {})) out.stats[k] = Math.max(out.stats[k] || 0, +v || 0);
+    for (const [k, v] of Object.entries(s.un || {})) out.un[k] = out.un[k] || v;
+  }
+  out.stats.wins = out.stats.wins || 0; out.stats.binks = out.stats.binks || 0;
+  return out;
+}
+let pushT = null;
+const _achSave0 = achSave;
+achSave = function(){
+  _achSave0();
+  if (!ME || !AUTH_ON) return;
+  clearTimeout(pushT);
+  pushT = setTimeout(() => { cloud().ref('users/' + ME.uid + '/ach').set({stats:ACH.stats, un:ACH.un}).catch(e => console.warn('save failed', e)); }, 600);
+};
+async function loadAccount(user){
+  const snap = await cloud().ref('users/' + user.uid).once('value');
+  const d = snap.val() || {};
+  ME = {uid:user.uid, name:d.name || pendingName || user.email.split('@')[0]};
+  const local = ACH.owner === user.uid || !ACH.owner ? ACH : null;     // guest progress on this phone joins your account
+  const m = mergeAch(d.ach, local);
+  ACH = Object.assign({games:ACH.games || {}}, m, {owner:user.uid});
+  _achSave0();
+  await cloud().ref('users/' + user.uid).update({name:ME.name, ach:{stats:ACH.stats, un:ACH.un}});
+  profile.name = ME.name; LS.set('st.profile', profile);
+}
+if (AUTH_ON) {
+  firebase.auth().onAuthStateChanged(async user => {
+    if (user) { try { await loadAccount(user); } catch (e) { console.warn(e); ME = {uid:user.uid, name:user.email.split('@')[0]}; } }
+    else ME = null;
+    if (['home', 'profile', 'trophies'].includes(screen)) render();
+  });
+}
+function authError(e){
+  const c = (e && e.code) || '';
+  if (c.includes('email-already-in-use')) return 'That username is taken. Try another one.';
+  if (c.includes('weak-password')) return 'Password needs at least 6 characters.';
+  if (c.includes('invalid-credential') || c.includes('wrong-password') || c.includes('user-not-found') || c.includes('invalid-login')) return 'Wrong username or password.';
+  if (c.includes('too-many-requests')) return 'Too many tries. Wait a minute and try again.';
+  if (c.includes('network')) return 'No connection. Check your internet and try again.';
+  if (c.includes('operation-not-allowed')) return 'Accounts aren’t switched on yet.';
+  return 'Something went wrong. Try again.';
+}
+async function doAuth(){
+  const u = (document.getElementById('au') || {}).value || '', p = (document.getElementById('ap') || {}).value || '';
+  if (!nameOk(u)) { authMsg = 'Usernames are 3–14 letters, numbers or _'; render(); return; }
+  if (p.length < 6) { authMsg = 'Password needs at least 6 characters.'; render(); return; }
+  authBusy = true; authMsg = ''; render();
+  try {
+    if (authTab === 'new') {
+      pendingName = u.trim();
+      const cred = await firebase.auth().createUserWithEmailAndPassword(mailOf(u), p);
+      await cloud().ref('users/' + cred.user.uid).update({name:u.trim(), joined:Date.now()});
+      if (ME) ME.name = u.trim();
+      profile.name = u.trim(); LS.set('st.profile', profile);
+    } else {
+      await firebase.auth().signInWithEmailAndPassword(mailOf(u), p);
+    }
+    authBusy = false; authMsg = ''; render();
+  } catch (e) { authBusy = false; authMsg = authError(e); render(); }
+}
+async function doSignOut(){
+  await firebase.auth().signOut();
+  ME = null;
+  ACH = {stats:{wins:0, binks:0}, un:{}, games:{}};                  // next person on this phone starts fresh
+  _achSave0();
+  profile.name = ''; profile.skin = null; LS.set('st.profile', profile);
+  render();
+}
+
+function profileHTML(){
+  if (!AUTH_ON) return `<div class="scr setup lux acct">${lhdr('PROFILE', 'tback')}
+    <p class="hint center">Accounts work on <b>supertock.com</b>.</p></div>`;
+  if (ME) {
+    const n = SPECIALS.filter(s => ACH.un[s.id]).length;
+    return `<div class="scr setup lux acct">${lhdr('PROFILE', 'tback')}
+      <div class="me">${skinOrb(profile.skin && owned(profile.skin) ? profile.skin : 'c0', 64)}<b>${esc(ME.name)}</b><span>Signed in · progress saved to your account</span></div>
+      <div class="tstats"><div><b>${ACH.stats.wins}</b><span>Wins</span></div><div><b>${ACH.stats.binks}</b><span>Binks</span></div><div><b>${n}/${SPECIALS.length}</b><span>Marbles</span></div></div>
+      <button class="lux-btn" data-a="trophies">${ICON.trophy}<span>TROPHIES</span></button>
+      <button class="lux-btn" data-a="asignout"><span>SIGN OUT</span></button>
+      <p class="hint center">You’ll stay signed in on this device until you sign out.</p></div>`;
+  }
+  const isNew = authTab === 'new';
+  return `<div class="scr setup lux acct">${lhdr('PROFILE', 'tback')}
+    <div class="lseg"><button data-a="atab" data-v="new" class="${isNew ? 'on' : ''}">New account</button><button data-a="atab" data-v="in" class="${!isNew ? 'on' : ''}">Sign in</button></div>
+    <p class="hint">${isNew ? 'Pick a username nobody else has. Your marbles and trophies save to it, so they follow you to any phone or iPad.' : 'Welcome back. Sign in to get your marbles and trophies.'}</p>
+    <label class="lbl">USERNAME</label><input class="txt" id="au" maxlength="14" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="e.g. Brys">
+    <label class="lbl">PASSWORD</label><input class="txt" id="ap" type="password" maxlength="64" autocomplete="${isNew ? 'new-password' : 'current-password'}" placeholder="At least 6 characters">
+    ${authMsg ? `<p class="amsg">${esc(authMsg)}</p>` : ''}
+    <button class="lux-cta" data-a="ago" ${authBusy ? 'disabled' : ''}>${authBusy ? 'ONE SEC…' : isNew ? 'CREATE ACCOUNT' : 'SIGN IN'}</button>
+    ${isNew && SPECIALS.some(s => ACH.un[s.id]) ? '<p class="hint center">Marbles you’ve already unlocked on this phone come with you.</p>' : ''}
+    <p class="hint center">No account needed to play. This just saves your progress.</p></div>`;
+}
+const _render2 = render;
+render = function(){
+  if (screen === 'profile') {
+    const u = document.getElementById('au'), keep = u ? u.value : '';
+    clearTimeout(aiTimer); app.innerHTML = profileHTML(); window.scrollTo(0, 0);
+    const u2 = document.getElementById('au'); if (u2 && keep) u2.value = keep;
+    return;
+  }
+  _render2();
+  if (screen === 'home' && ME) { const c = app.querySelector('[data-a="profile"]'); if (c) c.classList.add('signed'); }
+};
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  const a = t.dataset.a;
+  if (a === 'profile') { e.stopPropagation(); authMsg = ''; screen = 'profile'; render(); }
+  else if (a === 'atab') { e.stopPropagation(); authTab = t.dataset.v; authMsg = ''; render(); }
+  else if (a === 'ago') { e.stopPropagation(); if (!authBusy) doAuth(); }
+  else if (a === 'asignout') { e.stopPropagation(); doSignOut(); }
+}, true);
+document.addEventListener('keydown', e => { if (e.key === 'Enter' && screen === 'profile' && (e.target.id === 'au' || e.target.id === 'ap')) doAuth(); });
 render();
 
 </script>
