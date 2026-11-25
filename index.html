@@ -723,7 +723,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124201820';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124202924';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -987,11 +987,12 @@ function genMoves(st, p, h){
       const r = d === 'f' ? fwdPath(st, k, n, o, {kill}) : backPath(st, k, n, o, {kill});
       if (r) mk([{key:k, label:(d === 'f' ? 'Forward ' : 'Back ') + n}], [{t: d === 'f' ? 'fwd' : 'back', key:k, n, kill}], r.lap);
     }
-    // Move anyone's marble on the track (never one in start, in a home lane, or protected on its start spot).
+    // Move anyone's marble on the track (never one in start or in a home lane). A marble sitting on its own
+    // start spot can be moved off it with a 5; it still can't be jumped over or binked there.
     // Your partner's marble can be pushed into their home; anyone else's always carries on past their home.
     if (c.any) for (let q = 0; q < st.N; q++) { if (q === ctrlOwner) continue;
       const mate = st.set.partners && teamOf(st, q) === teamOf(st, p);
-      for (let i = 0; i < 4; i++) { const k = q * 4 + i; if (st.m[q][i].z !== 't' || isBlocker(st, k)) continue;
+      for (let i = 0; i < 4; i++) { const k = q * 4 + i; if (st.m[q][i].z !== 't') continue;
         for (const n of amts) for (const d of dirs) {
           if (d === 'b') { const r = backPath(st, k, n, o, {kill}); if (r) mk([{key:k, label:`Move their marble back ${n}`}], [{t:'back', key:k, n, kill}]); continue; }
           if (mate) { const rIn = fwdPath(st, k, n, o, {kill}); if (rIn && rIn.dest.z === 'h') mk([{key:k, label:`Push into their home (${n})`}], [{t:'fwd', key:k, n, kill}]); }
@@ -1049,11 +1050,23 @@ function genMoves(st, p, h){
   }
   // A move that doesn't touch any of your own marbles (a skip, moving someone else's marble with a 5,
   // bringing your partner out) is optional: you may burn a card instead.
-  for (const m of res) m.optional = !!m.action || m.ops.every(op => op.key !== undefined && op.t !== 'swap' && op.t !== 'jump' && own(op.key) !== ctrlOwner);
+  // A card that moves anyone's marble (the 5) must be played if it can move anyone at all.
+  const othersOnly = m => m.ops.every(op => op.key !== undefined && op.t !== 'swap' && op.t !== 'jump' && own(op.key) !== ctrlOwner);
+  for (const m of res) {
+    m.optional = !c.any ? (!!m.action || othersOnly(m)) : othersOnly(m);
+    if (c.any && m.optional) m.keepCard = true;      // a 5 that can only move someone else: burn your other cards first if you like, but the 5 itself must be played
+  }
   return res;
 }
 function allMoves(st, p){ const r = []; for (let h = 0; h < st.hands[p].length; h++) r.push(...genMoves(st, p, h)); return r; }
-function canBurn(st, p, moves){ if (st.forced === p) return true; moves = moves || allMoves(st, p); return moves.length === 0 || moves.every(m => m.optional) || (st.set.around && moves.every(m => m.lap)); }
+function canBurn(st, p, moves){ if (st.forced === p) return true; moves = moves || allMoves(st, p); if (moves.length === 0) return true; const ok = moves.every(m => m.optional) || (st.set.around && moves.every(m => m.lap)); return ok && burnableCards(st, p, moves).length > 0; }
+// which cards you're allowed to burn: never a card that still has to be played (a 5 that can move someone)
+function burnableCards(st, p, moves){
+  if (st.forced === p) return st.hands[p].map((_, h) => h);
+  moves = moves || allMoves(st, p);
+  const keep = new Set(moves.filter(m => m.keepCard).map(m => m.h));
+  return st.hands[p].map((_, h) => h).filter(h => !keep.has(h));
+}
 
 // ---------- folding ----------
 // Fold (throw in the whole hand) only when nothing this hand can ever get you moving:
@@ -1271,7 +1284,7 @@ function aiDecide(st, p){
   const lvl = st.set.level || 'medium', rc = reachCounts(st.cfg);
   const moves = allMoves(st, p), burnable = canBurn(st, p, moves);
   let opts = moves.map(mv => ({mv}));
-  if (burnable) for (let h = 0; h < st.hands[p].length; h++) opts.push({burn:h});
+  if (burnable) for (const h of burnableCards(st, p, moves)) opts.push({burn:h});
   // Never hurt your own team when there is any other choice: no pushing your partner past their home,
   // no sending a teammate back to start, no throwing your own marble round another lap.
   const team = teamOf(st, p);
@@ -1347,7 +1360,7 @@ function aiPass(st, p){
   return best;
 }
 
-if (typeof module !== 'undefined' && module.exports) module.exports = {starSpots, centerKey, layoutFor, shouldFold, foldHand, dealPlan, autoDecks, RANKS, CLASSIC, CFG_KEYS, mkCfg, newGame, allMoves, genMoves, canBurn, playMove, burnCard, aiDecide, aiPass, choosePass, describeCard, checkWin, occ, teamOf};
+if (typeof module !== 'undefined' && module.exports) module.exports = {burnableCards, starSpots, centerKey, layoutFor, shouldFold, foldHand, dealPlan, autoDecks, RANKS, CLASSIC, CFG_KEYS, mkCfg, newGame, allMoves, genMoves, canBurn, playMove, burnCard, aiDecide, aiPass, choosePass, describeCard, checkWin, occ, teamOf};
 
 const DEFAULT_PHOTO = null;
 // ===== Super Tock UI =====
@@ -2005,7 +2018,7 @@ function drawGame(){
   else {
     const passing = G.phase === 'pass' && G.passSel && G.passSel[viewer] === null;
     hand.innerHTML = G.hands[viewer].map((c, h) => {
-      const playable = myTurn() && (moves.some(m => m.h === h) || moves.length === 0 || burnPick);
+      const playable = myTurn() && (burnPick ? burnableCards(G, viewer, moves).includes(h) : (moves.some(m => m.h === h) || moves.length === 0));
       const cls = [G.forced === viewer && myTurn() ? 'discard' : '', sel && sel.h === h ? 'sel' : '', (myTurn() || passing) && !playable && !passing ? 'dim' : '', !myTurn() && !passing ? 'wait' : ''].join(' ');
       return `<button class="cwrap ${cls}" data-a="card" data-h="${h}">${cardFace(c.r, c.s, '', cardNote(G.cfg[c.r]))}</button>`;
     }).join('');
@@ -2109,7 +2122,7 @@ function onCard(h){
   if (G.phase === 'pass') { if (G.passSel && G.passSel[viewer] === null) { choosePass(G, viewer, h); save(); loop(); } return; }
   if (!myTurn()) return;
   const moves = allMoves(G, viewer);
-  if (moves.length === 0 || burnPick) { doBurn(viewer, h); return; }
+  if (moves.length === 0 || burnPick) { if (burnPick && !burnableCards(G, viewer, allMoves(G, viewer)).includes(h)) { flash('You have to play your 5'); return; } doBurn(viewer, h); return; }
   if (!moves.some(m => m.h === h)) { flash('That card has no legal move right now'); return; }
   sel = sel && sel.h === h ? null : {h, picks:[], ghosts:null, from:null};
   trade = null;
