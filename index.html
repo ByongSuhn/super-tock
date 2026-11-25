@@ -882,6 +882,9 @@ input.locked{opacity:.85;cursor:default}
 .tstrip .tg em{font:italic 10px system-ui;color:#8f82a6}
 .cwrap.frommate{position:relative}
 .fromtag{position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);padding:1px 6px;border-radius:999px;background:linear-gradient(180deg,#f6d27a,#c9932f);color:#2b1808;font:800 8px system-ui;letter-spacing:.6px;white-space:nowrap;max-width:110%;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 4px rgba(0,0,0,.4)}
+.tstrip{animation:tsin .3s ease-out}.tstrip.out{opacity:0;transform:translateY(-6px);transition:all .4s}
+@keyframes tsin{from{opacity:0;transform:translateY(-6px)}}
+.plays li.ltrade{background:rgba(240,196,92,.1);border-radius:10px;gap:6px;flex-wrap:wrap}
 
 </style>
 </head>
@@ -889,7 +892,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125160935';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125164742';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -1309,6 +1312,7 @@ function choosePass(st, p, h){
     const given = st.passSel.map((id, q) => { const i = st.hands[q].findIndex(c => c.id === id); return st.hands[q].splice(i, 1)[0]; });
     given.forEach((c, q) => st.hands[mateOf(st, q)].push(c));
     st.traded = given.map(c => Object.assign({}, c)); st.tradedHand = st.hand;   // what each seat passed this hand
+    st.tradeLog = (st.tradeLog || []).concat([{hand:st.hand, cards:st.traded}]).slice(-30);
     st.phase = 'play'; st.passSel = null;
   }
 }
@@ -5236,6 +5240,7 @@ window.addEventListener('click', e => {
 }, true);
 
 // the trade stays up all hand: what you gave, what you got, and the card you got is tagged in your hand
+const TRS = {key:null, at:0, timer:null}, TRS_SHOW = 15000;
 function myTrade(){
   if (!G || !G.set || !G.set.partners || !G.traded || G.tradedHand !== G.hand || viewer < 0 || (ON.active && ON.spec)) return null;
   const mate = mateOf(G, viewer);
@@ -5249,19 +5254,42 @@ drawGame = function(){
   const panel = document.querySelector('.game .panel');
   let el = document.getElementById('tstrip');
   const t = screen === 'game' && G && G.phase === 'play' ? myTrade() : null;
-  if (!t || !panel) { if (el) el.remove(); return; }
+  // tag the card you got (stays all hand)
+  if (t) G.hands[viewer].forEach((c, h) => {
+    if (c.id !== t.got.id) return;
+    const b = document.querySelector(`#hand [data-a="card"][data-h="${h}"]`);
+    if (b && !b.querySelector('.fromtag')) { b.classList.add('frommate'); b.insertAdjacentHTML('beforeend', `<span class="fromtag">FROM ${esc(G.players[t.mate].name).toUpperCase()}</span>`); }
+  });
+  // the trade bar shows for a little while after the swap, then gets out of the way
+  const key = t ? G.gid + ':' + G.hand : null;
+  if (key && TRS.key !== key) { TRS.key = key; TRS.at = Date.now(); clearTimeout(TRS.timer); TRS.timer = setTimeout(() => { if (screen === 'game') drawGame(); }, TRS_SHOW + 50); }
+  if (!t || !panel || Date.now() - TRS.at > TRS_SHOW) {
+    if (el && !el.classList.contains('out')) { el.classList.add('out'); setTimeout(() => el.remove(), 450); }
+    return;
+  }
   if (!el) { el = document.createElement('div'); el.id = 'tstrip'; el.className = 'tstrip'; }
   const stillHave = G.hands[viewer].some(c => c.id === t.got.id), gone = !G.hands[mate2()].some(c => c.id === t.gave.id);
   function mate2(){ return t.mate; }
   el.innerHTML = `<span class="tl">🔄</span><span class="tg"><small>YOU GAVE</small><b>${esc(cardName(t.gave))}</b>${gone ? '<em>played</em>' : ''}</span><span class="ta">⇄</span><span class="tg"><small>${esc(G.players[t.mate].name).toUpperCase()} GAVE YOU</small><b>${esc(cardName(t.got))}</b>${stillHave ? '' : '<em>played</em>'}</span>`;
   const anchor = document.getElementById('tclock');
   if (anchor && anchor.parentNode === panel) anchor.after(el); else if (el.parentNode !== panel || panel.firstChild !== el) panel.insertBefore(el, panel.firstChild);
-  // tag the card you got
-  G.hands[viewer].forEach((c, h) => {
-    if (c.id !== t.got.id) return;
-    const b = document.querySelector(`#hand [data-a="card"][data-h="${h}"]`);
-    if (b && !b.querySelector('.fromtag')) { b.classList.add('frommate'); b.insertAdjacentHTML('beforeend', `<span class="fromtag">FROM ${esc(G.players[t.mate].name).toUpperCase()}</span>`); }
-  });
+};
+
+// the trade for each hand also shows in Recent plays (tap the deck)
+const _logHTMLTr = logHTML;
+logHTML = function(){
+  let h = _logHTMLTr();
+  if (!G || !G.set || !G.set.partners || !G.tradeLog || viewer < 0 || (ON.active && ON.spec)) return h;
+  const mate = mateOf(G, viewer);
+  for (const t of G.tradeLog) {
+    const gave = t.cards[viewer], got = t.cards[mate]; if (!gave || !got) continue;
+    const red = c => c.s === '♥' || c.s === '♦' ? 'red' : '';
+    const row = `<li class="ltrade"><span>🔄</span><span>You gave</span><span class="lc ${red(gave)}">${cardName(gave)}</span><span>· ${esc(G.players[mate].name)} gave you</span><span class="lc ${red(got)}">${cardName(got)}</span></li>`;
+    const head = `<li class="lh">Hand ${t.hand}</li>`;
+    if (h.includes(head)) h = h.replace(head, head + row);
+    else h = h.replace('<ul class="plays">', `<ul class="plays">${head}${row}`).replace('<p>No plays yet.</p>', `<ul class="plays">${head}${row}</ul>`);
+  }
+  return h;
 };
 
 </script>
