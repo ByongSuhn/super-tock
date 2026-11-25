@@ -830,7 +830,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125015605';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125020012';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -904,14 +904,14 @@ function describeCardLong(c) {
 // Each player's stretch of track: start corner, up the + leg (K holes), the shared corner hole where the
 // two legs meet (the star point), down the next player's - leg (K holes), then 3 holes along the next
 // player's rim row. Home lane runs up the middle of each finger from the middle rim hole.
-const LAYOUT_K = {2:7,3:7,4:5,5:7,6:7,7:7,8:7,9:6,10:6,11:6,12:6};
-function layoutFor(N){
-  const K = LAYOUT_K[N] || 6, th = 2 * Math.PI / N;
+const LAYOUT_K = {2:7,3:7,4:5,5:5,6:5,7:7,8:7,9:6,10:6,11:6,12:6};   // 4, 5 and 6 players: 5 holes from start to the star
+function layoutFor(N, k){
+  const K = k || LAYOUT_K[N] || 6, th = 2 * Math.PI / N;
   const r0 = N === 2 ? 0 : 2 / Math.tan(th / 2);      // where the legs meet, in hole spacings (legs sit 2 holes off the axis)
   return {K, r0, seg: 2 * K + 4, E: 2};
 }
 function segFor(N){ return layoutFor(N).seg; }
-function starSpots(st){ if (!st._stars) { const K = layoutFor(st.N).K; st._stars = Array.from({length:st.N}, (_, p) => p * st.seg + K); } return st._stars; }
+function starSpots(st){ if (!st._stars) { const K = (st.seg - 4) / 2; st._stars = Array.from({length:st.N}, (_, p) => p * st.seg + K); } return st._stars; }
 function isStar(st, pos){ return starSpots(st).includes(pos); }
 function centerKey(st){ for (let p = 0; p < st.N; p++) for (let i = 0; i < 4; i++) if (st.m[p][i].z === 'c') return p * 4 + i; return -1; }
 function centerOn(st){ return st.set.center === 'count' || st.set.center === 'card'; }
@@ -1616,9 +1616,9 @@ function rulesHTML(){
 }
 // ---------------- game screen ----------------
 // Classic Tock board: one finger per player pointing at the centre (see layoutFor in the engine).
-function buildGeom(N, rot){
+function buildGeom(N, rot, k){
   rot = rot || 0;
-  const lay = layoutFor(N), {K, r0} = lay, th = 2 * Math.PI / N, C = 500;
+  const lay = layoutFor(N, k), {K, r0} = lay, th = 2 * Math.PI / N, C = 500;
   const Rout = 440, d = Rout / (r0 + K), w = 2 * d;
   const ang = p => Math.PI / 2 + (p - rot) * th;         // the viewer's finger points straight down (player 0 in solo)
   const P = (a, r, off) => [C + r * Math.cos(a) - off * Math.sin(a), C + r * Math.sin(a) + off * Math.cos(a)];
@@ -1760,7 +1760,7 @@ if (BT) s += `<clipPath id="${P}bclip"><circle cx="${C}" cy="${C}" r="499"/></cl
   return s + `</g><g id="${P}hl"></g>` + (BT && g._k < 1 ? '</g>' : '');
 }
 function buildBoard(){
-  geom = buildGeom(G.N, viewer >= 0 && viewer < G.N ? viewer : 0);
+  geom = buildGeom(G.N, viewer >= 0 && viewer < G.N ? viewer : 0, G.seg ? (G.seg - 4) / 2 : 0);   // saved games keep the board they started on
   geom.stars = starSpots(G);
   const svg = document.getElementById('board');
   svg.innerHTML = boardSVG(geom, G.N, G.set.center === 'count' || G.set.center === 'card', mloc, '', PAL, null);
