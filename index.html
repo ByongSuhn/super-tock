@@ -746,7 +746,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125005828';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125005955';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -2896,7 +2896,7 @@ document.addEventListener('click', e => {
   if (a === 'pickm') {
     e.stopPropagation();
     picker = {mode: screen === 'lobby' ? 'online' : 'solo', seat: +t.dataset.i}; drawPicker();
-  } else if (a === 'mpick') { e.stopPropagation(); if (typeof MSTYLES !== 'undefined' && MARBLES_LIVE) return; chooseSkin(t.dataset.v); }
+  } else if (a === 'mpick') { e.stopPropagation(); chooseSkin(t.dataset.v); }
   else if (a === 'mlocked') { e.stopPropagation(); const s = SKIN(t.dataset.v); flash(`Locked · ${s.how}`); }
   else if (a === 'mtaken') { e.stopPropagation(); flash('Someone else has that one'); }
   else if (a === 'mclose') { e.stopPropagation(); picker = null; drawPicker(); }
@@ -3038,20 +3038,17 @@ pickerHTML = function(){
     <div class="minfo"><b>${pm ? esc(pm.name) : 'Plain'}</b>${fx.length ? `<span class="fxtag">${fx.join(' · ')}</span>` : ''}
     <em>${plock ? 'Locked' : (cur || null) === (pv || null) ? 'Equipped' : pm && takenS.has(pm.id) ? 'Someone in this game has it' : ''}</em></div></div>`;
   const sec = `<h3 class="lh3">MARBLE STYLE</h3>${stage}<div class="mgrid">${tile(null)}${MSTYLES.map(tile).join('')}</div>`;
-  h = h.replace('<h3 class="lh3">COLORS</h3>', '<h3 class="lh3">YOUR COLOR</h3>');
-  {                                                            // your colour is always your seat's colour
-    h = h.replace(/<h3 class="lh3">YOUR COLOR<\/h3><div class="mgrid three">[\s\S]*?<\/div>(?=\s*<p class="hint">)/, '');
-  }
+  h = h.replace('<h3 class="lh3">COLORS</h3>', '<h3 class="lh3">RING COLOR</h3>');
   if (typeof lookTabs === 'function' && BOARDS.length > 1) h = h.replace(/<h2 class="ltitle">.*?<\/h2>/, lookTabs('marble'));
   h = h.replace('<p class="hint">', sec + '<p class="hint">');
-  h = h.replace('Special unlockable marbles are coming soon.', 'The ring around your marbles is your color for that game.');
+  h = h.replace('Special unlockable marbles are coming soon.', 'Your color is your ring, holes and home for the game. Once someone takes a color, nobody else can.');
   return h;
 };
 // picking a colour keeps the picker open now that there are two sections
 chooseSkin = function(id){
   profile.skin = id; LS.set('st.profile', profile);
   if (picker.mode === 'solo') { setup.seats[picker.seat].skin = id; }
-  else if (ON.host) { ON.L.seats[picker.seat].skin = id; pushLobby(); }
+  else if (ON.host) { if (takenGroups(ON.L.seats.map(x => x.kind === 'human' ? x.skin || null : null), picker.seat).has(SKIN(id).grp)) { flash('Someone else has that color'); return; } ON.L.seats[picker.seat].skin = id; pushLobby(); }
   else sendLobbyIntent('skin', {skin:id});
   if (!MARBLES_LIVE) picker = null;
   drawPicker(); render();
@@ -3527,10 +3524,6 @@ render = function(){
   if (PASS_LIVE && screen === 'game' && G && G.phase !== 'over' && viewer >= 0 && G.players[viewer] && G.players[viewer].human) { try { gameTrack(); } catch (e) {} }
   if (PASS_LIVE && !boardOwned(BOARD)) BOARD = 'classic';
   if (PASS_LIVE && screen === 'setup' && setup) setup.seats.forEach(x => { if (x.human && x.mskin && !styleOwned(x.mskin)) x.mskin = null; });
-  if (PASS_LIVE) {                                                  // everyone keeps their seat colour
-    if (profile.skin) { profile.skin = null; LS.set('st.profile', profile); }
-    if (screen === 'setup' && setup) setup.seats.forEach(x => { if (x.human) x.skin = null; });
-  }
   _render6();
 };
 achCheck();
