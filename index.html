@@ -705,6 +705,17 @@ input.locked{opacity:.85;cursor:default}
 .pmopt small{font:13px system-ui;color:#cbbfdc}
 .pmopt.dis{opacity:.5}
 #pmenu .lux-btn{width:100%}
+.pchip{cursor:pointer}
+#pinfo .mpicker{position:fixed;inset:0;z-index:85;background:rgba(8,4,16,.6);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(2px)}
+#pinfo .mbox{width:min(520px,100%);background:linear-gradient(180deg,#24153a,#120a20);border:2px solid rgba(224,176,79,.7);border-bottom:0;border-radius:24px 24px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));animation:pmup .22s ease-out}
+.pitop{display:flex;gap:16px;align-items:center;margin-bottom:12px}
+.pitop .orb{flex:none;box-shadow:0 0 0 4px var(--rc,transparent),0 10px 24px rgba(0,0,0,.6)!important}
+.pitop b{display:block;font:700 24px/1.1 Cinzel,Georgia,serif;color:#f3e6c8}
+.pitop small{display:block;font:600 13px system-ui;color:#f0c45c;margin:4px 0}
+.pitop .pis,.pitop .pic{display:block;font:13px system-ui;color:#cbbfdc;margin-top:3px}
+.pitop .pic i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+#pinfo .tstats{margin-bottom:8px}
+#pinfo .lux-btn{width:100%;margin-top:4px}
 
 </style>
 </head>
@@ -712,7 +723,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124194225';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124201820';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -1939,7 +1950,7 @@ function drawGame(){
     const home = G.m[p].filter(m => m.z === 'h').length;
     const team = G.set.partners ? `<em>${String.fromCharCode(65 + (p % (G.N / 2)))}</em>` : '';
     const lead = G.phase === 'pass' && G.turn === p ? '<span class="lead">1st</span>' : '';
-    return `<div class="pchip ${G.turn === p && G.phase !== 'over' ? 'turn' : ''}"><i style="background:${PAL[p]}"></i>${typeof pl.lv === 'number' && typeof PASS_LIVE !== 'undefined' && PASS_LIVE ? `<em class="lvp ${pl.lv >= 50 ? 'max' : ''}">${pl.lv >= 50 ? '♛' : ''}${pl.lv}</em>` : ''}${esc(pl.name)} <b>${home}/4</b>${team}${lead}</div>`;
+    return `<div class="pchip ${G.turn === p && G.phase !== 'over' ? 'turn' : ''}" data-a="pinfo" data-p="${p}"><i style="background:${PAL[p]}"></i>${typeof pl.lv === 'number' && typeof PASS_LIVE !== 'undefined' && PASS_LIVE ? `<em class="lvp ${pl.lv >= 50 ? 'max' : ''}">${pl.lv >= 50 ? '♛' : ''}${pl.lv}</em>` : ''}${esc(pl.name)} <b>${home}/4</b>${team}${lead}</div>`;
   }).join('');
   const cur = chips.querySelector('.turn'); if (cur && cur.scrollIntoView) cur.scrollIntoView({inline:'center', block:'nearest', behavior:'smooth'});
   // whose turn: glow their start tray
@@ -3773,7 +3784,7 @@ window.addEventListener('click', async e => {
   const t = e.target.closest('[data-a]'); if (!t) return;
   const a = t.dataset.a;
   if (a === 'setup' && t.dataset.mode === 'solo' && screen === 'home' && soloSaved()) {
-    e.stopPropagation(); e.stopImmediatePropagation(); resumeAsk = true; drawResumeAsk();
+    e.stopPropagation(); e.stopImmediatePropagation(); if (typeof drawPlayMenu === 'function') { playMenu = false; drawPlayMenu(); } resumeAsk = true; drawResumeAsk();
   } else if (a === 'rsgo') {
     e.stopPropagation(); resumeAsk = false; drawResumeAsk();
     const g = soloSaved(); if (!g) return;
@@ -3961,6 +3972,40 @@ window.addEventListener('click', e => {
 const _chooseStyleS = chooseStyle;
 chooseStyle = function(id){ _chooseStyleS(id); try { if (ME && AUTH_ON) firebase.database().ref('users/' + ME.uid + '/look').set({m: id || null}).catch(() => {}); } catch (e) {} };
 
+// ---------- tap a name at the top of a game to see that player ----------
+let pinfo = -1;
+function pinfoHTML(p){
+  const pl = G.players[p], r = G.rec, home = G.m[p].filter(m => m.z === 'h').length, start = G.m[p].filter(m => m.z === 's').length;
+  const style = typeof MSTYLE === 'function' ? MSTYLE(pl.mskin) : null, colId = pl.skin || 'c' + (pl.color || 0);
+  const orb = typeof styleOrb === 'function' ? styleOrb(colId, pl.mskin, 120) : skinOrb(colId, 120);
+  const fx = style && MFX[style.id] ? Object.keys(MFX[style.id]).map(k => ({swirl:'Swirl', sparkle:'Sparkle', shimmer:'Shimmer', flash:'Lightning'})[k]).filter(Boolean) : [];
+  const mate = G.set.partners ? mateOf(G, p) : -1;
+  const lv = typeof pl.lv === 'number' ? pl.lv : null;
+  return `<div class="mpicker" data-a="pinfox"><div class="mbox pibox" data-a="noop">
+    <div class="pitop">${orb}<div><b>${esc(pl.name)}</b>
+      <small>${pl.human ? (lv !== null ? `Level ${lv}${lv >= 50 ? ' ♛' : ''}` : 'Player') : 'Computer'}${p === viewer ? ' · You' : ''}</small>
+      <span class="pis">${style ? esc(style.name) : 'Plain'} marble${fx.length ? ' · ' + fx.join(' · ') : ''}</span>
+      <span class="pic"><i style="background:${PAL[p]}"></i>${esc(CNAMES[pl.color] || '')}${mate >= 0 ? ` · partner: ${esc(G.players[mate].name)}` : ''}</span></div></div>
+    <div class="tstats"><div><b>${home}/4</b><span>Home</span></div><div><b>${4 - home - start}</b><span>On the board</span></div><div><b>${start}</b><span>In start</span></div></div>
+    ${r ? `<div class="tstats"><div><b>${r.b[p]}</b><span>Binks</span></div><div><b>${r.hit[p]}</b><span>Got binked</span></div><div><b>${G.hands[p] ? G.hands[p].length : 0}</b><span>Cards left</span></div></div>` : ''}
+    <button class="lux-btn" data-a="pinfox"><span>CLOSE</span></button></div></div>`;
+}
+function drawPinfo(){
+  let el = document.getElementById('pinfo');
+  if (pinfo < 0 || !G || screen !== 'game') { if (el) el.remove(); pinfo = -1; return; }
+  if (!el) { el = document.createElement('div'); el.id = 'pinfo'; document.body.appendChild(el); }
+  el.innerHTML = pinfoHTML(pinfo);
+}
+window.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  if (t.dataset.a === 'pinfo') { e.stopPropagation(); pinfo = +t.dataset.p; drawPinfo(); }
+  else if (t.dataset.a === 'pinfox') { e.stopPropagation(); pinfo = -1; drawPinfo(); }
+}, true);
+const _drawGameP = drawGame;
+drawGame = function(){ _drawGameP(); if (pinfo >= 0) drawPinfo(); };
+const _renderP = render;
+render = function(){ _renderP(); if (pinfo >= 0 && screen !== 'game') { pinfo = -1; drawPinfo(); } };
+
 // ===================== Play Game: pick computer or online =====================
 let playMenu = false;
 function playMenuHTML(){
@@ -3990,6 +4035,9 @@ window.addEventListener('click', e => {
     app.appendChild(btn); btn.click(); btn.remove();
   }
 }, true);
+
+const _renderPM = render;
+render = function(){ _renderPM(); if (playMenu && screen !== 'home') { playMenu = false; drawPlayMenu(); } };
 
 </script>
 </body>
