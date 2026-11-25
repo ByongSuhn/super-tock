@@ -804,6 +804,8 @@ input.locked{opacity:.85;cursor:default}
 .lbpst{margin:12px 0 8px;text-align:center;font:700 15px system-ui;color:#a99bbf}.lbpst.ok{color:#4cd17a}
 .lbplook{margin:4px 0 10px}
 .lbplook>div{display:flex;align-items:center;gap:10px;padding:10px;border-radius:16px;background:rgba(255,255,255,.04);border:1.5px solid rgba(240,196,92,.3);color:#f3e6c8;min-width:0}
+.lbptop{justify-content:center;text-align:center;padding:4px 0 2px}
+.lbptop>div{display:flex;flex-direction:column;align-items:center}
 
 </style>
 </head>
@@ -811,7 +813,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125013222';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125013510';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -4109,13 +4111,14 @@ function lbProfHTML(x){
     else act = `<button class="lux-cta" data-a="lbadd" data-u="${esc(x.uid)}" data-n="${esc(x.name)}"><span>+ ADD FRIEND</span></button>`;
   }
   return `<div class="mpicker" data-a="lbpx"><div class="mbox pibox" data-a="noop">
-    <div class="pitop">${orb}<div><b>${esc(x.name)}</b><small>Level ${x.lv}${x.lv >= 50 ? ' ♛' : ''}${me ? ' · You' : ''}</small></div></div>
+    <div class="pitop lbptop"><div><b>${esc(x.name)}</b><small>Level ${x.lv}${x.lv >= 50 ? ' ♛' : ''}${me ? ' · You' : ''}</small></div></div>
     ${lookTiles(x)}
     <div class="tstats"><div><b>${w}</b><span>Wins</span></div><div><b>${l}</b><span>Losses</span></div><div><b>${pct}</b><span>Win %</span></div></div>
     <div class="tstats"><div><b>${x.lv}</b><span>Level</span></div><div><b>${x.binks}</b><span>Binks</span></div><div><b>${x.games}</b><span>Games</span></div></div>
     ${act}<button class="lux-btn" data-a="lbpx"><span>CLOSE</span></button></div></div>`;
 }
 function lookTiles(x){
+  if (ME && x.uid === ME.uid) x = Object.assign({}, x, {look:{m:profile.mskin || null, b:BOARD}});   // yours: always what you have right now
   const m = x.look.m && typeof MSTYLE === 'function' ? MSTYLE(x.look.m) : null;
   const b = typeof BOARDS !== 'undefined' ? (BOARDS.find(y => y.id === x.look.b) || BOARDS[0]) : null;
   const orb = typeof styleOrb === 'function' ? styleOrb('c1', m ? m.id : null, 48) : skinOrb('c1', 48);
@@ -4142,16 +4145,19 @@ const _chooseStyleS = chooseStyle;
 chooseStyle = function(id){ _chooseStyleS(id); try { if (ME && AUTH_ON) firebase.database().ref('users/' + ME.uid + '/look/m').set(id || null).catch(() => {}); } catch (e) {} };
 // and your board, so others can see it on your player card
 let lookSent = null;
-const _renderLook = render;
-render = function(){
-  _renderLook();
+function syncLook(force){
   try {
-    if (!ME || !AUTH_ON || navigator.onLine === false) return;
+    if (!ME || !AUTH_ON || navigator.onLine === false) return Promise.resolve();
     const k = ME.uid + ':' + BOARD + ':' + (profile.mskin || '');
-    if (lookSent === k) return; lookSent = k;
-    firebase.database().ref('users/' + ME.uid + '/look').update({b: BOARD || 'classic', m: profile.mskin || null}).catch(() => { lookSent = null; });
-  } catch (e) {}
-};
+    if (lookSent === k && !force) return Promise.resolve(); lookSent = k;
+    return firebase.database().ref('users/' + ME.uid + '/look').update({b: BOARD || 'classic', m: profile.mskin || null}).catch(() => { lookSent = null; });
+  } catch (e) { return Promise.resolve(); }
+}
+const _renderLook = render;
+render = function(){ _renderLook(); syncLook(false); };
+// opening the leaderboard always saves your look first, so it's never out of date
+const _loadLeadersL = loadLeaders;
+loadLeaders = async function(){ try { await withTimeout(syncLook(true), 3000); } catch (e) {} return _loadLeadersL(); };
 
 // ---------- tap a name at the top of a game to see that player ----------
 let pinfo = -1;
