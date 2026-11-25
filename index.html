@@ -723,7 +723,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124202924';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124204545';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -778,7 +778,7 @@ function describeCardLong(c) {
     let s;
     if (c.split) s = `move ${c.n} forward, split any way across your marbles (all ${c.n} must be used)`;
     else s = c.dir === 'b' ? `move one marble backward ${amt}` : c.dir === 'e' ? `move one marble ${amt}, forward or backward` : `move one marble forward ${amt}`;
-    if (c.any && !c.split) s += ` (it can be anyone’s marble on the track; only your partner’s can be pushed into their home)`;
+    if (c.any && !c.split) s += ` (it can be anyone’s marble on the track, except one sitting safe on its start spot; only your partner’s can be pushed into their home)`;
     if (c.kill && !c.split) s += `, and every marble it passes, yours included, goes back to start`;
     opts.push(s);
   }
@@ -987,12 +987,11 @@ function genMoves(st, p, h){
       const r = d === 'f' ? fwdPath(st, k, n, o, {kill}) : backPath(st, k, n, o, {kill});
       if (r) mk([{key:k, label:(d === 'f' ? 'Forward ' : 'Back ') + n}], [{t: d === 'f' ? 'fwd' : 'back', key:k, n, kill}], r.lap);
     }
-    // Move anyone's marble on the track (never one in start or in a home lane). A marble sitting on its own
-    // start spot can be moved off it with a 5; it still can't be jumped over or binked there.
+    // Move anyone's marble on the track (never one in start, in a home lane, or sitting safe on its own start spot).
     // Your partner's marble can be pushed into their home; anyone else's always carries on past their home.
     if (c.any) for (let q = 0; q < st.N; q++) { if (q === ctrlOwner) continue;
       const mate = st.set.partners && teamOf(st, q) === teamOf(st, p);
-      for (let i = 0; i < 4; i++) { const k = q * 4 + i; if (st.m[q][i].z !== 't') continue;
+      for (let i = 0; i < 4; i++) { const k = q * 4 + i; if (st.m[q][i].z !== 't' || st.m[q][i].i === startSpot(st, q)) continue;
         for (const n of amts) for (const d of dirs) {
           if (d === 'b') { const r = backPath(st, k, n, o, {kill}); if (r) mk([{key:k, label:`Move their marble back ${n}`}], [{t:'back', key:k, n, kill}]); continue; }
           if (mate) { const rIn = fwdPath(st, k, n, o, {kill}); if (rIn && rIn.dest.z === 'h') mk([{key:k, label:`Push into their home (${n})`}], [{t:'fwd', key:k, n, kill}]); }
