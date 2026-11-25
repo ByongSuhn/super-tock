@@ -854,6 +854,19 @@ input.locked{opacity:.85;cursor:default}
 .rivrow.sm em{font-size:20px}
 .rivrow span{color:#a99bbf;font:12px system-ui}
 .rivrow .vs{color:#f0c45c;font:800 13px system-ui}
+/* ---- dealer ---- */
+.dchip{transition:transform .9s cubic-bezier(.3,1.3,.5,1);filter:drop-shadow(0 3px 4px rgba(0,0,0,.55))}
+.dbadge{display:inline-grid;place-items:center;width:20px;height:20px;margin-left:5px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff0b8,#e0a93a 60%,#9a6514);color:#3a2206;font:900 11px Cinzel,Georgia,serif;box-shadow:0 0 0 1.5px #7a4e12}
+.dealban{position:absolute;left:50%;top:50%;z-index:6;transform:translate(-50%,-50%);padding:12px 22px 14px;border-radius:18px;text-align:center;pointer-events:none;width:max-content;max-width:88%;
+  background:radial-gradient(120% 140% at 50% 0%,#3a2460,#160b26);border:2px solid #f0c45c;box-shadow:0 12px 30px rgba(0,0,0,.6);color:#f3e6c8;font:15px system-ui;animation:dealin .45s cubic-bezier(.2,1.4,.4,1)}
+.dealban small{display:block;color:#f0c45c;font:800 11px system-ui;letter-spacing:3px;margin-bottom:6px}
+.dealban div{display:flex;align-items:center;justify-content:center;gap:7px;font:600 17px system-ui}
+.dealban div b{font:900 19px Cinzel,Georgia,serif;color:#fff}
+.dealban div.f{margin-top:4px;font-size:14px;color:#cbbfdc}.dealban div.f b{font-size:15px}
+.dealban i{width:11px;height:11px;border-radius:50%}
+.dealban .dc{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff0b8,#e0a93a 60%,#9a6514);color:#3a2206;font:900 13px Cinzel,Georgia,serif}
+.dealban.out{opacity:0;transform:translate(-50%,-60%);transition:all .45s}
+@keyframes dealin{from{opacity:0;transform:translate(-50%,-50%) scale(.6)}}
 
 </style>
 </head>
@@ -861,7 +874,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125121818';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125123305';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -5112,6 +5125,70 @@ render = function(){
     }
   }
 };
+
+// ===================== Whose deal: dealer button on the board + a new-hand banner =====================
+function dealerSpot(d){
+  // a clear spot right beside the dealer's start tray, away from every hole
+  const g = geom, sc = g && g.startC && g.startC[d]; if (!sc) return null;
+  const holes = [...g.track, ...g.home.flat(), ...g.start.flat()], r0 = Math.hypot(sc.bw, sc.bh) / 2 + g.hr * 1.4, cr = g.hr * 1.35;
+  let best = null;
+  for (const rr of [r0, r0 * 0.85, r0 * 1.15]) for (let k = 0; k < 24; k++) {
+    const a = k / 24 * Math.PI * 2, x = sc.cen[0] + Math.cos(a) * rr, y = sc.cen[1] + Math.sin(a) * rr;
+    if (Math.hypot(x - g.C, y - g.C) > g.R + g.hr * 0.4) continue;           // stay on the board
+    const clear = Math.min(...holes.map(([hx, hy]) => Math.hypot(hx - x, hy - y))) - g.hr - cr;
+    if (!best || clear > best.clear) best = {x, y, clear};
+  }
+  return best;
+}
+function drawDealer(){
+  if (!G || !geom || screen !== 'game' || G.dealer == null) return;
+  const mb = document.getElementById('mb0'), layer = mb && mb.parentNode; if (!layer) return;
+  const sp = dealerSpot(G.dealer); if (!sp) return;
+  let el = document.getElementById('dchip');
+  const r = geom.hr * 1.35;
+  if (!el) {
+    el = document.createElementNS('http://www.w3.org/2000/svg', 'g'); el.id = 'dchip'; el.setAttribute('class', 'dchip');
+    el.innerHTML = `<circle r="${r}" fill="#f6d27a" stroke="#7a4e12" stroke-width="${r * 0.12}"/><circle r="${r * 0.74}" fill="none" stroke="#fff4c8" stroke-width="${r * 0.08}" stroke-dasharray="${r * 0.35} ${r * 0.22}"/>
+      <text y="${r * 0.36}" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-weight="900" font-size="${r * 1.05}" fill="#3a2206">D</text>`;
+    el.dataset.d = G.dealer;
+    el.style.transform = `translate(${sp.x}px, ${sp.y}px)`;
+  }
+  if (el.parentNode !== layer || layer.firstChild === el) layer.insertBefore(el, mb);      // under the marbles
+  if (el.dataset.d !== String(G.dealer)) { el.dataset.d = G.dealer; }
+  el.style.transform = `translate(${sp.x}px, ${sp.y}px)`;
+  el.querySelector('circle').setAttribute('stroke', PAL[G.dealer]);
+}
+// chips: a little D on the dealer
+function dealerBadge(){
+  if (!G || G.dealer == null) return;
+  const c = document.querySelector(`#chips .pchip[data-p="${G.dealer}"]`);
+  if (c && !c.querySelector('.dbadge')) c.insertAdjacentHTML('beforeend', '<span class="dbadge" title="Dealer">D</span>');
+}
+// a banner each time a new hand is dealt
+let dealShown = null;
+function dealBanner(){
+  if (!G || G.phase === 'over' || G.dealer == null) return;
+  const k = (G.gid || '') + ':' + G.hand;
+  if (dealShown === k) return;
+  dealShown = k;
+  const wrap = document.querySelector('.boardwrap'); if (!wrap) return;
+  wrap.querySelectorAll('.dealban').forEach(x => x.remove());
+  const d = G.dealer, f = (d + 1) % G.N, nm = p => p === viewer && !(ON.active && ON.spec) ? 'You' : esc(G.players[p].name);
+  const el = document.createElement('div'); el.className = 'dealban';
+  el.innerHTML = `<small>HAND ${G.hand || 1}</small>
+    <div><span class="dc">D</span><i style="background:${PAL[d]}"></i><b>${nm(d)}</b> ${nm(d) === 'You' ? 'deal' : 'deals'}</div>
+    <div class="f"><i style="background:${PAL[f]}"></i><b>${nm(f)}</b> ${nm(f) === 'You' ? 'go' : 'goes'} first</div>`;
+  wrap.appendChild(el);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 500); }, 2800);
+}
+const _drawGameDeal = drawGame;
+drawGame = function(){
+  _drawGameDeal();
+  if (screen !== 'game' || !G) return;
+  try { drawDealer(); dealerBadge(); if (!curtain && G.phase !== 'over') dealBanner(); } catch (e) { console.warn(e); }
+};
+const _buildBoardDeal = buildBoard;
+buildBoard = function(){ _buildBoardDeal(); try { drawDealer(); } catch (e) {} };
 
 </script>
 </body>
