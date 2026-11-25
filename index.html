@@ -739,6 +739,55 @@ input.locked{opacity:.85;cursor:default}
 .cform input{flex:1;min-width:0;height:44px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(240,196,92,.45);background:#0f0818;color:#f3e6c8;font:16px system-ui}
 .cform button{height:44px;padding:0 18px;border-radius:999px;border:0;background:linear-gradient(180deg,#f6d27a,#c9932f);color:#2b1808;font:700 15px system-ui}
 .acct .me{margin-top:4px}
+/* ---- turn timer ---- */
+.tclock{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;height:28px;margin:2px 0 6px;padding:0 12px;border-radius:999px;overflow:hidden;background:rgba(0,0,0,.35);border:1px solid rgba(240,196,92,.3);color:#e9dcc0;font:600 13px system-ui}
+.tclock i{position:absolute;left:0;top:0;bottom:0;opacity:.35;transition:width .25s linear}
+.tclock span,.tclock b{position:relative}
+.tclock b{font:700 14px system-ui;font-variant-numeric:tabular-nums}
+.tclock.mine{border-color:#f0c45c;color:#fff}
+.tclock.low b{color:#ff6b6b}
+.tclock.mine.low{animation:tpulse .8s ease-in-out infinite}
+@keyframes tpulse{50%{box-shadow:0 0 0 3px rgba(255,90,90,.35)}}
+/* ---- rematch ---- */
+.rmlist{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:6px 0 10px}
+.rmlist span{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.07);color:#cbbfdc;font:600 13px system-ui}
+.rmlist span i{width:9px;height:9px;border-radius:50%}
+.rmlist span.ok{background:rgba(80,200,120,.18);color:#e9ffe9}
+.rmlist span b{font-weight:700}
+.lux-cta.ready{filter:saturate(.6) brightness(.85)}
+/* ---- watching ---- */
+.specnote{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;padding:16px;border-radius:16px;background:rgba(0,0,0,.3);border:1px dashed rgba(240,196,92,.4);color:#f3e6c8;font:15px system-ui;text-align:center}
+.specnote span{font-size:12px;color:#a99bbf}
+/* ---- friends ---- */
+.frbox{max-height:86vh;display:flex;flex-direction:column}
+.frbox .fradd{margin:2px 0 8px}
+.frmsg{margin:0 6px 8px;color:#f0c45c;font:600 13px system-ui}
+.frhead{display:flex;align-items:center;justify-content:space-between}
+.frlist{overflow:auto;min-height:60px;max-height:46vh;display:flex;flex-direction:column;gap:6px;margin:4px 0 8px}
+.frrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(240,196,92,.18)}
+.frrow .nm{flex:1;min-width:0;display:flex;flex-direction:column}
+.frrow .nm b{color:#f3e6c8;font:700 16px system-ui;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.frrow .nm small{color:#a99bbf;font:12px system-ui}
+.frdot{flex:none;width:11px;height:11px;border-radius:50%;background:#5a5068}
+.frdot.on{background:#4cd17a;box-shadow:0 0 6px #4cd17a}
+.frdot.lobby{background:#f0c45c;box-shadow:0 0 6px #f0c45c}
+.frdot.play{background:#6aa8ff;box-shadow:0 0 6px #6aa8ff}
+.frbtn{flex:none;height:34px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(240,196,92,.55);background:transparent;color:#f3e6c8;font:700 13px system-ui;cursor:pointer}
+.frbtn.go{border:0;background:linear-gradient(180deg,#f6d27a,#c9932f);color:#2b1808}
+.frbtn.x{padding:0 11px;border-color:rgba(255,255,255,.25);color:#cbbfdc}
+.frbtn.sm{height:28px;padding:0 12px;font-size:12px}
+.frtag{flex:none;color:#4cd17a;font:700 12px system-ui}
+.frbadge{position:absolute;top:6px;right:8px;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#e5484d;color:#fff;font:700 12px/20px system-ui;text-align:center}
+[data-a="fropen"]{position:relative}
+.invrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+#frban{position:fixed;left:0;right:0;top:calc(env(safe-area-inset-top) + 10px);z-index:80;display:flex;justify-content:center;padding:0 10px;pointer-events:none}
+.frban{pointer-events:auto;display:flex;align-items:center;gap:8px;width:100%;max-width:460px;padding:10px 12px;border-radius:18px;background:linear-gradient(180deg,#4a2470,#2a1442);border:2px solid #f0c45c;box-shadow:0 10px 30px rgba(0,0,0,.5);color:#f3e6c8;font:14px system-ui;animation:frin .35s ease-out}
+.frban .ic{font-size:22px}.frban .tx{flex:1;min-width:0}
+@keyframes frin{from{transform:translateY(-30px);opacity:0}}
+#friends .mpicker{z-index:90}
+#frban{z-index:95}
+#friends .mpicker{position:fixed;inset:0;background:rgba(8,4,16,.72);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+#friends .mbox{width:min(560px,100%);background:linear-gradient(180deg,#24153a,#120a20);border:2px solid rgba(224,176,79,.7);border-bottom:0;border-radius:24px 24px 0 0;padding:16px 14px calc(16px + env(safe-area-inset-bottom));animation:pmup .25s ease-out}
 
 </style>
 </head>
@@ -746,7 +795,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125005955';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125011428';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -2447,7 +2496,7 @@ const isHostOnline = () => ON.active && ON.host;
 // ---------- lobby ----------
 function defaultLobby(code){
   const s = defaultSetup('solo');
-  return {code, host:ON.pid, started:false, n:4, level:'hard', speed:'normal', partners:false, center:'off', jokers:true,
+  return {code, host:ON.pid, started:false, n:4, level:'hard', speed:'normal', partners:false, center:'off', jokers:true, timer:'30',
     seats:[0,1,2,3].map(i => i === 0 ? {kind:'human', pid:ON.pid, name:(profile.name || 'Host').trim(), team:0} : {kind:'open', pid:null, name:'', team:i % 2})};
 }
 function fitLobby(L){
@@ -2551,7 +2600,7 @@ let lastEv = [];
 function publishState(){
   if (!isHostOnline() || !G) return;
   ON.seq++;
-  NET.write(gpath('state'), {seq:ON.seq, g:JSON.stringify(G), ev:JSON.stringify(lastEv || [])});
+  NET.write(gpath('state'), {seq:ON.seq, at:Date.now(), g:JSON.stringify(G), ev:JSON.stringify(lastEv || [])});
   lastEv = [];
 }
 function watchState(){
@@ -2566,6 +2615,7 @@ async function followState(v){
       if (screen !== 'game') { G = g; ON.seq = v.seq; enterOnlineGame(); }
       return;
     }
+    if (typeof v.at === 'number') ON.skew = v.at - Date.now();
     if (v.seq <= ON.seq) return;
     const first = screen !== 'game', step = v.seq === ON.seq + 1;
     ON.seq = v.seq; G = g;
@@ -2595,7 +2645,7 @@ async function hostStart(){
   const eff = assignSkins(L.seats.map(x => x.kind === 'human' ? x.skin || null : null));
   const players = order.map(i => { const x = L.seats[i]; const human = x.kind === 'human', sk = SKIN(eff[i]);
     return {name: human ? (x.name || 'Player') : sk.name, human, pid: human ? x.pid : null, color:sk.grp, skin:eff[i], mskin: human ? x.mskin || null : null, lv: human && typeof x.lv === 'number' ? x.lv : undefined}; });
-  const set = {partners:L.partners && L.n % 2 === 0, hop:false, around:false, center:L.center, openHands:false, level:'hard', speed:L.speed, decks:'auto', jokers:L.jokers};
+  const set = {partners:L.partners && L.n % 2 === 0, hop:false, around:false, center:L.center, openHands:false, level:'hard', speed:L.speed, decks:'auto', jokers:L.jokers, timer:L.timer === 'off' ? 0 : 30};
   G = newGame({players, set, cfg:rules}); G.online = L.code; G.gid = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   L.started = true; await pushLobby();
   lastEv = []; ON.seq = 0; publishState();
@@ -2634,13 +2684,14 @@ function lobbyHTML(){
   const centerSub = L.center === 'off' ? 'Disabled' : L.center === 'count' ? 'Exact count' : 'Special card';
   return `<div class="scr setup lux lobby">
     ${lhdr('GAME LOBBY', 'oleave')}
-    <div class="codebox"><span>GAME CODE</span><b>${L.code}</b><button class="lux-btn" data-a="oshare" data-link="${esc(link)}">${ICON.people}<span>INVITE FRIENDS</span></button><small>${esc(link)}</small></div>
+    <div class="codebox"><span>GAME CODE</span><b>${L.code}</b><div class="invrow">${typeof FR_ON !== 'undefined' && FR_ON ? `<button class="lux-btn" data-a="fropen">${ICON.people}<span>INVITE FRIENDS</span></button>` : ''}<button class="lux-btn" data-a="oshare" data-link="${esc(link)}">${ICON.flag}<span>SHARE LINK</span></button></div><small>${esc(link)}</small></div>
     ${host ? `<h3 class="lh3">PLAYERS</h3><div class="nums">${[4,5,6].map(n => `<button data-a="ln" data-v="${n}" class="${L.n === n ? 'on' : ''}">${n}</button>`).join('')}</div>` : ''}
     <h3 class="lh3">PLAYERS AT THE TABLE</h3>
     <div class="seats">${L.seats.map(seatRow).join('')}</div>
     ${me < 0 && !host ? '<p class="hint center"><b>Tap “Sit here” to take a seat.</b></p>' : ''}
     ${L.partners ? `<p class="hint">${lobbyTeamsOk(L) ? 'Partners sit across from each other.' : '<b class="warn">Each team needs exactly 2 players.</b>'}</p>` : ''}
     <h3 class="lh3">GAME SPEED</h3>${lseg('speed', ['slow','normal','fast'], ['Relaxed','Normal','Fast'])}
+    <h3 class="lh3">TURN TIMER</h3>${lseg('timer', ['30','off'], ['30 seconds','Off'])}
     <h3 class="lh3">GAME OPTIONS</h3>
     <div class="otiles">
       ${opt('ltog', 'jokers', L.jokers, ICON.joker, 'Jokers', '(2 per deck)')}
@@ -3940,7 +3991,7 @@ function sendChat(txt){
   txt = String(txt || '').replace(/\s+/g, ' ').trim().slice(0, 120);
   if (!txt || !NET || !ON.active) return false;
   const now = Date.now(); if (now - chatLast < 900) { flash('Slow down a sec'); return false; } chatLast = now;
-  const s = viewer >= 0 ? viewer : (ON.host ? 0 : ON.seat), n = G && G.players[s] ? G.players[s].name : (profile.name || 'Player');
+  const s = ON.spec ? -1 : viewer >= 0 ? viewer : (ON.host ? 0 : ON.seat), n = ON.spec ? (profile.name || 'Fan') + ' 👀' : G && G.players[s] ? G.players[s].name : (profile.name || 'Player');
   NET.add(`games/${ON.code}/chat`, {s, n, pid: ON.pid, e: txt, t: now});
   return true;
 }
@@ -4098,6 +4149,439 @@ window.addEventListener('click', e => {
 
 const _renderPM = render;
 render = function(){ _renderPM(); if (playMenu && screen !== 'home') { playMenu = false; drawPlayMenu(); } };
+
+// ===================== Online extras: turn timer, rematch, watching a game =====================
+
+// ---------- turn timer ----------
+// The host runs the clock. When a person's turn starts, the host stamps G.tm = {id, at, len} so every phone
+// shows the same countdown. When it runs out, the host plays that person's best move for them (it never skips).
+const TT = {timer:null, buzzed:null, tick:null, told:null};
+function ttWaiting(){
+  if (!G || !G.online || !G.set || !G.set.timer || G.phase === 'over') return null;
+  if (G.phase === 'pass') {
+    if (G.passSel && G.players.some((pl, p) => pl.human && G.passSel[p] === null)) return {id:'pass' + G.hand, kind:'pass'};
+    return null;
+  }
+  if (G.phase !== 'play') return null;
+  const p = G.turn;
+  if (!G.players[p] || !G.players[p].human || shouldFold(G, p)) return null;
+  const cards = G.hands.reduce((a, h) => a + h.length, 0);
+  return {id:`play${G.hand}.${p}.${cards}`, kind:'play', p};
+}
+function ttArm(){
+  clearTimeout(TT.timer);
+  if (!G || !G.tm) return;
+  TT.timer = setTimeout(ttFire, Math.max(0, G.tm.at + G.tm.len - Date.now()) + 400);
+}
+function ttHost(){
+  if (!isHostOnline() || screen !== 'game' || !G) return;
+  const w = ttWaiting();
+  if (!w) { clearTimeout(TT.timer); if (G.tm) { G.tm = null; } return; }
+  if (G.tm && G.tm.id === w.id) { ttArm(); return; }
+  G.tm = {id:w.id, at:Date.now(), len:G.set.timer * 1000};
+  save();                                              // tell everyone the clock started
+  ttArm();
+}
+async function ttFire(){
+  if (!isHostOnline() || !G || !G.tm || screen !== 'game') return;
+  const w = ttWaiting();
+  if (!w || w.id !== G.tm.id) return;
+  if (busy || ON.busyRemote) { TT.timer = setTimeout(ttFire, 300); return; }
+  G.tm = null;
+  if (w.kind === 'pass') {
+    for (let p = 0; p < G.N; p++) if (G.players[p].human && G.phase === 'pass' && G.passSel[p] === null) choosePass(G, p, aiPass(G, p));
+    lastEv = []; save(); loop(); return;
+  }
+  const p = w.p, d = aiDecide(G, p);
+  if (p === viewer) { sel = null; burnPick = false; }
+  busy = true; undoSnap = null;
+  const ev = d.burn !== undefined ? burnCard(G, p, d.burn) : playMove(G, d.mv);
+  if (G.last) G.last.auto = true;
+  lastEv = ev; save(); drawGame();
+  await animate(ev);
+  if (d.mv) dingFx(ev, p);
+  busy = false; drawGame(); loop();
+}
+const _loopTT = loop;
+loop = function(){ _loopTT(); try { ttHost(); } catch (e) { console.warn(e); } };
+
+// the countdown bar above your cards
+function ttLeft(){ if (!G || !G.tm) return null; const now = Date.now() + (ON.host ? 0 : ON.skew || 0); return Math.max(0, G.tm.at + G.tm.len - now); }
+function ttDraw(){
+  const panel = document.querySelector('.game .panel');
+  let el = document.getElementById('tclock');
+  const left = screen === 'game' && ON.active ? ttLeft() : null, w = left !== null ? ttWaiting() : null;
+  if (!panel || left === null || !w || w.id !== G.tm.id) { if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'tclock'; el.className = 'tclock'; panel.insertBefore(el, panel.firstChild); }
+  const secs = Math.ceil(left / 1000), mine = w.kind === 'pass' ? (viewer >= 0 && G.passSel && G.passSel[viewer] === null && !ON.spec) : (w.p === viewer && !ON.spec);
+  const who = w.kind === 'pass' ? (mine ? 'Pick a card to pass' : 'Waiting on passes') : mine ? 'Your turn' : `${G.players[w.p].name}’s turn`;
+  el.className = 'tclock' + (mine ? ' mine' : '') + (secs <= 10 ? ' low' : '');
+  el.innerHTML = `<i style="width:${Math.min(100, left / G.tm.len * 100)}%;background:${w.kind === 'play' ? PAL[w.p] : '#f0c45c'}"></i><span>${esc(who)}</span><b>⏱ ${secs}</b>`;
+  if (mine && secs <= 10 && TT.buzzed !== G.tm.id) { TT.buzzed = G.tm.id; vib([60, 60, 60]); }
+}
+TT.tick = setInterval(() => { if (screen === 'game' && ON.active) ttDraw(); }, 250);
+const _drawGameTT = drawGame;
+drawGame = function(){
+  _drawGameTT();
+  if (screen !== 'game' || !G) return;
+  ttDraw();
+  // tell the person whose move the clock played
+  const l = G.last;
+  if (ON.active && !ON.spec && l && l.auto && l.p === viewer) { const k = G.gid + ':' + (G.rec ? G.rec.moves : '') + ':' + G.hands[viewer].length; if (TT.told !== k) { TT.told = k; flash('Time ran out, so your move was played for you'); } }
+};
+
+// ---------- rematch ----------
+// Everyone taps Rematch on the end screen. When every person is ready the host deals a new game with the
+// same seats. The host can also start without someone; their seat goes to the computer.
+function hostRematch(){
+  const rm = G.rm || {}, code = G.online;
+  const players = G.players.map(pl => {
+    if (pl.human && rm[pl.pid]) return Object.assign({}, pl);
+    if (pl.human) { const sk = SKIN(pl.skin) || SKIN('c' + (pl.color || 0)); return {name:sk.name, human:false, pid:null, color:pl.color, skin:pl.skin, mskin:null}; }
+    return Object.assign({}, pl);
+  });
+  G = newGame({players, set:G.set, cfg:G.cfg}); G.online = code;
+  G.gid = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  lastEv = []; save();
+  trade = null; enterOnlineGame();
+}
+function rmVote(pid){
+  if (!G || G.phase !== 'over') return;
+  const pl = G.players.find(x => x.pid === pid && x.human); if (!pl) return;
+  G.rm = G.rm || {}; G.rm[pid] = true;
+  const hum = G.players.filter(x => x.human);
+  if (hum.every(x => G.rm[x.pid])) { hostRematch(); return; }
+  lastEv = []; save(); drawGame();
+}
+const _applyTT = applyIntent;
+applyIntent = async function(it){
+  if (it.kind === 'rematch') { rmVote(it.pid); return; }
+  return _applyTT(it);
+};
+// new game from the host: everyone redraws the board from scratch
+const _followTT = followState;
+followState = async function(v){
+  const before = G && G.gid;
+  await _followTT(v);
+  if (!ON.host && G && before && G.gid !== before && screen === 'game') { trade = null; enterOnlineGame(); }
+};
+
+// ---------- watching a game ----------
+// Anyone who opens a game that's already going (from the Friends list or a code) and has no seat just watches:
+// no cards, no taps on the board, nothing counts toward their trophies.
+let WATCH_PID = null;                 // set by the Friends list: whose seat to watch from
+const _enterTT = enterOnlineGame;
+enterOnlineGame = function(){
+  _enterTT();
+  ON.spec = ON.seat < 0;
+  if (ON.spec) {
+    const w = WATCH_PID ? G.players.findIndex(pl => pl.pid === WATCH_PID) : -1;
+    viewer = w >= 0 ? w : 0;
+    render();
+  }
+  WATCH_PID = null;
+};
+const _onlineResetTT = onlineReset;
+onlineReset = function(){ _onlineResetTT(); ON.spec = false; clearTimeout(TT.timer); };
+const _drawGameSpec = drawGame;
+drawGame = function(){
+  _drawGameSpec();
+  if (screen !== 'game' || !G || !ON.active || !ON.spec) return;
+  const hand = document.getElementById('hand'), opts = document.getElementById('opts');
+  const you = G.players[viewer] ? G.players[viewer].name : '';
+  if (hand) hand.innerHTML = `<div class="specnote">👀 <b>You’re watching</b><span>Board shown from ${esc(you)}’s seat. Cards stay hidden.</span></div>`;
+  if (opts) opts.innerHTML = '';
+  const m = document.querySelector('#status .msg');
+  if (m && G.phase === 'play') m.innerHTML = `<span class="dots">${pname(G.turn)} is ${G.players[G.turn].human ? 'up' : 'thinking'}</span>`;
+  else if (m && G.phase === 'pass') m.innerHTML = '<span class="pill">Dealing &amp; trading…</span>';
+};
+const _myTurnTT = myTurn;
+myTurn = function(){ return ON.active && ON.spec ? false : _myTurnTT(); };
+window.addEventListener('click', e => {
+  if (!ON.active || !ON.spec || screen !== 'game') return;
+  if (e.target.closest('#hand, #opts, #board')) { e.stopPropagation(); e.preventDefault(); }
+}, true);
+window.addEventListener('pointerdown', e => {
+  if (!ON.active || !ON.spec || screen !== 'game') return;
+  if (e.target.closest('#hand, #opts, #board')) { e.stopPropagation(); }
+}, true);
+// nothing counts for someone who's only watching
+const _gameTrackTT = gameTrack;
+gameTrack = function(){ if (ON.active && ON.spec) return null; return _gameTrackTT(); };
+const _achMoveTT = achMove;
+achMove = function(ev, mover){ if (ON.active && ON.spec) return; return _achMoveTT(ev, mover); };
+const _achWinTT = achWin;
+achWin = function(w){ if (ON.active && ON.spec) return; return _achWinTT(w); };
+const _trackOnTT = trackOnline;
+trackOnline = function(){ if (ON.active && ON.spec) return; return _trackOnTT(); };
+
+// ---------- the end screen ----------
+const _winHTMLTT = winHTML;
+winHTML = function(w){
+  let h = _winHTMLTT(w);
+  if (!(ON.active && G && G.online)) return h.replace('<span>▶</span> PLAY AGAIN', '<span>↻</span> REMATCH');
+  if (ON.spec) {
+    h = h.replace('<span>YOU LOST</span>', '<span>GAME OVER</span>');
+  }
+  const rm = G.rm || {}, hum = G.players.map((pl, i) => ({pl, i})).filter(x => x.pl.human);
+  const ready = hum.filter(x => rm[x.pl.pid]).length, mine = rm[ON.pid];
+  const list = `<div class="rmlist">${hum.map(x => `<span class="${rm[x.pl.pid] ? 'ok' : ''}"><i style="background:${PAL[x.i]}"></i>${esc(x.pl.name)}<b>${rm[x.pl.pid] ? '✓' : '…'}</b></span>`).join('')}</div>`;
+  const btn = ON.spec ? `<p class="hint center">Waiting to see if they run it back…</p>${list}`
+    : `<button class="lux-cta ${mine ? 'ready' : ''}" data-a="rematch"><span>↻</span> ${mine ? `READY · ${ready} OF ${hum.length}` : 'REMATCH'}</button>${list}`
+      + (ON.host && mine && ready < hum.length ? `<button class="lux-btn" data-a="rmgo"><span>START WITHOUT THEM</span></button><p class="hint center">Anyone not ready gets a computer.</p>` : '');
+  h = h.replace(/<button class="lux-cta" data-a="again">[\s\S]*?<\/button>/, btn);
+  h = h.replace(/<button class="lux-btn" data-a="newgame">[\s\S]*?<\/button>/, '');
+  return h;
+};
+window.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  const a = t.dataset.a;
+  if (a === 'rematch') {
+    e.stopPropagation();
+    if (!ON.active || !G || G.phase !== 'over') return;
+    if (G.rm && G.rm[ON.pid]) return;
+    if (ON.host) rmVote(ON.pid);
+    else { G.rm = Object.assign({}, G.rm, {[ON.pid]:true}); drawGame(); sendLobbyIntent('rematch', {}); }
+  } else if (a === 'rmgo') { e.stopPropagation(); if (ON.host && G && G.phase === 'over') hostRematch(); }
+}, true);
+
+// ===================== Friends: add by username, see who's on, invite, join, watch =====================
+// Your list lives in users/<you>/friends (only you can change it). Who's online and invites live under
+// games/_on and games/_fr, which every phone can reach.
+const FR_ON = !!(NET && typeof AUTH_ON !== 'undefined' && AUTH_ON);
+const FR_STALE = 150000, INV_LIFE = 10 * 60000;
+const FR = {uid:null, list:{}, on:{}, inbox:{}, open:false, msg:'', edit:false, sent:{}, unsubs:[], last:'', lastAt:0, banner:null, gone:new Set()};
+const frPath = {on: u => `games/_on/${u}`, inbox: u => `games/_fr/${u}`, list: u => `users/${u}/friends`};
+
+function frStop(){
+  for (const u of FR.unsubs) try { u(); } catch (e) {}
+  FR.unsubs = [];
+  if (FR.uid) try { NET.del(frPath.on(FR.uid)); } catch (e) {}
+  Object.assign(FR, {uid:null, list:{}, on:{}, inbox:{}, last:'', lastAt:0, banner:null});
+  frRedraw(); drawBanner();
+}
+function frStart(){
+  if (!FR_ON || !ME || FR.uid === ME.uid) return;
+  if (FR.uid) frStop();
+  FR.uid = ME.uid;
+  FR.unsubs.push(NET.watch(frPath.list(ME.uid), v => { FR.list = v || {}; frRedraw(); }));
+  FR.unsubs.push(NET.watch('games/_on', v => { FR.on = v || {}; frRedraw(); }));
+  FR.unsubs.push(NET.watch(frPath.inbox(ME.uid), v => { FR.inbox = v || {}; frInbox(); }));
+  try { if (typeof firebase !== 'undefined' && !/[?&]mock\b/.test(location.search)) firebase.database().ref(frPath.on(ME.uid)).onDisconnect().remove(); } catch (e) {}
+  frBeat(true);
+}
+
+// ---------- telling friends what you're up to ----------
+function frState(){
+  if (!ON.active || !ON.code) return {s:'idle'};
+  if (screen === 'lobby' && ON.L && !ON.L.started) return {s:'lobby', c:ON.code, o:ON.L.seats.some(x => x.kind === 'open')};
+  if (screen === 'game' && G && G.online) return {s:ON.spec ? 'watch' : 'game', c:ON.code};
+  return {s:'idle'};
+}
+function frBeat(force){
+  if (!FR.uid || !ME || document.hidden) return;
+  const st = Object.assign({n:ME.name, pid:ON.pid}, frState()), key = JSON.stringify(st), now = Date.now();
+  if (!force && key === FR.last && now - FR.lastAt < 60000) return;
+  FR.last = key; FR.lastAt = now;
+  NET.write(frPath.on(FR.uid), Object.assign(st, {at:now}));
+}
+setInterval(() => frBeat(false), 20000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) frBeat(true); });
+
+// ---------- friend status ----------
+function frInfo(uid){
+  const p = FR.on[uid], fresh = p && Date.now() - (p.at || 0) < FR_STALE;
+  if (!fresh) return {rank:3, txt:'Offline', dot:'off'};
+  if (p.s === 'lobby') return {rank:0, txt:p.o ? 'In a lobby · seat open' : 'In a lobby · full', dot:'lobby', join:p.o ? p.c : null, code:p.c, p};
+  if (p.s === 'game') return {rank:1, txt:'Playing a game', dot:'play', watch:p.c, code:p.c, p};
+  if (p.s === 'watch') return {rank:1, txt:'Watching a game', dot:'play', watch:p.c, code:p.c, p};
+  return {rank:2, txt:'Online', dot:'on', p};
+}
+const frOnlineCount = () => Object.keys(FR.list).filter(u => frInfo(u).rank < 3).length;
+function frRequests(){
+  return Object.entries(FR.inbox).map(([k, x]) => Object.assign({k}, x))
+    .filter(x => x && x.t === 'add' && x.f && !FR.list[x.f] && x.f !== FR.uid);
+}
+
+// ---------- the Friends sheet ----------
+function friendsHTML(){
+  const head = `<div class="chead"><b>FRIENDS</b><button data-a="frclose" aria-label="Close">✕</button></div>`;
+  if (!FR_ON) return `<div class="mpicker" data-a="frclose"><div class="mbox frbox" data-a="noop">${head}<p class="hint center">Friends live on <b>supertock.com</b>.</p></div></div>`;
+  if (!ME) return `<div class="mpicker" data-a="frclose"><div class="mbox frbox" data-a="noop">${head}<p class="hint center">Sign in to add friends, invite them and watch their games.</p><button class="lux-cta" data-a="profile"><span>SIGN IN</span></button></div></div>`;
+  const inLobby = screen === 'lobby' && ON.L && !ON.L.started;
+  const reqs = frRequests();
+  const req = reqs.length ? `<h3 class="lh3">ADDED YOU</h3>${reqs.map(x => `<div class="frrow"><i class="frdot on"></i><span class="nm"><b>${esc(x.n || 'Player')}</b><small>Wants to be friends</small></span>
+    <button class="frbtn go" data-a="fraccept" data-u="${esc(x.f)}" data-n="${esc(x.n || '')}" data-k="${esc(x.k)}">Add back</button><button class="frbtn x" data-a="frdeny" data-k="${esc(x.k)}">✕</button></div>`).join('')}` : '';
+  const rows = Object.entries(FR.list).map(([uid, name]) => ({uid, name: (FR.on[uid] && FR.on[uid].n) || name, i:frInfo(uid)}))
+    .sort((a, b) => a.i.rank - b.i.rank || String(a.name).localeCompare(String(b.name)));
+  const row = r => {
+    let act = '';
+    if (FR.edit) act = `<button class="frbtn x" data-a="frdel" data-u="${esc(r.uid)}">Remove</button>`;
+    else if (inLobby && r.i.code === ON.code) act = '<span class="frtag">Here</span>';
+    else if (inLobby && r.i.rank < 3) act = FR.sent[r.uid] && Date.now() - FR.sent[r.uid] < 60000 ? '<span class="frtag">Invited ✓</span>' : `<button class="frbtn go" data-a="frinv" data-u="${esc(r.uid)}">Invite</button>`;
+    else if (r.i.join && r.i.join !== ON.code) act = `<button class="frbtn go" data-a="frjoin" data-c="${esc(r.i.join)}">Join</button>`;
+    else if (r.i.watch && r.i.watch !== ON.code) act = `<button class="frbtn" data-a="frwatch" data-c="${esc(r.i.watch)}" data-p="${esc(r.i.p.pid || '')}">Watch</button>`;
+    return `<div class="frrow"><i class="frdot ${r.i.dot}"></i><span class="nm"><b>${esc(r.name)}</b><small>${r.i.txt}</small></span>${act}</div>`;
+  };
+  const list = rows.length ? rows.map(row).join('') : '<p class="hint center">No friends yet. Add your buddies by their Super Tock username.</p>';
+  return `<div class="mpicker" data-a="frclose"><div class="mbox frbox" data-a="noop">${head}
+    <form class="cform fradd" id="fradd"><input id="frin" maxlength="14" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="Add a friend by username"><button type="submit">Add</button></form>
+    ${FR.msg ? `<p class="frmsg">${esc(FR.msg)}</p>` : ''}
+    ${req}
+    <div class="frhead"><h3 class="lh3">YOUR FRIENDS${rows.length ? ` · ${frOnlineCount()} ON` : ''}</h3>${rows.length ? `<button class="frbtn sm" data-a="fredit">${FR.edit ? 'Done' : 'Edit'}</button>` : ''}</div>
+    <div class="frlist">${list}</div>
+    <p class="hint center">${inLobby ? 'Tap Invite and they’ll get a pop-up to join your game.' : 'Join a friend’s open lobby, or watch a game they’re playing. Host a game to invite them.'}</p>
+  </div></div>`;
+}
+function frRedraw(){
+  badgeFriends();
+  if (!FR.open) return;
+  let el = document.getElementById('friends');
+  if (!el) { el = document.createElement('div'); el.id = 'friends'; document.body.appendChild(el); }
+  const inp = el.querySelector('#frin'), keep = inp ? inp.value : '', focused = inp && document.activeElement === inp;
+  el.innerHTML = friendsHTML();
+  const ni = el.querySelector('#frin'); if (ni) { ni.value = keep; if (focused) ni.focus(); }
+  const f = el.querySelector('#fradd'); if (f) f.addEventListener('submit', ev => { ev.preventDefault(); frAdd(ni.value); });
+}
+function frClose(){ FR.open = false; FR.edit = false; FR.msg = ''; const el = document.getElementById('friends'); if (el) el.remove(); }
+function badgeFriends(){
+  const n = frRequests().length;
+  document.querySelectorAll('[data-a="fropen"]').forEach(b => {
+    let e = b.querySelector('.frbadge');
+    if (!n) { if (e) e.remove(); return; }
+    if (!e) { e = document.createElement('em'); e.className = 'frbadge'; b.appendChild(e); }
+    e.textContent = n;
+  });
+}
+
+// ---------- adding and removing ----------
+async function frAdd(name){
+  name = String(name || '').trim();
+  if (!nameOk(name)) { FR.msg = 'Usernames are 3–14 letters, numbers or _'; frRedraw(); return; }
+  if (ME && nameKey(name) === nameKey(ME.name)) { FR.msg = 'That’s you!'; frRedraw(); return; }
+  FR.msg = 'Looking…'; frRedraw();
+  let all;
+  try { all = (await withTimeout(firebase.database().ref('users').once('value'), 8000)).val() || {}; }
+  catch (e) { FR.msg = 'Couldn’t reach the server. Try again.'; frRedraw(); return; }
+  const hit = Object.entries(all).find(([uid, u]) => u && u.name && nameKey(u.name) === nameKey(name));
+  if (!hit) { FR.msg = `No player called “${name}”`; frRedraw(); return; }
+  const [uid, u] = hit;
+  if (FR.list[uid]) { FR.msg = `${u.name} is already on your list`; frRedraw(); return; }
+  await NET.write(`${frPath.list(ME.uid)}/${uid}`, u.name);
+  NET.add(frPath.inbox(uid), {t:'add', f:ME.uid, n:ME.name, at:Date.now()});
+  FR.msg = `Added ${u.name}`; frRedraw();
+  const i = document.getElementById('frin'); if (i) i.value = '';
+}
+async function frAccept(uid, name, k){
+  await NET.write(`${frPath.list(ME.uid)}/${uid}`, name || 'Player');
+  NET.del(`${frPath.inbox(ME.uid)}/${k}`);
+}
+
+// ---------- invites ----------
+function frInvite(uid){
+  if (!ON.L || ON.L.started) return;
+  NET.add(frPath.inbox(uid), {t:'inv', f:ME.uid, n:ME.name, c:ON.code, at:Date.now()});
+  FR.sent[uid] = Date.now(); frRedraw();
+  flash('Invite sent');
+}
+function frInbox(){
+  const now = Date.now();
+  for (const [k, x] of Object.entries(FR.inbox)) {
+    if (!x) continue;
+    if (x.t === 'add' && FR.list[x.f]) NET.del(`${frPath.inbox(FR.uid)}/${k}`);             // already friends
+    if (x.t === 'inv' && now - (x.at || 0) > INV_LIFE) NET.del(`${frPath.inbox(FR.uid)}/${k}`);
+  }
+  frRedraw(); drawBanner();
+}
+function nextInvite(){
+  const now = Date.now();
+  return Object.entries(FR.inbox).map(([k, x]) => Object.assign({k}, x))
+    .filter(x => x.t === 'inv' && now - (x.at || 0) < INV_LIFE && !FR.gone.has(x.k) && x.c !== ON.code)
+    .sort((a, b) => b.at - a.at)[0] || null;
+}
+function busyPlaying(){ return screen === 'game' && G && G.phase !== 'over' && !(ON.active && ON.spec); }
+function drawBanner(){
+  let el = document.getElementById('frban');
+  const inv = FR.uid && !busyPlaying() ? nextInvite() : null;
+  if (!inv) { if (el) el.remove(); FR.banner = null; return; }
+  if (FR.banner === inv.k && el) return;
+  FR.banner = inv.k;
+  if (!el) { el = document.createElement('div'); el.id = 'frban'; document.body.appendChild(el); }
+  el.innerHTML = `<div class="frban"><span class="ic">🎲</span><span class="tx"><b>${esc(inv.n || 'A friend')}</b> invited you to a game</span>
+    <button class="frbtn go" data-a="frbjoin" data-k="${esc(inv.k)}" data-c="${esc(inv.c)}">Join</button><button class="frbtn x" data-a="frbx" data-k="${esc(inv.k)}">✕</button></div>`;
+  vib([30, 40, 30]);
+}
+
+// ---------- joining or watching a friend ----------
+async function leaveCurrent(){
+  if (!ON.active) return;
+  const L = ON.L;
+  if (!ON.host && L && !L.started) sendLobbyIntent('leave', {});
+  else if (ON.host && L && !L.started) NET.del(`games/${L.code}`);
+  onlineReset();
+}
+async function frGo(code, watchPid){
+  if (!code) return;
+  if (busyPlaying() && !ON.spec) { flash('Finish your game first'); return; }
+  if (!(profile.name || '').trim() && ME) { profile.name = ME.name; LS.set('st.profile', profile); }
+  frClose();
+  await leaveCurrent();
+  screen = 'online';
+  WATCH_PID = watchPid || null;
+  await joinGame(code);
+  if (!ON.active) { WATCH_PID = null; screen = 'home'; render(); flash('That game isn’t around anymore'); return; }
+  if (screen === 'lobby' && ON.L && !ON.L.started && !watchPid && ON.L.seats.findIndex(x => x.pid === ON.pid) < 0) {
+    const open = ON.L.seats.findIndex(x => x.kind === 'open');
+    if (open >= 0) sendLobbyIntent('sit', {seat:open}); else flash('That table is full. You can still watch.');
+  }
+}
+
+// ---------- taps ----------
+window.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  const a = t.dataset.a, d = t.dataset;
+  if (a === 'fropen') { e.stopPropagation(); e.preventDefault(); if (typeof playMenu !== 'undefined' && playMenu) { playMenu = false; drawPlayMenu(); } FR.open = true; FR.msg = ''; frStart(); frRedraw(); return; }
+  if (!t.closest('#friends, #frban')) return;
+  if (a === 'frclose') { e.stopPropagation(); frClose(); }
+  else if (a === 'noop') { e.stopPropagation(); }
+  else if (a === 'fredit') { e.stopPropagation(); FR.edit = !FR.edit; frRedraw(); }
+  else if (a === 'frdel') { e.stopPropagation(); NET.del(`${frPath.list(ME.uid)}/${d.u}`); }
+  else if (a === 'fraccept') { e.stopPropagation(); frAccept(d.u, d.n, d.k); }
+  else if (a === 'frdeny') { e.stopPropagation(); NET.del(`${frPath.inbox(ME.uid)}/${d.k}`); }
+  else if (a === 'frinv') { e.stopPropagation(); frInvite(d.u); }
+  else if (a === 'frjoin') { e.stopPropagation(); frGo(d.c, null); }
+  else if (a === 'frwatch') { e.stopPropagation(); frGo(d.c, d.p || null); }
+  else if (a === 'frbx') { e.stopPropagation(); FR.gone.add(d.k); NET.del(`${frPath.inbox(ME.uid)}/${d.k}`); drawBanner(); }
+  else if (a === 'frbjoin') { e.stopPropagation(); FR.gone.add(d.k); NET.del(`${frPath.inbox(ME.uid)}/${d.k}`); drawBanner(); frGo(d.c, null); }
+  else if (a === 'profile') { e.stopPropagation(); frClose(); screen = 'profile'; render(); }
+}, true);
+
+// ---------- hooks ----------
+const _renderFR = render;
+render = function(){
+  _renderFR();
+  if (ME && FR_ON && FR.uid !== ME.uid) frStart();
+  else if (!ME && FR.uid) frStop();
+  frBeat(false); badgeFriends(); drawBanner();
+  if (FR.open) frRedraw();
+};
+const _drawGameFR = drawGame;
+drawGame = function(){ _drawGameFR(); frBeat(false); };
+// a Friends button on the Play menu and the Online screen
+const _playMenuFR = playMenuHTML;
+playMenuHTML = function(){
+  const h = _playMenuFR();
+  const n = FR.uid ? frOnlineCount() : 0, r = FR.uid ? frRequests().length : 0;
+  const btn = `<button class="pmopt" data-a="fropen">${r ? `<em class="frbadge">${r}</em>` : ''}<i>${ICON.user}</i><span><b>FRIENDS</b><small>${n ? `${n} online now` : 'Invite, join or watch your friends'}</small></span></button>`;
+  return h.replace('<button class="lux-btn" data-a="pmclose">', btn + '<button class="lux-btn" data-a="pmclose">');
+};
+const _onlineFR = onlineHTML;
+onlineHTML = function(){
+  const h = _onlineFR();
+  if (!NET) return h;
+  return h.replace('<h3 class="lh3">JOIN A GAME</h3>', `<button class="lux-btn" data-a="fropen">${ICON.user}<span>FRIENDS</span></button><h3 class="lh3">JOIN A GAME</h3>`);
+};
+render();
 
 </script>
 </body>
