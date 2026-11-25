@@ -719,6 +719,26 @@ input.locked{opacity:.85;cursor:default}
 .meorb{position:relative;background:none;border:0;padding:0;cursor:pointer}
 .meorb em{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:#e0b04f;color:#2b1808;display:grid;place-items:center;font:700 13px system-ui;font-style:normal;box-shadow:0 0 0 2px #1c1029}
 .acct .lookrow{margin-bottom:12px}
+.rbtn{display:grid;place-items:center}
+.rbtn .cbadge{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 4px;border-radius:9px;background:#e5484d;color:#fff;font:700 11px/18px system-ui;font-style:normal;place-items:center}
+#chat .mpicker{position:fixed;inset:0;z-index:86;background:rgba(8,4,16,.55);display:flex;align-items:flex-end;justify-content:center}
+#chat .chatbox{width:min(560px,100%);height:min(70vh,560px);display:flex;flex-direction:column;background:linear-gradient(180deg,#24153a,#120a20);border:2px solid rgba(224,176,79,.7);border-bottom:0;border-radius:24px 24px 0 0;padding:12px 12px calc(10px + env(safe-area-inset-bottom));animation:pmup .22s ease-out}
+.chead{display:flex;align-items:center;justify-content:space-between;padding:2px 6px 8px}
+.chead b{font:700 16px Cinzel,Georgia,serif;letter-spacing:2px;color:#f0c45c}
+.chead button{width:34px;height:34px;border-radius:50%;border:1px solid rgba(240,196,92,.4);background:transparent;color:#f3e6c8;font-size:16px}
+.clist{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:6px 4px 10px}
+.cmsg{max-width:78%;align-self:flex-start;padding:7px 11px;border-radius:16px 16px 16px 4px;background:rgba(255,255,255,.07);border:1px solid rgba(240,196,92,.2);color:#f3e6c8;font:15px/1.3 system-ui;overflow-wrap:anywhere}
+.cmsg.mine{align-self:flex-end;border-radius:16px 16px 4px 16px;background:rgba(240,196,92,.16);border-color:rgba(240,196,92,.45)}
+.cmsg small{display:flex;align-items:center;gap:5px;font:700 11px system-ui;color:#a99bbf;margin-bottom:2px}
+.cmsg small i{width:8px;height:8px;border-radius:50%}
+.cmsg .emo{font-size:30px;line-height:1.1}
+.cquick{display:flex;gap:6px;overflow-x:auto;padding:4px 2px 8px;scrollbar-width:none}
+.cquick button{flex:none;min-height:36px;padding:0 11px;border-radius:999px;border:1px solid rgba(240,196,92,.35);background:rgba(255,255,255,.05);color:#f3e6c8;font:600 13px system-ui}
+.cquick button.emo{font-size:20px;padding:0 8px}
+.cform{display:flex;gap:8px}
+.cform input{flex:1;min-width:0;height:44px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(240,196,92,.45);background:#0f0818;color:#f3e6c8;font:16px system-ui}
+.cform button{height:44px;padding:0 18px;border-radius:999px;border:0;background:linear-gradient(180deg,#f6d27a,#c9932f);color:#2b1808;font:700 15px system-ui}
+.acct .me{margin-top:4px}
 
 </style>
 </head>
@@ -726,7 +746,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124204915';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125005828';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -861,7 +881,7 @@ function fwdPath(st, key, n, o, f){
   for (let s = 1; s <= steps; s++) {
     const pos = (m.i + s) % st.L, k = o[pos];
     if (k >= 0 && k !== key && isBlocker(st, k)) return null;
-    if (s === steps && !enter && k >= 0 && own(k) === p) return null;
+    if (s === steps && !enter && k >= 0 && own(k) === p && !f.other) return null;   // you can't land on your own marble, but someone moving it with a 5 can
     if (f.kill && k >= 0 && k !== key && (s < steps || enter)) kills.push(k);
     path.push({z:'t', i:pos});
   }
@@ -877,7 +897,7 @@ function backPath(st, key, n, o, f){
   for (let s = 1; s <= n; s++) {
     const pos = ((m.i - s) % st.L + st.L) % st.L, k = o[pos];
     if (k >= 0 && k !== key && isBlocker(st, k)) return null;
-    if (s === n && k >= 0 && own(k) === p) return null;
+    if (s === n && k >= 0 && own(k) === p && !f.other) return null;
     if (f.kill && k >= 0 && k !== key && s < n) kills.push(k);
     path.push({z:'t', i:pos});
   }
@@ -903,7 +923,7 @@ function placeAt(st, key, dest, ev){
 function applyOp(st, op, ev){
   const loc = k => { const m = st.m[own(k)][k & 3]; return {z:m.z, p:own(k), i:m.i}; };
   if (op.t === 'fwd' || op.t === 'back') {
-    const f = {kill:op.kill, noEnter:op.noEnter};
+    const f = {kill:op.kill, noEnter:op.noEnter, other:op.other};
     const r = op.t === 'fwd' ? fwdPath(st, op.key, op.n, null, f) : backPath(st, op.key, op.n, null, f);
     if (!r) throw new Error('illegal op');
     ev.push({key:op.key, path:r.path});
@@ -996,10 +1016,10 @@ function genMoves(st, p, h){
       const mate = st.set.partners && teamOf(st, q) === teamOf(st, p);
       for (let i = 0; i < 4; i++) { const k = q * 4 + i; if (st.m[q][i].z !== 't' || st.m[q][i].i === startSpot(st, q)) continue;
         for (const n of amts) for (const d of dirs) {
-          if (d === 'b') { const r = backPath(st, k, n, o, {kill}); if (r) mk([{key:k, label:`Move their marble back ${n}`}], [{t:'back', key:k, n, kill}]); continue; }
-          if (mate) { const rIn = fwdPath(st, k, n, o, {kill}); if (rIn && rIn.dest.z === 'h') mk([{key:k, label:`Push into their home (${n})`}], [{t:'fwd', key:k, n, kill}]); }
-          const r = fwdPath(st, k, n, o, {kill, noEnter:true});
-          if (r) mk([{key:k, label: r.lap ? `Push past their home (${n})` : `Move their marble ${n}`}], [{t:'fwd', key:k, n, kill, noEnter:true}]);
+          if (d === 'b') { const r = backPath(st, k, n, o, {kill, other:true}); if (r) mk([{key:k, label:`Move their marble back ${n}`}], [{t:'back', key:k, n, kill, other:true}]); continue; }
+          if (mate) { const rIn = fwdPath(st, k, n, o, {kill, other:true}); if (rIn && rIn.dest.z === 'h') mk([{key:k, label:`Push into their home (${n})`}], [{t:'fwd', key:k, n, kill, other:true}]); }
+          const r = fwdPath(st, k, n, o, {kill, noEnter:true, other:true});
+          if (r) mk([{key:k, label: r.lap ? `Push past their home (${n})` : `Move their marble ${n}`}], [{t:'fwd', key:k, n, kill, noEnter:true, other:true}]);
         }
       }
     }
@@ -3674,7 +3694,7 @@ function profileHTML(){
   if (ME) {
     const n = SPECIALS.filter(s => ACH.un[s.id]).length;
     return `<div class="scr setup lux acct">${lhdr('PROFILE', 'tback')}
-      <div class="me"><button class="meorb" data-a="lookopen" data-v="marble" aria-label="Change marble">${(() => { const c = profile.skin && owned(profile.skin) ? profile.skin : 'c0', st = typeof styleOwned === 'function' && profile.mskin && styleOwned(profile.mskin) ? profile.mskin : null; return typeof styleOrb === 'function' ? styleOrb(c, st, 72) : skinOrb(c, 72); })()}<em>✎</em></button><b>${esc(ME.name)}</b><span>Signed in · progress saved to your account</span></div>
+      <div class="me"><b>${esc(ME.name)}</b><span>Signed in · progress saved to your account</span></div>
       ${typeof BOARDS !== 'undefined' && BOARDS.length > 1 ? (() => { const b = BOARDS.find(x => x.id === BOARD) || BOARDS[0], m = typeof MSTYLE === 'function' && MSTYLE(profile.mskin);
         return `<h3 class="lh3">YOUR LOOK</h3><div class="lookrow">
         <button data-a="lookopen" data-v="marble">${typeof styleOrb === 'function' ? styleOrb('c0', m ? m.id : null, 48) : ''}<span><small>MARBLE</small><b>${m ? esc(m.name) : 'Plain'}</b></span></button>
@@ -3890,60 +3910,87 @@ winHTML = function(w){
   const i = h.indexOf('<button'); return i > 0 ? h.slice(0, i) + rc + h.slice(i) : h + rc;
 };
 
-// ---------- reactions in online games ----------
+// ---------- chat + reactions in online games ----------
+// Messages stay in the game's chat so you can scroll back; new ones also pop up over the board for a moment.
 const isEmo = t => /\p{Extended_Pictographic}/u.test(t);
-const REACTS = ['😂', '🔥', '😤', '😭', '👏', '🫡', 'Nice bink!', 'Unlucky', 'GG', 'Ouch'];
-let reactOpen = false, reactLast = 0, reactSeen = new Set(), reactUnsub = null, reactCode = null;
-function reactWatch(){
-  if (!NET || !ON.active || !ON.code || reactCode === ON.code) return;
-  if (reactUnsub) reactUnsub();
-  reactCode = ON.code; reactSeen = new Set(); let first = true;
-  reactUnsub = NET.watch(`games/${ON.code}/react`, v => {
-    v = v || {};
-    for (const [k, x] of Object.entries(v)) {
-      if (reactSeen.has(k)) continue; reactSeen.add(k);
-      if (!first) showReact(x);
-      if (ON.host && Date.now() - (x.t || 0) > 20000) NET.del(`games/${ON.code}/react/${k}`);   // tidy up old ones
+const REACTS = ['😂', '🔥', '😤', '😭', '👏', '🫡', '💀', '🙏', 'Nice bink!', 'Unlucky', 'GG', 'Ouch'];
+let chatOpen = false, chatLast = 0, chatMsgs = [], chatSeen = new Set(), chatUnsub = null, chatCode = null, chatUnread = 0;
+function chatWatch(){
+  if (!NET || !ON.active || !ON.code || chatCode === ON.code) return;
+  if (chatUnsub) chatUnsub();
+  chatCode = ON.code; chatSeen = new Set(); chatMsgs = []; chatUnread = 0; let first = true;
+  chatUnsub = NET.watch(`games/${ON.code}/chat`, v => {
+    const all = Object.entries(v || {}).map(([k, x]) => Object.assign({k}, x)).filter(x => x && typeof x.e === 'string').sort((a, b) => (a.t || 0) - (b.t || 0));
+    for (const x of all) if (!chatSeen.has(x.k)) {
+      chatSeen.add(x.k);
+      if (!first) { showBubble(x); if (!chatOpen && x.pid !== ON.pid) chatUnread++; }
     }
+    chatMsgs = all.slice(-80);
+    if (ON.host && all.length > 80) all.slice(0, all.length - 80).forEach(x => NET.del(`games/${ON.code}/chat/${x.k}`));   // keep it tidy
     first = false;
+    if (screen === 'game') { chatButton(); if (chatOpen) drawChat(); }
   });
-  ON.unsub.push(() => { if (reactUnsub) reactUnsub(); reactUnsub = null; reactCode = null; });
+  ON.unsub.push(() => { if (chatUnsub) chatUnsub(); chatUnsub = null; chatCode = null; chatOpen = false; drawChat(); });
 }
-function showReact(x){
-  if (!G || screen !== 'game' || !G.players[x.s]) return;
+function showBubble(x){
+  if (!G || screen !== 'game' || chatOpen) return;
   const wrap = document.querySelector('.boardwrap'); if (!wrap) return;
   let box = wrap.querySelector('.reacts'); if (!box) { box = document.createElement('div'); box.className = 'reacts'; wrap.appendChild(box); }
   const el = document.createElement('div'); el.className = 'rbub';
-  const txt = REACTS.includes(x.e) ? x.e : '👍', big = isEmo(txt);
-  el.innerHTML = `<i style="background:${PAL[x.s]}"></i><b>${esc(G.players[x.s].name)}</b><span class="${big ? 'emo' : ''}">${esc(txt)}</span>`;
+  const col = G.players[x.s] ? PAL[x.s] : '#888', big = isEmo(x.e) && x.e.length <= 4;
+  el.innerHTML = `<i style="background:${col}"></i><b>${esc(x.n || '')}</b><span class="${big ? 'emo' : ''}">${esc(x.e)}</span>`;
   box.appendChild(el);
-  while (box.children.length > 4) box.firstChild.remove();
-  setTimeout(() => el.classList.add('out'), 2600); setTimeout(() => el.remove(), 3100);
+  while (box.children.length > 3) box.firstChild.remove();
+  setTimeout(() => el.classList.add('out'), 3200); setTimeout(() => el.remove(), 3700);
 }
-function sendReact(e){
-  if (!NET || !ON.active || ON.seat < 0 && !ON.host) return;
-  const now = Date.now(); if (now - reactLast < 1200) return; reactLast = now;
-  const s = ON.host ? 0 : ON.seat;
-  NET.add(`games/${ON.code}/react`, {s: viewer >= 0 ? viewer : s, e, t: now});
+function sendChat(txt){
+  txt = String(txt || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+  if (!txt || !NET || !ON.active) return false;
+  const now = Date.now(); if (now - chatLast < 900) { flash('Slow down a sec'); return false; } chatLast = now;
+  const s = viewer >= 0 ? viewer : (ON.host ? 0 : ON.seat), n = G && G.players[s] ? G.players[s].name : (profile.name || 'Player');
+  NET.add(`games/${ON.code}/chat`, {s, n, pid: ON.pid, e: txt, t: now});
+  return true;
 }
-function reactBar(){
+function chatButton(){
   const wrap = document.querySelector('.boardwrap'); if (!wrap) return;
   let b = wrap.querySelector('.rbtn');
-  const want = ON.active && G && G.online && G.phase !== 'over';
-  if (!want) { if (b) b.remove(); const p = wrap.querySelector('.rpick'); if (p) p.remove(); return; }
-  if (!b) { wrap.insertAdjacentHTML('beforeend', '<button class="rbtn" data-a="rtog" aria-label="React">😀</button>'); }
-  let p = wrap.querySelector('.rpick');
-  if (reactOpen && !p) wrap.insertAdjacentHTML('beforeend', `<div class="rpick">${REACTS.map(r => `<button data-a="rsend" data-v="${esc(r)}" class="${isEmo(r) ? 'emo' : ''}">${esc(r)}</button>`).join('')}</div>`);
-  if (!reactOpen && p) p.remove();
+  const want = ON.active && G && G.online;
+  if (!want) { if (b) b.remove(); return; }
+  if (!b) { wrap.insertAdjacentHTML('beforeend', '<button class="rbtn" data-a="chatopen" aria-label="Chat">💬<em class="cbadge"></em></button>'); b = wrap.querySelector('.rbtn'); }
+  const badge = b.querySelector('.cbadge'); badge.textContent = chatUnread ? (chatUnread > 9 ? '9+' : chatUnread) : ''; badge.style.display = chatUnread ? 'grid' : 'none';
+}
+function chatHTML(){
+  const me = ON.pid, list = chatMsgs.length ? chatMsgs.map(x => {
+    const mine = x.pid === me, col = G && G.players[x.s] ? PAL[x.s] : '#888', big = isEmo(x.e) && x.e.length <= 4;
+    return `<div class="cmsg ${mine ? 'mine' : ''}"><small><i style="background:${col}"></i>${esc(x.n || '')}</small><span class="${big ? 'emo' : ''}">${esc(x.e)}</span></div>`;
+  }).join('') : '<p class="hint center">No messages yet. Say something!</p>';
+  return `<div class="mpicker" data-a="chatclose"><div class="mbox chatbox" data-a="noop">
+    <div class="chead"><b>GAME CHAT</b><button data-a="chatclose" aria-label="Close">✕</button></div>
+    <div class="clist" id="clist">${list}</div>
+    <div class="cquick">${REACTS.map(r => `<button data-a="chatq" data-v="${esc(r)}" class="${isEmo(r) ? 'emo' : ''}">${esc(r)}</button>`).join('')}</div>
+    <form class="cform" id="cform"><input id="cin" maxlength="120" autocomplete="off" enterkeyhint="send" placeholder="Message"><button type="submit">Send</button></form></div></div>`;
+}
+function drawChat(){
+  let el = document.getElementById('chat');
+  if (!chatOpen) { if (el) el.remove(); return; }
+  const keep = el && el.querySelector('#cin') ? el.querySelector('#cin').value : '', focused = el && document.activeElement && document.activeElement.id === 'cin';
+  if (!el) { el = document.createElement('div'); el.id = 'chat'; document.body.appendChild(el); }
+  el.innerHTML = chatHTML();
+  const inp = el.querySelector('#cin'); inp.value = keep; if (focused) inp.focus();
+  const l = el.querySelector('#clist'); l.scrollTop = l.scrollHeight;
+  el.querySelector('#cform').addEventListener('submit', ev => { ev.preventDefault(); if (sendChat(inp.value)) { inp.value = ''; } });
 }
 const _drawGameS = drawGame;
-drawGame = function(){ _drawGameS(); if (screen === 'game') { reactWatch(); reactBar(); } };
+drawGame = function(){ _drawGameS(); if (screen === 'game') { chatWatch(); chatButton(); } };
 window.addEventListener('click', e => {
-  const t = e.target.closest('[data-a]');
-  if (!t) { if (reactOpen && !e.target.closest('.rpick')) { reactOpen = false; reactBar(); } return; }
-  if (t.dataset.a === 'rtog') { e.stopPropagation(); reactOpen = !reactOpen; reactBar(); }
-  else if (t.dataset.a === 'rsend') { e.stopPropagation(); sendReact(t.dataset.v); reactOpen = false; reactBar(); }
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  const a = t.dataset.a;
+  if (a === 'chatopen') { e.stopPropagation(); chatOpen = true; chatUnread = 0; chatButton(); drawChat(); setTimeout(() => { const i = document.getElementById('cin'); if (i && !matchMedia('(pointer:coarse)').matches) i.focus(); }, 50); }
+  else if (a === 'chatclose') { e.stopPropagation(); chatOpen = false; drawChat(); }
+  else if (a === 'chatq') { e.stopPropagation(); sendChat(t.dataset.v); }
 }, true);
+const _renderC = render;
+render = function(){ _renderC(); if (chatOpen && screen !== 'game') { chatOpen = false; drawChat(); } };
 
 // ---------- leaderboard (a third tab on the Trophies screen) ----------
 let LB = null, lbSort = 'lv', lbErr = '';
