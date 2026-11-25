@@ -660,6 +660,7 @@ input.locked{opacity:.85;cursor:default}
 .lux-cta.rejoin{background:linear-gradient(180deg,#2fa36b,#14653f);margin-bottom:10px}
 #rsask .lux-cta svg,.lux-cta.rejoin svg{width:22px;height:22px;flex:none}#rsask .lux-cta{display:flex;align-items:center;justify-content:center;gap:10px}
 .acct .tstats+.tstats{margin-top:0}
+.offbadge{position:relative;z-index:3;display:inline-block;margin:0 auto 6px;padding:4px 12px;border-radius:999px;background:rgba(229,72,77,.18);border:1px solid rgba(229,72,77,.5);color:#ffb4b6;font:600 12px system-ui}
 
 </style>
 </head>
@@ -667,7 +668,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124190632';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124193054';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -3534,17 +3535,24 @@ achSave = function(){
   clearTimeout(pushT);
   pushT = setTimeout(() => { cloud().ref('users/' + ME.uid + '/ach').set({v:2, stats:ACH.stats, un:ACH.un}).catch(e => console.warn('save failed', e)); }, 600);
 };
+const withTimeout = (p, ms) => Promise.race([p, new Promise((_, no) => setTimeout(() => no(new Error('offline')), ms))]);
 async function loadAccount(user){
-  const snap = await cloud().ref('users/' + user.uid).once('value');
-  const d = snap.val() || {};
-  ME = {uid:user.uid, name:d.name || pendingName || user.email.split('@')[0]};
-  const local = ACH.owner === user.uid || !ACH.owner ? ACH : null;     // guest progress on this phone joins your account
-  const m = mergeAch(d.ach, local);
+  // sign in from what this phone already knows first, so the app works with no signal
+  const known = LS.get('st.me', null);
+  ME = {uid:user.uid, name:(known && known.uid === user.uid && known.name) || pendingName || user.email.split('@')[0]};
+  if (!ACH.owner || ACH.owner !== user.uid) { if (ACH.owner) ACH = {v:2, stats:{wins:0, binks:0}, un:{}, games:{}}; ACH.owner = user.uid; _achSave0(); }
+  profile.name = ME.name; LS.set('st.profile', profile);
+  let d;
+  try { d = (await withTimeout(cloud().ref('users/' + user.uid).once('value'), 6000)).val() || {}; }
+  catch (e) { return; }                                         // offline: keep playing, it syncs next time you're online
+  ME.name = d.name || ME.name; LS.set('st.me', {uid:user.uid, name:ME.name});
+  const m = mergeAch(d.ach, ACH);
   ACH = Object.assign({games:ACH.games || {}}, m, {owner:user.uid});
   _achSave0();
-  await cloud().ref('users/' + user.uid).update({name:ME.name, ach:{v:2, stats:ACH.stats, un:ACH.un}});
+  cloud().ref('users/' + user.uid).update({name:ME.name, ach:{v:2, stats:ACH.stats, un:ACH.un}}).catch(() => {});
   profile.name = ME.name; LS.set('st.profile', profile);
 }
+window.addEventListener('online', () => { if (ME && AUTH_ON) { const u = firebase.auth().currentUser; if (u) loadAccount(u).then(() => render()); } });
 if (AUTH_ON) {
   firebase.auth().onAuthStateChanged(async user => {
     if (user) { try { await loadAccount(user); } catch (e) { console.warn(e); ME = {uid:user.uid, name:user.email.split('@')[0]}; } }
@@ -3573,7 +3581,7 @@ async function doAuth(){
       pendingName = u.trim();
       const cred = await firebase.auth().createUserWithEmailAndPassword(mailOf(u), p);
       await cloud().ref('users/' + cred.user.uid).update({name:u.trim(), joined:Date.now()});
-      if (ME) ME.name = u.trim();
+      if (ME) ME.name = u.trim(); LS.set('st.me', {uid:cred.user.uid, name:u.trim()});
       profile.name = u.trim(); LS.set('st.profile', profile);
     } else {
       await firebase.auth().signInWithEmailAndPassword(mailOf(u), p);
@@ -3755,6 +3763,21 @@ render = function(){
 render();
 const _winHTMLR = winHTML;
 winHTML = function(w){ if (G && G.online) LS.del('st.lastOnline'); return _winHTMLR(w); };
+
+// ===================== Offline =====================
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js').catch(() => {});
+const offline = () => navigator.onLine === false;
+window.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if (!t || !offline()) return;
+  if (['online', 'ohost', 'ojoin', 'orejoin'].includes(t.dataset.a)) { e.stopPropagation(); e.stopImmediatePropagation(); flash('No signal. Online play needs a connection, but you can play the computer.'); }
+}, true);
+const _renderO = render;
+render = function(){
+  _renderO();
+  if (screen === 'home' && offline() && !app.querySelector('.offbadge')) app.querySelector('.home') && app.querySelector('.home').insertAdjacentHTML('afterbegin', '<div class="offbadge">Offline · computer games only</div>');
+};
+window.addEventListener('online', () => { if (screen === 'home') render(); });
+window.addEventListener('offline', () => { if (screen === 'home') render(); });
 
 </script>
 </body>
