@@ -823,6 +823,12 @@ input.locked{opacity:.85;cursor:default}
 .emoprev .pe{font-size:52px;line-height:1;animation:celepop2 1.6s ease-in-out infinite}
 @keyframes celepop2{50%{transform:scale(1.12) rotate(-6deg)}}
 .emoprev b{display:block;font:900 19px Cinzel,Georgia,serif}.emoprev span{font:italic 600 14px system-ui}
+#dask .mpicker{position:fixed;inset:0;z-index:92;background:rgba(8,4,16,.72);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+#dask .mbox{width:min(560px,100%);background:linear-gradient(180deg,#3a1630,#170a1c);border:2px solid #ff8a8a;border-bottom:0;border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));text-align:center;color:#f3e6c8;animation:pmup .25s ease-out}
+#dask h3{margin:0 0 6px;font:900 22px Cinzel,Georgia,serif;color:#ffb0b0}
+#dask p{margin:0 0 12px;color:#d8c9e6;font:15px system-ui}
+#dask .dcard{display:inline-grid;place-items:center;min-width:88px;height:110px;padding:0 10px;margin:0 0 14px;border-radius:12px;background:linear-gradient(180deg,#fffaf0,#efe3c6);color:#1b1208;font:900 26px Cinzel,Georgia,serif;box-shadow:0 6px 16px rgba(0,0,0,.5)}
+#dask .lux-cta,#dask .lux-btn{width:100%;margin-top:8px}
 
 </style>
 </head>
@@ -830,7 +836,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125020728';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125111236';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -1291,6 +1297,7 @@ function playMove(st, mv){
   st.skipped = -1;
   st.last = {p:mv.p, card, text: `${cardName(card)}${bumped.length ? ' · sent ' + bumped.length + ' back' : ''}`,
     hand: st.hand, did: describeMove(st, mv), hit: [...new Set(bumped.map(e => nm(e.key)))]};
+  if (mv.mateForced && bumped.some(e => own(e.key) !== mv.p && teamOf(st, own(e.key)) === teamOf(st, mv.p))) { st.last.mateForced = true; st.last.text += ' (no other move)'; }
   st.log.push(st.last);
   if (st.log.length > 80) st.log.shift();
   advance(st);
@@ -1345,7 +1352,11 @@ function evalState(st, p, lvl, rc){
         const k2 = o[(m.i + s) % st.L];
         if (k2 >= 0 && teamOf(st, own(k2)) !== team && rc.b[s]) risk += rc.b[s] / 14;
       }
-      for (let q2 = 0; q2 < st.N; q2++) if (teamOf(st, q2) !== team && startSpot(st, q2) === m.i && st.m[q2].some(x => x.z === 's')) risk += rc.out / 14 * 1.5;
+      for (let q2 = 0; q2 < st.N; q2++) {
+        if (startSpot(st, q2) !== m.i || !st.m[q2].some(x => x.z === 's')) continue;
+        if (teamOf(st, q2) !== team) risk += rc.out / 14 * 1.5;
+        else if (q2 !== q) risk += rc.out / 14 * 0.6;     // parked on a partner's start: they may be forced to bink us coming out
+      }
       danger += marbleVal(st, q, m) * Math.min(0.85, risk) * 0.55;
     }
   }
@@ -1394,9 +1405,21 @@ function aiDecide(st, p){
   // Never hurt your own team when there is any other choice: no pushing your partner past their home,
   // no sending a teammate back to start, no throwing your own marble round another lap.
   const team = teamOf(st, p);
+  const simOf = op => { if (!op._sim) { op._sim = lightClone(st); for (const x of op.mv.ops) applyOp(op._sim, x, []); } return op._sim; };
+  // first rule: never send a teammate's marble back to start if there is any other way to play
+  const binksMate = op => {
+    if (!op.mv) return false;
+    const sim = simOf(op);
+    for (let q = 0; q < st.N; q++) { if (teamOf(st, q) !== team) continue;
+      for (let i = 0; i < 4; i++) if (st.m[q][i].z !== 's' && sim.m[q][i].z === 's') return true; }
+    return false;
+  };
+  const noMateBink = opts.filter(o => !binksMate(o));
+  if (noMateBink.length) opts = noMateBink;
+  else opts.forEach(o => { if (o.mv) o.mv.mateForced = true; });       // every legal play binks a teammate: say so
   const hurts = op => {
     if (!op.mv) return false;
-    const sim = lightClone(st); for (const x of op.mv.ops) applyOp(sim, x, []);
+    const sim = simOf(op);
     for (let q = 0; q < st.N; q++) { if (teamOf(st, q) !== team) continue;
       for (let i = 0; i < 4; i++) { const a = marbleVal(st, q, st.m[q][i]), b = marbleVal(sim, q, sim.m[q][i]); if (b < a - 0.5) return true; } }
     return false;
@@ -4470,6 +4493,38 @@ window.addEventListener('click', e => {
   } else if (a === 'rmgo') { e.stopPropagation(); if (ON.host && G && G.phase === 'over') hostRematch(); }
 }, true);
 
+// ---------- skipped by a 10: ask before throwing a card away ----------
+let discardAsk = null;
+const _onCardTT = onCard;
+onCard = function(h){
+  if (G && G.phase === 'play' && G.forced === viewer && myTurn() && !busy && curtain === null && G.hands[viewer][h]) {
+    discardAsk = h; drawDiscardAsk(); return;
+  }
+  return _onCardTT(h);
+};
+function drawDiscardAsk(){
+  let el = document.getElementById('dask');
+  const ok = discardAsk !== null && screen === 'game' && G && G.forced === viewer && G.turn === viewer && G.hands[viewer][discardAsk];
+  if (!ok) { discardAsk = null; if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'dask'; document.body.appendChild(el); }
+  const c = G.hands[viewer][discardAsk];
+  el.innerHTML = `<div class="mpicker" data-a="daskno"><div class="mbox daskbox" data-a="noop">
+    <h3>⏭ You were skipped</h3>
+    <p>You lose this turn and have to throw away one card. You can’t play it.</p>
+    <div class="dcard">${esc(cardName(c))}</div>
+    <button class="lux-cta" data-a="daskyes"><span>DISCARD ${esc(cardName(c))}</span></button>
+    <button class="lux-btn" data-a="daskno"><span>PICK A DIFFERENT CARD</span></button></div></div>`;
+}
+window.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if (!t || !t.closest('#dask')) return;
+  e.stopPropagation();
+  const a = t.dataset.a;
+  if (a === 'daskyes') { const h = discardAsk; discardAsk = null; drawDiscardAsk(); if (G && G.forced === viewer && myTurn()) _onCardTT(h); }
+  else if (a === 'daskno') { discardAsk = null; drawDiscardAsk(); }
+}, true);
+const _drawGameDA = drawGame;
+drawGame = function(){ _drawGameDA(); if (discardAsk !== null) drawDiscardAsk(); };
+
 // ===================== Friends: add by username, see who's on, invite, join, watch =====================
 // Your list lives in users/<you>/friends (only you can change it). Who's online and invites live under
 // games/_on and games/_fr, which every phone can reach.
@@ -4811,6 +4866,7 @@ dingFx = function(ev, mover){
     if (!ban || !b || ban.dataset.emo) return;
     const hits = new Set(ev.filter(e => e.bump).map(e => e.key >> 2)).size;
     ban.dataset.emo = 1;
+    if (G.last && G.last.mateForced) { ban.insertAdjacentHTML('beforeend', '<span class="dline">Sorry partner, it was the only move.</span>'); return; }
     ban.insertAdjacentHTML('beforeend', `<span class="dline">“${esc(b.line)}”</span>`);
     wrap.querySelectorAll('.cele').forEach(x => x.remove());
     const c = document.createElement('div'); c.className = 'cele' + (hits >= 2 ? ' big' : ''); c.textContent = hits >= 2 ? b.e + b.e : b.e;
