@@ -861,7 +861,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125114829';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125121818';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -2652,7 +2652,7 @@ async function joinGame(code){
   if (ON.L.started) { watchState(); return; }
   screen = 'lobby'; render();
 }
-function sendLobbyIntent(kind, data){ return NET.add(gpath('intents'), JSON.stringify({pid:ON.pid, kind, data, name:(profile.name || '').trim()})); }
+function sendLobbyIntent(kind, data){ return NET.add(gpath('intents'), JSON.stringify({pid:ON.pid, kind, data, name:(profile.name || '').trim(), uid:typeof ME !== 'undefined' && ME ? ME.uid : null})); }
 
 // ---------- host: apply what the other phones ask for ----------
 function watchIntents(){
@@ -4974,96 +4974,7 @@ render = function(){
 };
 render();
 
-// ===================== Sounds, recent games, rivalries =====================
-
-// ---------- sounds (made on the fly, no files to download) ----------
-let sndOn = LS.get('st.snd', true), AC = null;
-function ac(){
-  if (!sndOn) return null;
-  try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) { AC = null; }
-  return AC;
-}
-['pointerdown', 'touchstart', 'keydown'].forEach(t => window.addEventListener(t, () => { if (sndOn) ac(); }, {passive:true, capture:true}));
-function tone(f, dur, {type = 'sine', vol = 0.15, at = 0, to = null, attack = 0.005} = {}){
-  const a = ac(); if (!a) return;
-  const t0 = a.currentTime + at, o = a.createOscillator(), g = a.createGain();
-  o.type = type; o.frequency.setValueAtTime(f, t0); if (to) o.frequency.exponentialRampToValueAtTime(to, t0 + dur);
-  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + attack); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-  o.connect(g).connect(a.destination); o.start(t0); o.stop(t0 + dur + 0.02);
-}
-function noise(dur, {vol = 0.15, at = 0, f = 2000, q = 1, type = 'bandpass', sweep = null} = {}){
-  const a = ac(); if (!a) return;
-  const t0 = a.currentTime + at, n = Math.max(1, Math.floor(a.sampleRate * dur)), buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
-  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
-  const src = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain();
-  src.buffer = buf; fl.type = type; fl.frequency.setValueAtTime(f, t0); if (sweep) fl.frequency.exponentialRampToValueAtTime(sweep, t0 + dur); fl.Q.value = q;
-  g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-  src.connect(fl).connect(g).connect(a.destination); src.start(t0);
-}
-const SFX = {
-  hop(at = 0){ noise(0.03, {vol:0.05, at, f:3200, q:3}); },
-  clack(at = 0){ noise(0.05, {vol:0.22, at, f:2600, q:2}); tone(1150, 0.07, {vol:0.06, at, type:'triangle'}); },
-  card(){ noise(0.04, {vol:0.06, f:5000, q:0.7, type:'highpass'}); },
-  whoosh(){ noise(0.32, {vol:0.12, f:500, sweep:3500, q:1.2}); },
-  bink(){ tone(170, 0.35, {vol:0.35, to:45}); noise(0.09, {vol:0.3, f:1800, q:0.8}); tone(620, 0.18, {vol:0.08, at:0.05, type:'square', to:180}); },
-  home(){ [880, 1320, 1760].forEach((f, i) => tone(f, 0.5, {vol:0.09, at:i * 0.09, type:'triangle'})); },
-  turn(){ tone(660, 0.16, {vol:0.07, type:'triangle'}); tone(990, 0.22, {vol:0.06, at:0.1, type:'triangle'}); },
-  tick(){ tone(1500, 0.04, {vol:0.06, type:'square'}); },
-  win(){ [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, i === 5 ? 0.7 : 0.18, {vol:0.12, at:[0, .14, .28, .42, .62, .76][i], type:'triangle'})); },
-  lose(){ [392, 370, 349, 294].forEach((f, i) => tone(f, i === 3 ? 0.7 : 0.3, {vol:0.1, at:i * 0.3, type:'sawtooth'})); },
-};
-// marbles: a soft tick for each hole, a clack when it lands
-const _glideSnd = glide;
-glide = function(el, pts, ms){
-  if (sndOn && !document.hidden) {
-    const hops = Math.max(1, pts.length - 1), step = ms / 1000 / hops;
-    if (el.classList.contains('moving') && pts.length > 2) for (let i = 1; i < hops; i++) SFX.hop(step * i);
-    SFX.clack(ms / 1000 * 0.97);
-  }
-  return _glideSnd(el, pts, ms);
-};
-const _animateSnd = animate;
-animate = async function(ev){
-  const homeBefore = G ? G.m.flat().filter(m => m.z === 'h').length : 0;
-  if (ev && ev.some(e => e.jump && !e.bump)) SFX.whoosh();
-  await _animateSnd(ev);
-  if (G && G.m.flat().filter(m => m.z === 'h').length > homeBefore) SFX.home();
-};
-const _dingSnd = dingFx;
-dingFx = function(ev, mover){ if (ev && ev.some(e => e.bump)) SFX.bink(); return _dingSnd(ev, mover); };
-const _onCardSnd = onCard;
-onCard = function(h){ SFX.card(); return _onCardSnd(h); };
-// your turn, the last ten seconds of the clock, skipped, game over
-let sndTurnKey = null, sndTick = null, sndEnd = null;
-const _drawGameSnd = drawGame;
-drawGame = function(){
-  _drawGameSnd();
-  if (screen !== 'game' || !G) return;
-  if (G.phase === 'play' && myTurn() && !busy) {
-    const k = G.gid + ':' + G.hand + ':' + G.hands.reduce((a, h) => a + h.length, 0);
-    if (sndTurnKey !== k) { sndTurnKey = k; (G.forced === viewer ? SFX.whoosh : (humanCount() > 1 || ON.active) ? SFX.turn : () => {})(); }
-  }
-  if (G.phase === 'over' && sndEnd !== G.gid) {
-    sndEnd = G.gid;
-    if (!(ON.active && ON.spec) && G.winner) (G.winner.players.includes(viewer) ? SFX.win : SFX.lose)();
-  }
-  if (menuOpen) {
-    const r = document.querySelector('#overlay [data-a="mrules"]');
-    if (r && !document.querySelector('#overlay [data-a="msnd"]')) r.insertAdjacentHTML('afterend', `<button class="ghost wide" data-a="msnd">Sound: ${sndOn ? 'On' : 'Off'}</button>`);
-  }
-};
-setInterval(() => {
-  if (!sndOn || screen !== 'game' || typeof ttLeft !== 'function' || !G || !G.tm) return;
-  const w = ttWaiting(); if (!w || w.id !== G.tm.id) return;
-  const mine = w.kind === 'pass' ? (G.passSel && G.passSel[viewer] === null) : w.p === viewer;
-  const s = Math.ceil(ttLeft() / 1000);
-  if (mine && !ON.spec && s <= 10 && s > 0 && sndTick !== G.tm.id + s) { sndTick = G.tm.id + s; SFX.tick(); }
-}, 200);
-window.addEventListener('click', e => {
-  const t = e.target.closest('[data-a="msnd"]'); if (!t) return;
-  e.stopPropagation(); sndOn = !sndOn; LS.set('st.snd', sndOn); if (sndOn) SFX.turn();
-  t.textContent = `Sound: ${sndOn ? 'On' : 'Off'}`;
-}, true);
+// ===================== Recent games, rivalries =====================
 
 // ---------- who binked who (kept in the game so every phone has it) ----------
 const _playMoveRiv = playMove;
@@ -5179,12 +5090,16 @@ lbProfHTML = function(x){
 // ---------- online: put your account on your seat so others can track the rivalry ----------
 const _applyRiv = applyIntent;
 applyIntent = async function(it){
-  if (it.kind === 'uid' && ON.L && !ON.L.started) {
+  // every message from a phone carries its account, so the seat always knows who's in it
+  const tag = async uid => {
+    if (!ON.L || ON.L.started || typeof uid !== 'string') return;
     const s = ON.L.seats.findIndex(x => x.pid === it.pid);
-    if (s >= 0 && typeof (it.data && it.data.uid) === 'string') { ON.L.seats[s].uid = it.data.uid.slice(0, 64); await pushLobby(); }
-    return;
-  }
-  return _applyRiv(it);
+    if (s >= 0 && ON.L.seats[s].uid !== uid) { ON.L.seats[s].uid = uid.slice(0, 64); await pushLobby(); }
+  };
+  if (it.kind === 'uid') { await tag(it.data && it.data.uid); return; }
+  const r = await _applyRiv(it);
+  if (it.uid) await tag(it.uid);
+  return r;
 };
 const _renderRiv = render;
 render = function(){
