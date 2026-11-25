@@ -867,6 +867,21 @@ input.locked{opacity:.85;cursor:default}
 .dealban .dc{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff0b8,#e0a93a 60%,#9a6514);color:#3a2206;font:900 13px Cinzel,Georgia,serif}
 .dealban.out{opacity:0;transform:translate(-50%,-60%);transition:all .45s}
 @keyframes dealin{from{opacity:0;transform:translate(-50%,-50%) scale(.6)}}
+#pask .mpicker{position:fixed;inset:0;z-index:92;background:rgba(8,4,16,.72);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+#pask .mbox{width:min(560px,100%);background:linear-gradient(180deg,#2e1a4c,#120a20);border:2px solid #f0c45c;border-bottom:0;border-radius:24px 24px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));text-align:center;color:#f3e6c8;animation:pmup .25s ease-out}
+#pask h3{margin:0 0 6px;font:900 22px Cinzel,Georgia,serif;color:#f6d27a}
+#pask p{margin:0 0 12px;color:#d8c9e6;font:15px system-ui}
+#pask .dcard{display:inline-grid;place-items:center;min-width:88px;height:110px;padding:0 10px;margin:0 0 14px;border-radius:12px;background:linear-gradient(180deg,#fffaf0,#efe3c6);color:#1b1208;font:900 26px Cinzel,Georgia,serif;box-shadow:0 6px 16px rgba(0,0,0,.5)}
+#pask .lux-cta,#pask .lux-btn{width:100%;margin-top:8px}
+.tstrip{display:flex;align-items:center;gap:8px;margin:2px 0 6px;padding:6px 12px;border-radius:14px;background:rgba(0,0,0,.35);border:1px solid rgba(240,196,92,.35);color:#f3e6c8}
+.tstrip .tl{font-size:16px}
+.tstrip .ta{color:#f0c45c;font-weight:900}
+.tstrip .tg{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.15}
+.tstrip .tg small{color:#a99bbf;font:700 9.5px system-ui;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tstrip .tg b{font:900 16px Cinzel,Georgia,serif}
+.tstrip .tg em{font:italic 10px system-ui;color:#8f82a6}
+.cwrap.frommate{position:relative}
+.fromtag{position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);padding:1px 6px;border-radius:999px;background:linear-gradient(180deg,#f6d27a,#c9932f);color:#2b1808;font:800 8px system-ui;letter-spacing:.6px;white-space:nowrap;max-width:110%;overflow:hidden;text-overflow:ellipsis;box-shadow:0 2px 4px rgba(0,0,0,.4)}
 
 </style>
 </head>
@@ -874,7 +889,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125123305';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125160935';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -1293,6 +1308,7 @@ function choosePass(st, p, h){
   if (st.passSel.every(x => x !== null)) {
     const given = st.passSel.map((id, q) => { const i = st.hands[q].findIndex(c => c.id === id); return st.hands[q].splice(i, 1)[0]; });
     given.forEach((c, q) => st.hands[mateOf(st, q)].push(c));
+    st.traded = given.map(c => Object.assign({}, c)); st.tradedHand = st.hand;   // what each seat passed this hand
     st.phase = 'play'; st.passSel = null;
   }
 }
@@ -5189,6 +5205,64 @@ drawGame = function(){
 };
 const _buildBoardDeal = buildBoard;
 buildBoard = function(){ _buildBoardDeal(); try { drawDealer(); } catch (e) {} };
+
+// ===================== Partner pass: confirm before passing, and keep the trade on screen all hand =====================
+let passAsk = null;
+const _onCardTr = onCard;
+onCard = function(h){
+  if (G && G.phase === 'pass' && G.passSel && viewer >= 0 && G.passSel[viewer] === null && curtain === null && !busy && !(ON.active && ON.spec) && G.hands[viewer][h]) {
+    passAsk = h; drawPassAsk(); return;
+  }
+  return _onCardTr(h);
+};
+function drawPassAsk(){
+  let el = document.getElementById('pask');
+  const ok = passAsk !== null && screen === 'game' && G && G.phase === 'pass' && G.passSel && G.passSel[viewer] === null && G.hands[viewer][passAsk];
+  if (!ok) { passAsk = null; if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'pask'; document.body.appendChild(el); }
+  const c = G.hands[viewer][passAsk], mate = mateOf(G, viewer);
+  el.innerHTML = `<div class="mpicker" data-a="paskno"><div class="mbox" data-a="noop">
+    <h3>🔄 Pass to ${esc(G.players[mate].name)}?</h3>
+    <p>Your partner gets this card for the hand.</p>
+    <div class="dcard">${esc(cardName(c))}</div>
+    <button class="lux-cta" data-a="paskyes"><span>PASS ${esc(cardName(c))}</span></button>
+    <button class="lux-btn" data-a="paskno"><span>PICK A DIFFERENT CARD</span></button></div></div>`;
+}
+window.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if (!t || !t.closest('#pask')) return;
+  e.stopPropagation();
+  if (t.dataset.a === 'paskyes') { const h = passAsk; passAsk = null; drawPassAsk(); if (G && G.phase === 'pass' && G.passSel && G.passSel[viewer] === null) _onCardTr(h); }
+  else if (t.dataset.a === 'paskno') { passAsk = null; drawPassAsk(); }
+}, true);
+
+// the trade stays up all hand: what you gave, what you got, and the card you got is tagged in your hand
+function myTrade(){
+  if (!G || !G.set || !G.set.partners || !G.traded || G.tradedHand !== G.hand || viewer < 0 || (ON.active && ON.spec)) return null;
+  const mate = mateOf(G, viewer);
+  return {gave:G.traded[viewer], got:G.traded[mate], mate};
+}
+const _drawGameTr = drawGame;
+drawGame = function(){
+  trade = null;                                  // the old pop-up is replaced by the strip below
+  _drawGameTr();
+  if (passAsk !== null) drawPassAsk();
+  const panel = document.querySelector('.game .panel');
+  let el = document.getElementById('tstrip');
+  const t = screen === 'game' && G && G.phase === 'play' ? myTrade() : null;
+  if (!t || !panel) { if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'tstrip'; el.className = 'tstrip'; }
+  const stillHave = G.hands[viewer].some(c => c.id === t.got.id), gone = !G.hands[mate2()].some(c => c.id === t.gave.id);
+  function mate2(){ return t.mate; }
+  el.innerHTML = `<span class="tl">🔄</span><span class="tg"><small>YOU GAVE</small><b>${esc(cardName(t.gave))}</b>${gone ? '<em>played</em>' : ''}</span><span class="ta">⇄</span><span class="tg"><small>${esc(G.players[t.mate].name).toUpperCase()} GAVE YOU</small><b>${esc(cardName(t.got))}</b>${stillHave ? '' : '<em>played</em>'}</span>`;
+  const anchor = document.getElementById('tclock');
+  if (anchor && anchor.parentNode === panel) anchor.after(el); else if (el.parentNode !== panel || panel.firstChild !== el) panel.insertBefore(el, panel.firstChild);
+  // tag the card you got
+  G.hands[viewer].forEach((c, h) => {
+    if (c.id !== t.got.id) return;
+    const b = document.querySelector(`#hand [data-a="card"][data-h="${h}"]`);
+    if (b && !b.querySelector('.fromtag')) { b.classList.add('frommate'); b.insertAdjacentHTML('beforeend', `<span class="fromtag">FROM ${esc(G.players[t.mate].name).toUpperCase()}</span>`); }
+  });
+};
 
 </script>
 </body>
