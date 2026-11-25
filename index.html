@@ -813,7 +813,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125013510';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125014133';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -4063,6 +4063,7 @@ async function loadLeaders(){
   try {
     const snap = await withTimeout(firebase.database().ref('users').once('value'), 8000), all = snap.val() || {};
     LB = Object.entries(all).map(([uid, u]) => {
+      if (ME && uid === ME.uid) u = Object.assign({}, u, {look:{m:profile.mskin || null, b:BOARD, c:profile.skin || null}});
       const s = (u.ach && u.ach.v === 2 && u.ach.stats) || {};
       const w = s.wins || 0, l = s.losses || 0;
       return {uid, name: u.name || 'Player', lv: levelOf(s.xp || 0).lv, xp: s.xp || 0, wins: w, losses: l, pct: w + l >= 5 ? w / (w + l) : -1, binks: s.binks || 0, games: s.games || 0, look: u.look || {}};
@@ -4079,7 +4080,7 @@ function leadersHTML(){
   return `<div class="lbsort">${[['lv', 'Level'], ['wins', 'Wins'], ['pct', 'Win %'], ['binks', 'Binks']].map(([k, l]) => `<button data-a="lbsort" data-v="${k}" class="${lbSort === k ? 'on' : ''}">${l}</button>`).join('')}</div>
     ${lbSort === 'pct' ? '<p class="hint center">Win % needs at least 5 finished games.</p>' : ''}
     <div class="lblist">${rows.length ? rows.map((x, i) => `<div class="lbrow ${ME && x.uid === ME.uid ? 'me' : ''}" data-a="lbprof" data-u="${esc(x.uid)}"><span class="rk">${medal(i)}</span>
-      ${typeof styleOrb === 'function' && x.look.m && MSTYLE(x.look.m) ? styleOrb('c0', x.look.m, 34) : skinOrb('c' + (i % 6), 34)}
+      ${typeof styleOrb === 'function' && x.look.m && MSTYLE(x.look.m) ? styleOrb(lookColor(x), x.look.m, 34) : skinOrb(x.look.c && SKIN(x.look.c) ? x.look.c : 'c' + (i % 6), 34)}
       <span class="nm"><b>${esc(x.name)}</b><small>Lv ${x.lv} · ${x.wins}-${x.losses}</small></span><span class="vl">${val(x)}</span></div>`).join('') : '<p class="hint center">No one has finished a game yet.</p>'}</div>`;
 }
 const _passHTMLS = passHTML;
@@ -4117,11 +4118,12 @@ function lbProfHTML(x){
     <div class="tstats"><div><b>${x.lv}</b><span>Level</span></div><div><b>${x.binks}</b><span>Binks</span></div><div><b>${x.games}</b><span>Games</span></div></div>
     ${act}<button class="lux-btn" data-a="lbpx"><span>CLOSE</span></button></div></div>`;
 }
+function lookColor(x){ const c = x.look && x.look.c; return c && SKIN(c) && SKIN(c).basic ? c : 'c0'; }
 function lookTiles(x){
-  if (ME && x.uid === ME.uid) x = Object.assign({}, x, {look:{m:profile.mskin || null, b:BOARD}});   // yours: always what you have right now
+  if (ME && x.uid === ME.uid) x = Object.assign({}, x, {look:{m:profile.mskin || null, b:BOARD, c:profile.skin || null}});   // yours: always what you have right now
   const m = x.look.m && typeof MSTYLE === 'function' ? MSTYLE(x.look.m) : null;
   const b = typeof BOARDS !== 'undefined' ? (BOARDS.find(y => y.id === x.look.b) || BOARDS[0]) : null;
-  const orb = typeof styleOrb === 'function' ? styleOrb('c1', m ? m.id : null, 48) : skinOrb('c1', 48);
+  const orb = typeof styleOrb === 'function' ? styleOrb(lookColor(x), m ? m.id : null, 48) : skinOrb(lookColor(x), 48);
   return `<div class="lookrow lbplook"><div>${orb}<span><small>MARBLE</small><b>${m ? esc(m.name) : 'Plain'}</b></span></div>
     <div><i class="bthumb" style="${b && b.thumb ? `background-image:url(${b.thumb})` : 'background:radial-gradient(circle at 42% 36%,#f6c886,#dfa560 55%,#b47a3c)'}"></i><span><small>BOARD</small><b>${b ? esc(b.name) : 'Classic'}</b></span></div></div>`;
 }
@@ -4148,9 +4150,9 @@ let lookSent = null;
 function syncLook(force){
   try {
     if (!ME || !AUTH_ON || navigator.onLine === false) return Promise.resolve();
-    const k = ME.uid + ':' + BOARD + ':' + (profile.mskin || '');
+    const k = ME.uid + ':' + BOARD + ':' + (profile.mskin || '') + ':' + (profile.skin || '');
     if (lookSent === k && !force) return Promise.resolve(); lookSent = k;
-    return firebase.database().ref('users/' + ME.uid + '/look').update({b: BOARD || 'classic', m: profile.mskin || null}).catch(() => { lookSent = null; });
+    return firebase.database().ref('users/' + ME.uid + '/look').update({b: BOARD || 'classic', m: profile.mskin || null, c: profile.skin && SKIN(profile.skin) ? profile.skin : null}).catch(() => { lookSent = null; });
   } catch (e) { return Promise.resolve(); }
 }
 const _renderLook = render;
