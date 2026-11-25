@@ -813,7 +813,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125014133';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125014339';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -3759,7 +3759,7 @@ function profileHTML(){
       <div class="me"><b>${esc(ME.name)}</b><span>Signed in · progress saved to your account</span></div>
       ${typeof BOARDS !== 'undefined' && BOARDS.length > 1 ? (() => { const b = BOARDS.find(x => x.id === BOARD) || BOARDS[0], m = typeof MSTYLE === 'function' && MSTYLE(profile.mskin);
         return `<h3 class="lh3">YOUR LOOK</h3><div class="lookrow">
-        <button data-a="lookopen" data-v="marble">${typeof styleOrb === 'function' ? styleOrb('c0', m ? m.id : null, 48) : ''}<span><small>MARBLE</small><b>${m ? esc(m.name) : 'Plain'}</b></span></button>
+        <button data-a="lookopen" data-v="marble">${typeof styleOrb === 'function' ? styleOrb(profile.skin && SKIN(profile.skin) && SKIN(profile.skin).basic ? profile.skin : 'c0', m ? m.id : null, 48) : ''}<span><small>MARBLE</small><b>${m ? esc(m.name) : 'Plain'}</b></span></button>
         <button data-a="lookopen" data-v="board"><i class="bthumb" style="${b.thumb ? `background-image:url(${b.thumb})` : 'background:radial-gradient(circle at 42% 36%,#f6c886,#dfa560 55%,#b47a3c)'}"></i><span><small>BOARD</small><b>${esc(b.name)}</b></span></button></div>`; })() : ''}
       ${(() => { const s = ACH.stats, w = s.wins || 0, l = s.losses || 0, pct = w + l ? Math.round(w / (w + l) * 100) + '%' : '–';
         return `<div class="tstats"><div><b>${w}</b><span>Wins</span></div><div><b>${l}</b><span>Losses</span></div><div><b>${pct}</b><span>Win %</span></div></div>
