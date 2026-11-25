@@ -806,6 +806,23 @@ input.locked{opacity:.85;cursor:default}
 .lbplook>div{display:flex;align-items:center;gap:10px;padding:10px;border-radius:16px;background:rgba(255,255,255,.04);border:1.5px solid rgba(240,196,92,.3);color:#f3e6c8;min-width:0}
 .lbptop{justify-content:center;text-align:center;padding:4px 0 2px}
 .lbptop>div{display:flex;flex-direction:column;align-items:center}
+/* ---- bink emojis ---- */
+.cele{position:absolute;left:50%;top:22%;z-index:7;white-space:nowrap;font-size:84px;line-height:1;pointer-events:none;filter:drop-shadow(0 8px 14px rgba(0,0,0,.6));transform:translate(-50%,-50%);animation:celepop 2.1s cubic-bezier(.2,1.4,.4,1) forwards}
+.cele.big{font-size:84px;letter-spacing:-6px}
+@keyframes celepop{0%{transform:translate(-50%,-20%) scale(.2) rotate(-25deg);opacity:0}12%{transform:translate(-50%,-50%) scale(1.25) rotate(8deg);opacity:1}22%{transform:translate(-50%,-50%) scale(.95) rotate(-4deg)}32%{transform:translate(-50%,-50%) scale(1.05) rotate(0)}75%{transform:translate(-50%,-58%) scale(1);opacity:1}100%{transform:translate(-50%,-85%) scale(.85);opacity:0}}
+.ding .dline{display:block;margin-top:6px;font:italic 600 14px system-ui;letter-spacing:0;opacity:.92}
+.ding.good .dline{color:#4a2a08}.ding.bad .dline{color:#ffd9d9}
+.lookrow .lkemo{grid-column:1 / -1;display:flex;align-items:center;gap:10px;padding:10px;border-radius:16px;background:rgba(255,255,255,.04);border:1.5px solid rgba(240,196,92,.45);color:#f3e6c8;text-align:left;cursor:pointer}
+.lookrow .lkemo b{display:block;font:700 15px/1.15 Cinzel,Georgia,serif}
+.eg{display:grid;place-items:center;width:48px;height:48px;font-style:normal;font-size:34px;line-height:1}
+.emogrid .eg{width:40px;height:40px;font-size:30px}
+#epick .mpicker{position:fixed;inset:0;z-index:88;background:rgba(8,4,16,.72);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+#epick .mbox{width:min(560px,100%);max-height:86vh;overflow:auto;background:linear-gradient(180deg,#24153a,#120a20);border:2px solid rgba(224,176,79,.7);border-bottom:0;border-radius:24px 24px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));animation:pmup .25s ease-out}
+#epick .lux-btn{width:100%}
+.emoprev{position:relative;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:18px;background:radial-gradient(120% 140% at 50% 0%,#f3c45a,#a56c12);border:2px solid #fff0b8;color:#2a1405}
+.emoprev .pe{font-size:52px;line-height:1;animation:celepop2 1.6s ease-in-out infinite}
+@keyframes celepop2{50%{transform:scale(1.12) rotate(-6deg)}}
+.emoprev b{display:block;font:900 19px Cinzel,Georgia,serif}.emoprev span{font:italic 600 14px system-ui}
 
 </style>
 </head>
@@ -813,7 +830,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125014339';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125015445';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -2252,7 +2269,7 @@ function startGame(again){
     const eff = assignSkins(setup.seats.map(x => x.skin || null));
     players = order.map(i => { const x = setup.seats[i], sk = SKIN(eff[i]);
       const nm = (x.name || '').trim();
-      return {name: x.human ? nm || sk.name : (CNAMES.includes(nm) || !nm ? sk.name : nm), human: x.human, color: sk.grp, skin: eff[i], mskin: x.mskin || null, lv: x.human && typeof levelOf === 'function' ? levelOf(ACH.stats.xp).lv : undefined}; });
+      return {name: x.human ? nm || sk.name : (CNAMES.includes(nm) || !nm ? sk.name : nm), human: x.human, color: sk.grp, skin: eff[i], mskin: x.mskin || null, emo: x.human ? (x.emo || profile.emo || null) : null, lv: x.human && typeof levelOf === 'function' ? levelOf(ACH.stats.xp).lv : undefined}; });
     set = {partners: setup.partners && setup.n % 2 === 0, hop: false, around: false, photo: setup.photo, center: setup.center, openHands: false, level: 'hard', speed: setup.speed, decks: 'auto', jokers: setup.jokers};
     cfg = rules;
   }
@@ -2662,7 +2679,7 @@ async function hostStart(){
   }
   const eff = assignSkins(L.seats.map(x => x.kind === 'human' ? x.skin || null : null));
   const players = order.map(i => { const x = L.seats[i]; const human = x.kind === 'human', sk = SKIN(eff[i]);
-    return {name: human ? (x.name || 'Player') : sk.name, human, pid: human ? x.pid : null, color:sk.grp, skin:eff[i], mskin: human ? x.mskin || null : null, lv: human && typeof x.lv === 'number' ? x.lv : undefined}; });
+    return {name: human ? (x.name || 'Player') : sk.name, human, pid: human ? x.pid : null, color:sk.grp, skin:eff[i], mskin: human ? x.mskin || null : null, emo: human ? x.emo || null : null, lv: human && typeof x.lv === 'number' ? x.lv : undefined}; });
   const set = {partners:L.partners && L.n % 2 === 0, hop:false, around:false, center:L.center, openHands:false, level:'hard', speed:L.speed, decks:'auto', jokers:L.jokers, timer:L.timer === 'off' ? 0 : 30};
   G = newGame({players, set, cfg:rules}); G.online = L.code; G.gid = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   L.started = true; await pushLobby();
@@ -4706,6 +4723,140 @@ onlineHTML = function(){
   const h = _onlineFR();
   if (!NET) return h;
   return h.replace('<h3 class="lh3">JOIN A GAME</h3>', `<button class="lux-btn" data-a="fropen">${ICON.user}<span>FRIENDS</span></button><h3 class="lh3">JOIN A GAME</h3>`);
+};
+render();
+
+// ===================== Bink emojis: pick the emoji that pops up when you bink someone =====================
+const BINKS = [
+  {id:'boom', e:'💥', name:'Boom', line:'Boom. Back to start.'},
+  {id:'taxi', e:'🚕', name:'Taxi Home', line:'Your ride’s here.'},
+  {id:'skull', e:'💀', name:'Rest in Peace', line:'Rest in peace.'},
+  {id:'wave', e:'👋', name:'Bye Bye', line:'Bye bye!'},
+  {id:'lol', e:'😂', name:'LOL', line:'I can’t even.'},
+  {id:'trash', e:'🗑️', name:'Taken Out', line:'Taking out the trash.'},
+  {id:'rocket', e:'🚀', name:'Launched', line:'Sent to the moon.'},
+  {id:'target', e:'🎯', name:'Bullseye', line:'Right on target.'},
+  {id:'broom', e:'🧹', name:'Swept', line:'Clean sweep.'},
+  {id:'clown', e:'🤡', name:'Clowned', line:'Get clowned.'},
+  {id:'fire', e:'🔥', name:'On Fire', line:'Too hot to handle.'},
+  {id:'crown', e:'👑', name:'Bow Down', line:'Bow down.'},
+  {id:'cold', e:'🥶', name:'Ice Cold', line:'Ice cold.'},
+  {id:'nails', e:'💅', name:'Too Easy', line:'Too easy.'},
+  {id:'salute', e:'🫡', name:'See Ya', line:'See ya, soldier.'},
+  {id:'popcorn', e:'🍿', name:'Popcorn', line:'This is entertaining.'},
+  {id:'rip', e:'🪦', name:'RIP', line:'Gone but not forgotten.'},
+  {id:'goat', e:'🐐', name:'GOAT', line:'Greatest of all time.'},
+  {id:'sleep', e:'😴', name:'Nap Time', line:'Wake up.'},
+  {id:'home', e:'🏠', name:'Go Home', line:'Go home.'},
+  {id:'strike', e:'🎳', name:'Strike', line:'Strike!'},
+  {id:'hammer', e:'🔨', name:'Hammered', line:'Hammer time.'},
+  {id:'shark', e:'🦈', name:'Shark', line:'Smelled blood.'},
+  {id:'ghost', e:'👻', name:'Ghosted', line:'Poof. Gone.'},
+  {id:'hockey', e:'🏒', name:'Checked', line:'Checked into the boards.'},
+  {id:'eyes', e:'👀', name:'Saw That', line:'Didn’t see that coming?'},
+  {id:'devil', e:'😈', name:'Evil', line:'Nothing personal.'},
+  {id:'kiss', e:'😘', name:'Goodbye Kiss', line:'Mwah. Bye.'},
+];
+const BINK = id => BINKS.find(b => b.id === id) || null;
+if (profile.emo === undefined) profile.emo = 'boom';
+
+// computers get a random one each game
+const _newGameE = newGame;
+newGame = function(opts){
+  const st = _newGameE(opts);
+  st.players.forEach(pl => { if (!pl.emo || !BINK(pl.emo)) pl.emo = pl.human ? 'boom' : BINKS[Math.floor(Math.random() * BINKS.length)].id; });
+  return st;
+};
+
+// ---------- the pop-up ----------
+const _dingFxE = dingFx;
+dingFx = function(ev, mover){
+  _dingFxE(ev, mover);
+  try {
+    const wrap = document.querySelector('.boardwrap'), ban = wrap && wrap.querySelector('.ding:not(.out)');
+    const pl = G && G.players[mover], b = pl && BINK(pl.emo);
+    if (!ban || !b || ban.dataset.emo) return;
+    const hits = new Set(ev.filter(e => e.bump).map(e => e.key >> 2)).size;
+    ban.dataset.emo = 1;
+    ban.insertAdjacentHTML('beforeend', `<span class="dline">“${esc(b.line)}”</span>`);
+    wrap.querySelectorAll('.cele').forEach(x => x.remove());
+    const c = document.createElement('div'); c.className = 'cele' + (hits >= 2 ? ' big' : ''); c.textContent = hits >= 2 ? b.e + b.e : b.e;
+    wrap.appendChild(c);
+    setTimeout(() => c.remove(), 2200);
+  } catch (e) {}
+};
+
+// ---------- choosing ----------
+let emoSheet = false;
+function myEmo(){
+  if (screen === 'lobby' && ON.L) { const me = ON.L.seats.findIndex(x => x.pid === ON.pid); if (me >= 0 && ON.L.seats[me].emo) return ON.L.seats[me].emo; }
+  if (screen === 'setup' && setup) { const me = setup.seats.findIndex(x => x.human); if (me >= 0 && setup.seats[me].emo) return setup.seats[me].emo; }
+  return profile.emo || 'boom';
+}
+function chooseEmo(id){
+  if (!BINK(id)) return;
+  profile.emo = id; LS.set('st.profile', profile);
+  if (screen === 'setup' && setup) { const me = setup.seats.findIndex(x => x.human); if (me >= 0) setup.seats[me].emo = id; }
+  if (screen === 'lobby' && ON.L && !ON.L.started) {
+    const me = ON.L.seats.findIndex(x => x.pid === ON.pid);
+    if (me >= 0) { if (ON.host) { ON.L.seats[me].emo = id; pushLobby(); } else sendLobbyIntent('emo', {emo:id}); }
+  }
+}
+function emoSheetHTML(){
+  const cur = BINK(myEmo()) || BINKS[0];
+  return `<div class="mpicker" data-a="emox"><div class="mbox" data-a="noop">
+    <h3 class="lh3" style="margin-top:0">BINK EMOJI</h3>
+    <div class="emoprev"><span class="pe">${cur.e}</span><div class="pb"><b>You binked Mike!</b><span>“${esc(cur.line)}”</span></div></div>
+    <p class="hint center">Pops up over the board every time you bink someone. Double binks get double.</p>
+    <div class="mgrid emogrid">${BINKS.map(b => `<button class="mtile ${b.id === cur.id ? 'on' : ''}" data-a="emopick" data-v="${b.id}"><i class="eg">${b.e}</i><b>${esc(b.name)}</b></button>`).join('')}</div>
+    <button class="lux-btn" data-a="emox"><span>DONE</span></button></div></div>`;
+}
+function drawEmoSheet(){
+  let el = document.getElementById('epick');
+  if (!emoSheet) { if (el) el.remove(); return; }
+  const y = el && el.querySelector('.mbox') ? el.querySelector('.mbox').scrollTop : 0;
+  if (!el) { el = document.createElement('div'); el.id = 'epick'; document.body.appendChild(el); }
+  el.innerHTML = emoSheetHTML();
+  const box = el.querySelector('.mbox'); if (box) box.scrollTop = y;
+}
+window.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  const a = t.dataset.a;
+  if (a === 'emoopen') { e.stopPropagation(); emoSheet = true; drawEmoSheet(); }
+  else if (a === 'emox') { e.stopPropagation(); emoSheet = false; drawEmoSheet(); render(); }
+  else if (a === 'emopick') { e.stopPropagation(); chooseEmo(t.dataset.v); drawEmoSheet(); }
+  else if (a === 'noop' && t.closest('#epick')) e.stopPropagation();
+}, true);
+
+// host: someone in the lobby picked one
+const _applyE = applyIntent;
+applyIntent = async function(it){
+  const L = ON.L;
+  if (it.kind === 'emo' && L && !L.started) {
+    const me = L.seats.findIndex(x => x.pid === it.pid);
+    if (me >= 0 && BINK(it.data && it.data.emo)) { L.seats[me].emo = it.data.emo; await pushLobby(); }
+    return;
+  }
+  return _applyE(it);
+};
+
+// a "Bink Emoji" tile under Your Look (new game, lobby, profile), and bring yours into the lobby
+const _renderE = render;
+render = function(){
+  if (screen === 'lobby' && ON.L && !ON.L.started) {
+    const me = ON.L.seats.findIndex(x => x.pid === ON.pid);
+    if (me >= 0 && !ON.L.seats[me].emo && profile.emo && ON._emoSent !== ON.L.code + me) {
+      ON._emoSent = ON.L.code + me;
+      if (ON.host) { ON.L.seats[me].emo = profile.emo; pushLobby(); } else sendLobbyIntent('emo', {emo:profile.emo});
+    }
+  }
+  _renderE();
+  if (emoSheet && !['setup', 'lobby', 'profile'].includes(screen)) { emoSheet = false; drawEmoSheet(); }
+  const row = app.querySelector('.lookrow');
+  if (row && !row.querySelector('[data-a="emoopen"]') && ['setup', 'lobby', 'profile'].includes(screen)) {
+    const b = BINK(myEmo()) || BINKS[0];
+    row.insertAdjacentHTML('beforeend', `<button class="lkemo" data-a="emoopen"><i class="eg">${b.e}</i><span><small>BINK EMOJI</small><b>${esc(b.name)}</b></span></button>`);
+  }
 };
 render();
 
