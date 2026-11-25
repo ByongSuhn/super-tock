@@ -829,6 +829,31 @@ input.locked{opacity:.85;cursor:default}
 #dask p{margin:0 0 12px;color:#d8c9e6;font:15px system-ui}
 #dask .dcard{display:inline-grid;place-items:center;min-width:88px;height:110px;padding:0 10px;margin:0 0 14px;border-radius:12px;background:linear-gradient(180deg,#fffaf0,#efe3c6);color:#1b1208;font:900 26px Cinzel,Georgia,serif;box-shadow:0 6px 16px rgba(0,0,0,.5)}
 #dask .lux-cta,#dask .lux-btn{width:100%;margin-top:8px}
+/* ---- recent games ---- */
+.rglist{display:flex;flex-direction:column;gap:6px;margin:0 0 14px}
+.rgrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(240,196,92,.22)}
+.rgres{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;font:900 16px Cinzel,Georgia,serif}
+.rgres.w{background:linear-gradient(180deg,#f6d27a,#c9932f);color:#2b1808}.rgres.l{background:rgba(255,255,255,.08);color:#a99bbf;border:1px solid rgba(255,255,255,.15)}
+.rgmid{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.rgpl{display:flex;flex-wrap:wrap;gap:4px 10px}
+.rgpl span{display:inline-flex;align-items:center;gap:4px;color:#cbbfdc;font:600 13px system-ui}
+.rgpl span i{width:8px;height:8px;border-radius:50%}
+.rgpl span.rwon{color:#f6d27a;font-weight:800}.rgpl span.rwon::after{content:'♛';font-size:11px}
+.rgpl span.rme{color:#fff}
+.rgmid small{color:#8f82a6;font:12px system-ui}
+.rgbk{flex:none;display:flex;flex-direction:column;align-items:center;min-width:40px}
+.rgbk b{color:#f0c45c;font:900 18px Cinzel,Georgia,serif}.rgbk small{color:#a99bbf;font:11px system-ui}
+/* ---- rivalry ---- */
+.rivbox{margin:0 0 10px;padding:12px;border-radius:16px;background:linear-gradient(180deg,rgba(229,72,77,.16),rgba(80,40,140,.16));border:1.5px solid rgba(255,140,140,.4);text-align:center}
+.rivbox>b{display:block;margin-bottom:8px;color:#ffd0d0;font:800 12px system-ui;letter-spacing:2px}
+.rivbox.none span{color:#a99bbf;font:13px system-ui}
+.rivrow{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.rivrow+.rivrow{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)}
+.rivrow div{display:flex;flex-direction:column;align-items:center}
+.rivrow em{font:900 26px Cinzel,Georgia,serif;font-style:normal;color:#f3e6c8}
+.rivrow.sm em{font-size:20px}
+.rivrow span{color:#a99bbf;font:12px system-ui}
+.rivrow .vs{color:#f0c45c;font:800 13px system-ui}
 
 </style>
 </head>
@@ -836,7 +861,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125111236';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125114829';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -2732,7 +2757,7 @@ async function hostStart(){
   }
   const eff = assignSkins(L.seats.map(x => x.kind === 'human' ? x.skin || null : null));
   const players = order.map(i => { const x = L.seats[i]; const human = x.kind === 'human', sk = SKIN(eff[i]);
-    return {name: human ? (x.name || 'Player') : sk.name, human, pid: human ? x.pid : null, color:sk.grp, skin:eff[i], mskin: human ? x.mskin || null : null, emo: human ? x.emo || null : null, lv: human && typeof x.lv === 'number' ? x.lv : undefined}; });
+    return {name: human ? (x.name || 'Player') : sk.name, human, pid: human ? x.pid : null, uid: human ? x.uid || null : null, color:sk.grp, skin:eff[i], mskin: human ? x.mskin || null : null, emo: human ? x.emo || null : null, lv: human && typeof x.lv === 'number' ? x.lv : undefined}; });
   const set = {partners:L.partners && L.n % 2 === 0, hop:false, around:false, center:L.center, openHands:false, level:'hard', speed:L.speed, decks:'auto', jokers:L.jokers, timer:L.timer === 'off' ? 0 : 30};
   G = newGame({players, set, cfg:rules}); G.online = L.code; G.gid = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   L.started = true; await pushLobby();
@@ -4948,6 +4973,230 @@ render = function(){
   }
 };
 render();
+
+// ===================== Sounds, recent games, rivalries =====================
+
+// ---------- sounds (made on the fly, no files to download) ----------
+let sndOn = LS.get('st.snd', true), AC = null;
+function ac(){
+  if (!sndOn) return null;
+  try { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume(); } catch (e) { AC = null; }
+  return AC;
+}
+['pointerdown', 'touchstart', 'keydown'].forEach(t => window.addEventListener(t, () => { if (sndOn) ac(); }, {passive:true, capture:true}));
+function tone(f, dur, {type = 'sine', vol = 0.15, at = 0, to = null, attack = 0.005} = {}){
+  const a = ac(); if (!a) return;
+  const t0 = a.currentTime + at, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(f, t0); if (to) o.frequency.exponentialRampToValueAtTime(to, t0 + dur);
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + attack); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g).connect(a.destination); o.start(t0); o.stop(t0 + dur + 0.02);
+}
+function noise(dur, {vol = 0.15, at = 0, f = 2000, q = 1, type = 'bandpass', sweep = null} = {}){
+  const a = ac(); if (!a) return;
+  const t0 = a.currentTime + at, n = Math.max(1, Math.floor(a.sampleRate * dur)), buf = a.createBuffer(1, n, a.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / n);
+  const src = a.createBufferSource(), fl = a.createBiquadFilter(), g = a.createGain();
+  src.buffer = buf; fl.type = type; fl.frequency.setValueAtTime(f, t0); if (sweep) fl.frequency.exponentialRampToValueAtTime(sweep, t0 + dur); fl.Q.value = q;
+  g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  src.connect(fl).connect(g).connect(a.destination); src.start(t0);
+}
+const SFX = {
+  hop(at = 0){ noise(0.03, {vol:0.05, at, f:3200, q:3}); },
+  clack(at = 0){ noise(0.05, {vol:0.22, at, f:2600, q:2}); tone(1150, 0.07, {vol:0.06, at, type:'triangle'}); },
+  card(){ noise(0.04, {vol:0.06, f:5000, q:0.7, type:'highpass'}); },
+  whoosh(){ noise(0.32, {vol:0.12, f:500, sweep:3500, q:1.2}); },
+  bink(){ tone(170, 0.35, {vol:0.35, to:45}); noise(0.09, {vol:0.3, f:1800, q:0.8}); tone(620, 0.18, {vol:0.08, at:0.05, type:'square', to:180}); },
+  home(){ [880, 1320, 1760].forEach((f, i) => tone(f, 0.5, {vol:0.09, at:i * 0.09, type:'triangle'})); },
+  turn(){ tone(660, 0.16, {vol:0.07, type:'triangle'}); tone(990, 0.22, {vol:0.06, at:0.1, type:'triangle'}); },
+  tick(){ tone(1500, 0.04, {vol:0.06, type:'square'}); },
+  win(){ [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, i === 5 ? 0.7 : 0.18, {vol:0.12, at:[0, .14, .28, .42, .62, .76][i], type:'triangle'})); },
+  lose(){ [392, 370, 349, 294].forEach((f, i) => tone(f, i === 3 ? 0.7 : 0.3, {vol:0.1, at:i * 0.3, type:'sawtooth'})); },
+};
+// marbles: a soft tick for each hole, a clack when it lands
+const _glideSnd = glide;
+glide = function(el, pts, ms){
+  if (sndOn && !document.hidden) {
+    const hops = Math.max(1, pts.length - 1), step = ms / 1000 / hops;
+    if (el.classList.contains('moving') && pts.length > 2) for (let i = 1; i < hops; i++) SFX.hop(step * i);
+    SFX.clack(ms / 1000 * 0.97);
+  }
+  return _glideSnd(el, pts, ms);
+};
+const _animateSnd = animate;
+animate = async function(ev){
+  const homeBefore = G ? G.m.flat().filter(m => m.z === 'h').length : 0;
+  if (ev && ev.some(e => e.jump && !e.bump)) SFX.whoosh();
+  await _animateSnd(ev);
+  if (G && G.m.flat().filter(m => m.z === 'h').length > homeBefore) SFX.home();
+};
+const _dingSnd = dingFx;
+dingFx = function(ev, mover){ if (ev && ev.some(e => e.bump)) SFX.bink(); return _dingSnd(ev, mover); };
+const _onCardSnd = onCard;
+onCard = function(h){ SFX.card(); return _onCardSnd(h); };
+// your turn, the last ten seconds of the clock, skipped, game over
+let sndTurnKey = null, sndTick = null, sndEnd = null;
+const _drawGameSnd = drawGame;
+drawGame = function(){
+  _drawGameSnd();
+  if (screen !== 'game' || !G) return;
+  if (G.phase === 'play' && myTurn() && !busy) {
+    const k = G.gid + ':' + G.hand + ':' + G.hands.reduce((a, h) => a + h.length, 0);
+    if (sndTurnKey !== k) { sndTurnKey = k; (G.forced === viewer ? SFX.whoosh : (humanCount() > 1 || ON.active) ? SFX.turn : () => {})(); }
+  }
+  if (G.phase === 'over' && sndEnd !== G.gid) {
+    sndEnd = G.gid;
+    if (!(ON.active && ON.spec) && G.winner) (G.winner.players.includes(viewer) ? SFX.win : SFX.lose)();
+  }
+  if (menuOpen) {
+    const r = document.querySelector('#overlay [data-a="mrules"]');
+    if (r && !document.querySelector('#overlay [data-a="msnd"]')) r.insertAdjacentHTML('afterend', `<button class="ghost wide" data-a="msnd">Sound: ${sndOn ? 'On' : 'Off'}</button>`);
+  }
+};
+setInterval(() => {
+  if (!sndOn || screen !== 'game' || typeof ttLeft !== 'function' || !G || !G.tm) return;
+  const w = ttWaiting(); if (!w || w.id !== G.tm.id) return;
+  const mine = w.kind === 'pass' ? (G.passSel && G.passSel[viewer] === null) : w.p === viewer;
+  const s = Math.ceil(ttLeft() / 1000);
+  if (mine && !ON.spec && s <= 10 && s > 0 && sndTick !== G.tm.id + s) { sndTick = G.tm.id + s; SFX.tick(); }
+}, 200);
+window.addEventListener('click', e => {
+  const t = e.target.closest('[data-a="msnd"]'); if (!t) return;
+  e.stopPropagation(); sndOn = !sndOn; LS.set('st.snd', sndOn); if (sndOn) SFX.turn();
+  t.textContent = `Sound: ${sndOn ? 'On' : 'Off'}`;
+}, true);
+
+// ---------- who binked who (kept in the game so every phone has it) ----------
+const _playMoveRiv = playMove;
+playMove = function(st, mv){
+  const ev = _playMoveRiv(st, mv);
+  try { for (const e of ev) if (e.bump) { const k = mv.p + '>' + (e.key >> 2); st.bm = st.bm || {}; st.bm[k] = (st.bm[k] || 0) + 1; } } catch (x) {}
+  return ev;
+};
+
+// ---------- recording a finished game ----------
+const myRecKey = () => 'st.recent.' + (ME ? ME.uid : 'guest');
+// your record against each friend you've played, by their account (kept per account on this phone)
+const rivKey = () => 'st.riv.' + (ME ? ME.uid : 'guest');
+let RIV = {}, RIV_FOR = null;
+function rivLoad(){ const k = rivKey(); if (RIV_FOR !== k) { RIV = LS.get(k, {}); RIV_FOR = k; } return RIV; }
+function recentList(){ return LS.get(myRecKey(), []); }
+function recordGame(w){
+  if (!G || !G.gid || (ON.active && ON.spec) || viewer < 0 || !G.players[viewer] || !G.players[viewer].human) return;
+  const dk = 'st.recDone.' + (ME ? ME.uid : 'guest'), done = LS.get(dk, []); if (done.includes(G.gid)) return;
+  done.push(G.gid); LS.set(dk, done.slice(-60)); rivLoad();
+  const me = viewer, bm = G.bm || {}, team = q => teamOf(G, q), won = w.players.includes(me);
+  let bk = 0, bd = 0; for (let q = 0; q < G.N; q++) if (q !== me) { bk += bm[me + '>' + q] || 0; bd += bm[q + '>' + me] || 0; }
+  const entry = {t:Date.now(), on:!!G.online, win:won, bk, bd, n:G.N, pt:!!(G.set && G.set.partners),
+    pl:G.players.map((pl, i) => ({n:pl.name, c:PAL[i], w:w.players.includes(i), me:i === me, cpu:!pl.human}))};
+  const list = [entry].concat(recentList()).slice(0, 10);
+  LS.set(myRecKey(), list);
+  // rivalries: only real people you played against, and only with an account
+  const rivals = [];
+  if (G.online && ME) for (let q = 0; q < G.N; q++) {
+    const pl = G.players[q];
+    if (q === me || !pl.human || !pl.uid || pl.uid === ME.uid || team(q) === team(me)) continue;
+    const r = RIV[pl.uid] || {n:pl.name, w:0, l:0, bk:0, bd:0};
+    r.n = pl.name; if (won) r.w++; else if (w.players.includes(q)) r.l++;
+    r.bk += bm[me + '>' + q] || 0; r.bd += bm[q + '>' + me] || 0;
+    RIV[pl.uid] = r; rivals.push(pl.uid);
+  }
+  LS.set(rivKey(), RIV);
+  try {
+    if (ME && AUTH_ON) {
+      const db = firebase.database();
+      db.ref('users/' + ME.uid + '/recent').set(list).catch(() => {});
+      for (const u of rivals) db.ref('users/' + ME.uid + '/riv/' + u).set(RIV[u]).catch(() => {});
+    }
+  } catch (e) {}
+}
+const _achWinRiv = achWin;
+achWin = function(w){ try { recordGame(w); } catch (e) { console.warn(e); } return _achWinRiv(w); };
+// pull your saved games and rivalries down when you sign in on another phone
+let recPulled = null;
+function pullRecent(){
+  if (!ME || !AUTH_ON || recPulled === ME.uid) return; recPulled = ME.uid;
+  try {
+    firebase.database().ref('users/' + ME.uid).once('value').then(s => {
+      const u = s.val() || {};
+      if (Array.isArray(u.recent) && u.recent.length) {
+        const mine = recentList(), all = [...u.recent, ...mine].filter((x, i, a) => x && a.findIndex(y => y && y.t === x.t) === i).sort((a, b) => b.t - a.t).slice(0, 10);
+        LS.set(myRecKey(), all);
+      }
+      rivLoad();
+      if (u.riv) { for (const [k, v] of Object.entries(u.riv)) { const l = RIV[k]; if (!l || (v.w + v.l) >= (l.w + l.l)) RIV[k] = v; } LS.set(rivKey(), RIV); }
+      if (screen === 'profile' || screen === 'bpass') render();
+    }).catch(() => { recPulled = null; });
+  } catch (e) { recPulled = null; }
+}
+
+// ---------- recent games on your profile ----------
+function agoText(t){
+  const m = Math.round((Date.now() - t) / 60000);
+  if (m < 1) return 'just now'; if (m < 60) return m + ' min ago';
+  const h = Math.round(m / 60); if (h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago');
+  const d = Math.round(h / 24); return d === 1 ? 'yesterday' : d + ' days ago';
+}
+function recentHTML(){
+  const list = recentList();
+  const rows = list.length ? list.map(g => `<div class="rgrow">
+      <span class="rgres ${g.win ? 'w' : 'l'}">${g.win ? 'W' : 'L'}</span>
+      <span class="rgmid"><span class="rgpl">${g.pl.map(p => `<span class="${p.w ? 'rwon' : ''} ${p.me ? 'rme' : ''}"><i style="background:${p.c}"></i>${esc(p.me ? 'You' : p.n)}</span>`).join('')}</span>
+        <small>${g.on ? '🌐 Online' : '🤖 Computer'} · ${g.n} players${g.pt ? ' · partners' : ''} · ${agoText(g.t)}</small></span>
+      <span class="rgbk"><b>${g.bk}</b><small>${g.bk === 1 ? 'bink' : 'binks'}</small></span></div>`).join('')
+    : '<p class="hint center">Finish a game and it shows up here.</p>';
+  return `<h3 class="lh3">RECENT GAMES</h3><div class="rglist">${rows}</div>`;
+}
+const _profileRiv = profileHTML;
+profileHTML = function(){
+  const h = _profileRiv();
+  if (!ME) return h;
+  pullRecent();
+  return h.replace('<button class="lux-btn" data-a="trophies">', recentHTML() + '<button class="lux-btn" data-a="trophies">');
+};
+
+// ---------- rivalries on a friend's player card ----------
+let rivFetched = {};
+function rivHTML(x){
+  if (!ME || x.uid === ME.uid) return '';
+  rivLoad();
+  if (!rivFetched[ME.uid]) {
+    rivFetched[ME.uid] = true;
+    try { firebase.database().ref('users/' + ME.uid + '/riv').once('value').then(s => { const v = s.val() || {}; for (const [k, r] of Object.entries(v)) { const l = RIV[k]; if (!l || (r.w + r.l) >= (l.w + l.l)) RIV[k] = r; } LS.set(rivKey(), RIV); if (typeof drawLbProf === 'function') drawLbProf(); }).catch(() => {}); } catch (e) {}
+  }
+  const r = RIV[x.uid];
+  if (!r || !(r.w + r.l)) return `<div class="rivbox none"><b>YOU VS ${esc(x.name).toUpperCase()}</b><span>You haven’t played each other online yet.</span></div>`;
+  const lead = r.w > r.l ? 'You lead' : r.w < r.l ? 'They lead' : 'All square';
+  return `<div class="rivbox"><b>YOU VS ${esc(x.name).toUpperCase()}</b>
+    <div class="rivrow"><div><em>${r.w}</em><span>Your wins</span></div><div class="vs">${lead}</div><div><em>${r.l}</em><span>Their wins</span></div></div>
+    <div class="rivrow sm"><div><em>${r.bk}</em><span>You binked them</span></div><div class="vs">💥</div><div><em>${r.bd}</em><span>They binked you</span></div></div></div>`;
+}
+const _lbProfRiv = lbProfHTML;
+lbProfHTML = function(x){
+  const h = _lbProfRiv(x);
+  return h.replace('<div class="tstats">', rivHTML(x) + '<div class="tstats">');
+};
+
+// ---------- online: put your account on your seat so others can track the rivalry ----------
+const _applyRiv = applyIntent;
+applyIntent = async function(it){
+  if (it.kind === 'uid' && ON.L && !ON.L.started) {
+    const s = ON.L.seats.findIndex(x => x.pid === it.pid);
+    if (s >= 0 && typeof (it.data && it.data.uid) === 'string') { ON.L.seats[s].uid = it.data.uid.slice(0, 64); await pushLobby(); }
+    return;
+  }
+  return _applyRiv(it);
+};
+const _renderRiv = render;
+render = function(){
+  _renderRiv();
+  if (screen === 'lobby' && ME && ON.L && !ON.L.started) {
+    const s = ON.L.seats.findIndex(x => x.pid === ON.pid);
+    if (s >= 0 && ON.L.seats[s].uid !== ME.uid && ON._uidSent !== ON.L.code + s) {
+      ON._uidSent = ON.L.code + s;
+      if (ON.host) { ON.L.seats[s].uid = ME.uid; pushLobby(); } else sendLobbyIntent('uid', {uid:ME.uid});
+    }
+  }
+};
 
 </script>
 </body>
