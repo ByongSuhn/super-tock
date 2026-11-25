@@ -830,7 +830,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125020012';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125020356';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -1622,7 +1622,7 @@ function buildGeom(N, rot, k){
   const Rout = 440, d = Rout / (r0 + K), w = 2 * d;
   const ang = p => Math.PI / 2 + (p - rot) * th;         // the viewer's finger points straight down (player 0 in solo)
   const P = (a, r, off) => [C + r * Math.cos(a) - off * Math.sin(a), C + r * Math.sin(a) + off * Math.cos(a)];
-  const hr = Math.min(21, d * 0.44);
+  const hr = Math.min(21, d * (N >= 6 ? 0.36 : 0.44));
   const track = [], home = [], start = [], startC = [];
   for (let p = 0; p < N; p++) {
     const a = ang(p), an = ang(p + 1);
@@ -1654,7 +1654,37 @@ function buildGeom(N, rot, k){
     }
     start.push(pts); startC.push({cen, a:oa, bw, bh});
   }
+  if (N >= 5) fitTrays(N, ang, th, C, Rout, r0 * d, d, hr, track, home, start, startC);
   return {N, rot, seg:lay.seg, L:lay.seg * N, R:Rout, r0:r0 * d, C, hr, mr:hr * 0.9, d, track, home, start, startC};
+}
+// 5 and 6 players: slide each start tray along the middle of its wedge and pick the biggest tray that sits
+// fully clear of every hole and inside the rim, centred in the room it has.
+function fitTrays(N, ang, th, C, Rout, rIn, d, hr, track, home, start, startC){
+  const holes = track.concat(home.flat(), [[C, C]]), pad = hr + hr * 0.3, rimMax = Rout + hr * 0.75;
+  for (let p = 0; p < N; p++) {
+    const ba = ang(p) + th / 2, ux = Math.cos(ba), uy = Math.sin(ba), tx = -Math.sin(ba), ty = Math.cos(ba);
+    const shapes = [];
+    for (const f of [2.6, 2.3]) for (const k of [1.3, 1.2, 1.1, 1.05]) shapes.push({kind:'sq', g:hr * k, bw:hr * k * 2 + hr * f, bh:hr * k * 2 + hr * f});
+    for (const k of [2.25, 2.1]) { shapes.push({kind:'row', g:hr * k, bw:hr * 2.6, bh:hr * k * 3 + hr * 2.6}); shapes.push({kind:'trow', g:hr * k, bw:hr * k * 3 + hr * 2.6, bh:hr * 2.6}); }
+    let pick = null;
+    for (const sh of shapes) {
+      const hw = sh.bw / 2 + 7.5, hh = sh.bh / 2 + 7.5, ok = [];
+      for (let r = rIn; r <= Rout; r += d * 0.05) {
+        const cx = C + r * ux, cy = C + r * uy;
+        const clear = holes.every(([x, y]) => { const u = Math.abs((x - cx) * tx + (y - cy) * ty) - hw, v = Math.abs((x - cx) * ux + (y - cy) * uy) - hh; return Math.hypot(Math.max(u, 0), Math.max(v, 0)) >= pad; });
+        const inRim = [[-1,-1],[1,-1],[-1,1],[1,1]].every(([i, j]) => Math.hypot(cx + i * hw * tx + j * hh * ux - C, cy + i * hw * ty + j * hh * uy - C) <= rimMax);
+        if (clear && inRim) ok.push(r);
+      }
+      if (ok.length) { pick = {sh, r:(ok[0] + ok[ok.length - 1]) / 2}; break; }
+    }
+    if (!pick) continue;                                   // nothing better: keep the default tray
+    const {sh, r} = pick, cen = [C + r * ux, C + r * uy];
+    const pts = sh.kind === 'sq'
+      ? [[-1,-1],[1,-1],[-1,1],[1,1]].map(([i, j]) => [cen[0] + (i * tx + j * ux) * sh.g, cen[1] + (i * ty + j * uy) * sh.g])
+      : sh.kind === 'row' ? [-1.5, -0.5, 0.5, 1.5].map(k => [cen[0] + k * sh.g * ux, cen[1] + k * sh.g * uy])
+      : [-1.5, -0.5, 0.5, 1.5].map(k => [cen[0] + k * sh.g * tx, cen[1] + k * sh.g * ty]);
+    start[p] = pts; startC[p] = {cen, a:ba, bw:sh.bw, bh:sh.bh};
+  }
 }
 function xy(loc){
   if (loc.z === 'c') return [500, 500];
