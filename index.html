@@ -795,7 +795,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125011428';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125011940';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -4392,7 +4392,7 @@ document.addEventListener('visibilitychange', () => { if (!document.hidden) frBe
 function frInfo(uid){
   const p = FR.on[uid], fresh = p && Date.now() - (p.at || 0) < FR_STALE;
   if (!fresh) return {rank:3, txt:'Offline', dot:'off'};
-  if (p.s === 'lobby') return {rank:0, txt:p.o ? 'In a lobby · seat open' : 'In a lobby · full', dot:'lobby', join:p.o ? p.c : null, code:p.c, p};
+  if (p.s === 'lobby') return {rank:0, txt:'In a lobby', dot:'lobby', code:p.c, p};
   if (p.s === 'game') return {rank:1, txt:'Playing a game', dot:'play', watch:p.c, code:p.c, p};
   if (p.s === 'watch') return {rank:1, txt:'Watching a game', dot:'play', watch:p.c, code:p.c, p};
   return {rank:2, txt:'Online', dot:'on', p};
@@ -4419,7 +4419,6 @@ function friendsHTML(){
     if (FR.edit) act = `<button class="frbtn x" data-a="frdel" data-u="${esc(r.uid)}">Remove</button>`;
     else if (inLobby && r.i.code === ON.code) act = '<span class="frtag">Here</span>';
     else if (inLobby && r.i.rank < 3) act = FR.sent[r.uid] && Date.now() - FR.sent[r.uid] < 60000 ? '<span class="frtag">Invited ✓</span>' : `<button class="frbtn go" data-a="frinv" data-u="${esc(r.uid)}">Invite</button>`;
-    else if (r.i.join && r.i.join !== ON.code) act = `<button class="frbtn go" data-a="frjoin" data-c="${esc(r.i.join)}">Join</button>`;
     else if (r.i.watch && r.i.watch !== ON.code) act = `<button class="frbtn" data-a="frwatch" data-c="${esc(r.i.watch)}" data-p="${esc(r.i.p.pid || '')}">Watch</button>`;
     return `<div class="frrow"><i class="frdot ${r.i.dot}"></i><span class="nm"><b>${esc(r.name)}</b><small>${r.i.txt}</small></span>${act}</div>`;
   };
@@ -4430,7 +4429,7 @@ function friendsHTML(){
     ${req}
     <div class="frhead"><h3 class="lh3">YOUR FRIENDS${rows.length ? ` · ${frOnlineCount()} ON` : ''}</h3>${rows.length ? `<button class="frbtn sm" data-a="fredit">${FR.edit ? 'Done' : 'Edit'}</button>` : ''}</div>
     <div class="frlist">${list}</div>
-    <p class="hint center">${inLobby ? 'Tap Invite and they’ll get a pop-up to join your game.' : 'Join a friend’s open lobby, or watch a game they’re playing. Host a game to invite them.'}</p>
+    <p class="hint center">${inLobby ? 'Tap Invite and they’ll get a pop-up to join your game.' : 'Watch any game your friends are playing. To play together, host a game and invite them.'}</p>
   </div></div>`;
 }
 function frRedraw(){
@@ -4549,7 +4548,6 @@ window.addEventListener('click', e => {
   else if (a === 'fraccept') { e.stopPropagation(); frAccept(d.u, d.n, d.k); }
   else if (a === 'frdeny') { e.stopPropagation(); NET.del(`${frPath.inbox(ME.uid)}/${d.k}`); }
   else if (a === 'frinv') { e.stopPropagation(); frInvite(d.u); }
-  else if (a === 'frjoin') { e.stopPropagation(); frGo(d.c, null); }
   else if (a === 'frwatch') { e.stopPropagation(); frGo(d.c, d.p || null); }
   else if (a === 'frbx') { e.stopPropagation(); FR.gone.add(d.k); NET.del(`${frPath.inbox(ME.uid)}/${d.k}`); drawBanner(); }
   else if (a === 'frbjoin') { e.stopPropagation(); FR.gone.add(d.k); NET.del(`${frPath.inbox(ME.uid)}/${d.k}`); drawBanner(); frGo(d.c, null); }
