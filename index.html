@@ -716,6 +716,9 @@ input.locked{opacity:.85;cursor:default}
 .pitop .pic i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
 #pinfo .tstats{margin-bottom:8px}
 #pinfo .lux-btn{width:100%;margin-top:4px}
+.meorb{position:relative;background:none;border:0;padding:0;cursor:pointer}
+.meorb em{position:absolute;right:-2px;bottom:-2px;width:24px;height:24px;border-radius:50%;background:#e0b04f;color:#2b1808;display:grid;place-items:center;font:700 13px system-ui;font-style:normal;box-shadow:0 0 0 2px #1c1029}
+.acct .lookrow{margin-bottom:12px}
 
 </style>
 </head>
@@ -723,7 +726,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124204545';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124204915';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -3233,14 +3236,15 @@ function boardStageHTML(){
     <div class="binfo"><b>${esc(b.name)}</b><em>${lock ? 'Locked' : on ? 'In use' : ''}</em></div></div>`;
 }
 var boardSheet = false;
-function mySeat(){ return screen === 'setup' ? setup.seats.findIndex(x => x.human) : (ON.L ? ON.L.seats.findIndex(x => x.pid === ON.pid) : -1); }
+function mySeat(){ return screen === 'setup' || screen === 'profile' ? setup.seats.findIndex(x => x.human) : (ON.L ? ON.L.seats.findIndex(x => x.pid === ON.pid) : -1); }
 function lookMarbleName(me){
-  const list = screen === 'setup' ? setup.seats : ON.L.seats, m = typeof MSTYLE === 'function' && MSTYLE(list[me].mskin);
-  const eff = assignSkins(screen === 'setup' ? list.map(x => x.skin || null) : list.map(x => x.kind === 'human' ? x.skin || null : null));
+  const list = screen !== 'lobby' ? setup.seats : ON.L.seats, m = typeof MSTYLE === 'function' && MSTYLE(list[me].mskin);
+  const eff = assignSkins(screen !== 'lobby' ? list.map(x => x.skin || null) : list.map(x => x.kind === 'human' ? x.skin || null : null));
   return m ? m.name : (SKIN(eff[me]) || {}).name || 'Plain';
 }
 function lookTabs(on){ return `<div class="ltabs"><button data-a="looktab" data-v="marble" class="${on === 'marble' ? 'on' : ''}">Marble</button><button data-a="looktab" data-v="board" class="${on === 'board' ? 'on' : ''}">Board</button></div>`; }
 function openLook(tab){
+  if (screen === 'profile') { setup = defaultSetup('solo'); setup.seats[0].mskin = profile.mskin || null; }   // the profile edits your saved look
   if (tab === 'marble') { const me = mySeat(); if (me < 0) return; boardSheet = false; drawBoardSheet(); picker = {mode: screen === 'lobby' ? 'online' : 'solo', seat: me}; drawPicker(); }
   else { picker = null; drawPicker(); boardSheet = true; boardPrev = null; drawBoardSheet(); }
 }
@@ -3670,7 +3674,11 @@ function profileHTML(){
   if (ME) {
     const n = SPECIALS.filter(s => ACH.un[s.id]).length;
     return `<div class="scr setup lux acct">${lhdr('PROFILE', 'tback')}
-      <div class="me">${(() => { const c = profile.skin && owned(profile.skin) ? profile.skin : 'c0', st = typeof styleOwned === 'function' && profile.mskin && styleOwned(profile.mskin) ? profile.mskin : null; return typeof styleOrb === 'function' ? styleOrb(c, st, 72) : skinOrb(c, 72); })()}<b>${esc(ME.name)}</b><span>Signed in · progress saved to your account</span></div>
+      <div class="me"><button class="meorb" data-a="lookopen" data-v="marble" aria-label="Change marble">${(() => { const c = profile.skin && owned(profile.skin) ? profile.skin : 'c0', st = typeof styleOwned === 'function' && profile.mskin && styleOwned(profile.mskin) ? profile.mskin : null; return typeof styleOrb === 'function' ? styleOrb(c, st, 72) : skinOrb(c, 72); })()}<em>✎</em></button><b>${esc(ME.name)}</b><span>Signed in · progress saved to your account</span></div>
+      ${typeof BOARDS !== 'undefined' && BOARDS.length > 1 ? (() => { const b = BOARDS.find(x => x.id === BOARD) || BOARDS[0], m = typeof MSTYLE === 'function' && MSTYLE(profile.mskin);
+        return `<h3 class="lh3">YOUR LOOK</h3><div class="lookrow">
+        <button data-a="lookopen" data-v="marble">${typeof styleOrb === 'function' ? styleOrb('c0', m ? m.id : null, 48) : ''}<span><small>MARBLE</small><b>${m ? esc(m.name) : 'Plain'}</b></span></button>
+        <button data-a="lookopen" data-v="board"><i class="bthumb" style="${b.thumb ? `background-image:url(${b.thumb})` : 'background:radial-gradient(circle at 42% 36%,#f6c886,#dfa560 55%,#b47a3c)'}"></i><span><small>BOARD</small><b>${esc(b.name)}</b></span></button></div>`; })() : ''}
       ${(() => { const s = ACH.stats, w = s.wins || 0, l = s.losses || 0, pct = w + l ? Math.round(w / (w + l) * 100) + '%' : '–';
         return `<div class="tstats"><div><b>${w}</b><span>Wins</span></div><div><b>${l}</b><span>Losses</span></div><div><b>${pct}</b><span>Win %</span></div></div>
         <div class="tstats"><div><b>${typeof levelOf === 'function' ? levelOf(s.xp).lv : 0}</b><span>Level</span></div><div><b>${s.binks || 0}</b><span>Binks</span></div><div><b>${s.games || 0}</b><span>Games</span></div></div>`; })()}
