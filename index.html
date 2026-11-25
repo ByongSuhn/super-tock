@@ -661,6 +661,39 @@ input.locked{opacity:.85;cursor:default}
 #rsask .lux-cta svg,.lux-cta.rejoin svg{width:22px;height:22px;flex:none}#rsask .lux-cta{display:flex;align-items:center;justify-content:center;gap:10px}
 .acct .tstats+.tstats{margin-top:0}
 .offbadge{position:relative;z-index:3;display:inline-block;margin:0 auto 6px;padding:4px 12px;border-radius:999px;background:rgba(229,72,77,.18);border:1px solid rgba(229,72,77,.5);color:#ffb4b6;font:600 12px system-ui}
+/* recap */
+.recap{margin:12px auto 6px;max-width:340px;text-align:left}
+.rchips{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:8px}
+.rchips span{padding:4px 10px;border-radius:999px;background:rgba(255,255,255,.08);border:1px solid rgba(240,196,92,.35);color:#f3e6c8;font:600 12px system-ui}
+.rbig,.rnote{margin:4px 0 8px;text-align:center;font:600 13px system-ui;color:#f0c45c}.rnote{color:#cbbfdc;font-weight:500}
+.rtab{width:100%;border-collapse:collapse;font:13px system-ui;color:#f3e6c8}
+.rtab th{font:700 10px system-ui;letter-spacing:1px;color:#a99bbf;text-align:right;padding:2px 6px}
+.rtab td{padding:5px 6px;border-top:1px solid rgba(255,255,255,.08);text-align:right}
+.rtab td:first-child{text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:130px}
+.rtab td i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.rtab tr.me td{color:#f0c45c;font-weight:700}
+/* reactions */
+.boardwrap{position:relative}
+.rbtn{position:absolute;right:8px;bottom:8px;z-index:6;width:42px;height:42px;border-radius:50%;border:1.5px solid rgba(240,196,92,.6);background:rgba(28,15,44,.85);font-size:20px;line-height:1;cursor:pointer}
+.rpick{position:absolute;right:8px;bottom:58px;z-index:7;display:grid;grid-template-columns:repeat(3,auto);gap:6px;padding:8px;border-radius:16px;background:rgba(28,15,44,.96);border:1.5px solid rgba(240,196,92,.6);box-shadow:0 10px 24px rgba(0,0,0,.5)}
+.rpick button{min-height:38px;padding:0 10px;border-radius:12px;border:1px solid rgba(240,196,92,.3);background:rgba(255,255,255,.05);color:#f3e6c8;font:600 13px system-ui;cursor:pointer}
+.rpick button.emo{font-size:22px;padding:0 6px}
+.reacts{position:absolute;left:8px;top:8px;z-index:6;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.rbub{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:14px;background:rgba(28,15,44,.92);border:1.5px solid rgba(240,196,92,.5);color:#f3e6c8;font:600 13px system-ui;animation:rbin .3s cubic-bezier(.2,1.4,.4,1)}
+.rbub i{width:10px;height:10px;border-radius:50%}.rbub .emo{font-size:22px;line-height:1}
+.rbub.out{opacity:0;transform:translateY(-8px);transition:.45s}
+@keyframes rbin{from{opacity:0;transform:scale(.7)}}
+/* leaderboard */
+.trtabs.three{grid-template-columns:1fr 1fr 1fr}.trtabs.three button{font-size:13px}
+.lbsort{display:flex;gap:6px;justify-content:center;margin:2px 0 10px;flex-wrap:wrap}
+.lbsort button{min-height:36px;padding:0 14px;border-radius:999px;border:1.5px solid rgba(240,196,92,.4);background:transparent;color:#f3e6c8;font:600 13px system-ui}
+.lbsort button.on{background:#f0c45c;color:#2b1808}
+.lblist{display:flex;flex-direction:column;gap:6px}
+.lbrow{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:14px;background:rgba(255,255,255,.04);border:1.5px solid rgba(240,196,92,.22)}
+.lbrow.me{border-color:#f0c45c;background:rgba(240,196,92,.12)}
+.lbrow .rk{width:28px;text-align:center;font-size:20px}.lbrow .rk em{font:700 15px Cinzel,Georgia,serif;font-style:normal;color:#a99bbf}
+.lbrow .nm{flex:1;min-width:0}.lbrow .nm b{display:block;font:700 15px Cinzel,Georgia,serif;color:#f3e6c8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbrow .nm small{font:12px system-ui;color:#a99bbf}.lbrow .vl{font:700 16px Cinzel,Georgia,serif;color:#f0c45c}
 
 </style>
 </head>
@@ -668,7 +701,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124193054';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261124193731';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -3778,6 +3811,146 @@ render = function(){
 };
 window.addEventListener('online', () => { if (screen === 'home') render(); });
 window.addEventListener('offline', () => { if (screen === 'home') render(); });
+
+// ===================== Game recap, reactions, leaderboard =====================
+
+// ---------- recap: count what happens in every game (lives in G, so online players all see the same numbers) ----------
+const _playMoveS = playMove;
+playMove = function(st, mv){
+  const ev = _playMoveS(st, mv);
+  try {
+    const r = st.rec || (st.rec = {ms:0, last:Date.now(), b:Array(st.N).fill(0), hit:Array(st.N).fill(0), big:null, moves:0});
+    const now = Date.now(); r.ms += Math.min(now - (r.last || now), 120000); r.last = now; r.moves++;
+    let n = 0;
+    for (const e of ev) if (e.bump) { const v = e.key >> 2; if (v === mv.p) continue; n++; r.hit[v]++; }
+    if (n) { r.b[mv.p] += n; if (!r.big || n > r.big.n) r.big = {p:mv.p, n, card: st.last && st.last.card ? st.last.card.r : ''}; }
+  } catch (e) {}
+  return ev;
+};
+function fmtTime(ms){ const m = Math.max(1, Math.round(ms / 60000)); return m < 60 ? `${m} min` : `${Math.floor(m / 60)}h ${m % 60}m`; }
+function recapHTML(){
+  const r = G && G.rec; if (!r) return '';
+  const nm = p => esc(G.players[p].name), dot = p => `<i style="background:${PAL[p]}"></i>`;
+  const order = G.players.map((_, p) => p).sort((a, b) => r.b[b] - r.b[a] || G.m[b].filter(m => m.z === 'h').length - G.m[a].filter(m => m.z === 'h').length);
+  const top = r.b[order[0]] > 0 ? order[0] : -1;
+  const most = G.players.map((_, p) => p).sort((a, b) => r.hit[b] - r.hit[a])[0];
+  const cards = {K:'King', '7':'7', JK:'Joker', J:'Jack', '5':'5', A:'Ace'};
+  return `<div class="recap">
+    <div class="rchips"><span>⏱ ${fmtTime(r.ms)}</span><span>${r.moves} moves</span>${top >= 0 ? `<span>🏆 Bink MVP: ${nm(top)}</span>` : ''}</div>
+    ${r.big && r.big.n >= 2 ? `<p class="rbig">💥 Biggest bink: ${nm(r.big.p)} sent ${r.big.n} home in one move${cards[r.big.card] ? ' with a ' + cards[r.big.card] : ''}</p>` : ''}
+    <table class="rtab"><tr><th></th><th>Binks</th><th>Binked</th><th>Home</th></tr>
+    ${order.map(p => `<tr class="${p === viewer ? 'me' : ''}"><td>${dot(p)}${nm(p)}</td><td>${r.b[p]}</td><td>${r.hit[p]}</td><td>${G.m[p].filter(m => m.z === 'h').length}/4</td></tr>`).join('')}</table>
+    ${r.hit[most] >= 3 ? `<p class="rnote">Rough night for ${nm(most)}: binked ${r.hit[most]} times</p>` : ''}
+  </div>`;
+}
+const _winHTMLS = winHTML;
+winHTML = function(w){
+  let h = _winHTMLS(w);
+  const rc = recapHTML(); if (!rc) return h;
+  const i = h.indexOf('<button'); return i > 0 ? h.slice(0, i) + rc + h.slice(i) : h + rc;
+};
+
+// ---------- reactions in online games ----------
+const isEmo = t => /\p{Extended_Pictographic}/u.test(t);
+const REACTS = ['😂', '🔥', '😤', '😭', '👏', '🫡', 'Nice bink!', 'Unlucky', 'GG', 'Ouch'];
+let reactOpen = false, reactLast = 0, reactSeen = new Set(), reactUnsub = null, reactCode = null;
+function reactWatch(){
+  if (!NET || !ON.active || !ON.code || reactCode === ON.code) return;
+  if (reactUnsub) reactUnsub();
+  reactCode = ON.code; reactSeen = new Set(); let first = true;
+  reactUnsub = NET.watch(`games/${ON.code}/react`, v => {
+    v = v || {};
+    for (const [k, x] of Object.entries(v)) {
+      if (reactSeen.has(k)) continue; reactSeen.add(k);
+      if (!first) showReact(x);
+      if (ON.host && Date.now() - (x.t || 0) > 20000) NET.del(`games/${ON.code}/react/${k}`);   // tidy up old ones
+    }
+    first = false;
+  });
+  ON.unsub.push(() => { if (reactUnsub) reactUnsub(); reactUnsub = null; reactCode = null; });
+}
+function showReact(x){
+  if (!G || screen !== 'game' || !G.players[x.s]) return;
+  const wrap = document.querySelector('.boardwrap'); if (!wrap) return;
+  let box = wrap.querySelector('.reacts'); if (!box) { box = document.createElement('div'); box.className = 'reacts'; wrap.appendChild(box); }
+  const el = document.createElement('div'); el.className = 'rbub';
+  const txt = REACTS.includes(x.e) ? x.e : '👍', big = isEmo(txt);
+  el.innerHTML = `<i style="background:${PAL[x.s]}"></i><b>${esc(G.players[x.s].name)}</b><span class="${big ? 'emo' : ''}">${esc(txt)}</span>`;
+  box.appendChild(el);
+  while (box.children.length > 4) box.firstChild.remove();
+  setTimeout(() => el.classList.add('out'), 2600); setTimeout(() => el.remove(), 3100);
+}
+function sendReact(e){
+  if (!NET || !ON.active || ON.seat < 0 && !ON.host) return;
+  const now = Date.now(); if (now - reactLast < 1200) return; reactLast = now;
+  const s = ON.host ? 0 : ON.seat;
+  NET.add(`games/${ON.code}/react`, {s: viewer >= 0 ? viewer : s, e, t: now});
+}
+function reactBar(){
+  const wrap = document.querySelector('.boardwrap'); if (!wrap) return;
+  let b = wrap.querySelector('.rbtn');
+  const want = ON.active && G && G.online && G.phase !== 'over';
+  if (!want) { if (b) b.remove(); const p = wrap.querySelector('.rpick'); if (p) p.remove(); return; }
+  if (!b) { wrap.insertAdjacentHTML('beforeend', '<button class="rbtn" data-a="rtog" aria-label="React">😀</button>'); }
+  let p = wrap.querySelector('.rpick');
+  if (reactOpen && !p) wrap.insertAdjacentHTML('beforeend', `<div class="rpick">${REACTS.map(r => `<button data-a="rsend" data-v="${esc(r)}" class="${isEmo(r) ? 'emo' : ''}">${esc(r)}</button>`).join('')}</div>`);
+  if (!reactOpen && p) p.remove();
+}
+const _drawGameS = drawGame;
+drawGame = function(){ _drawGameS(); if (screen === 'game') { reactWatch(); reactBar(); } };
+window.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]');
+  if (!t) { if (reactOpen && !e.target.closest('.rpick')) { reactOpen = false; reactBar(); } return; }
+  if (t.dataset.a === 'rtog') { e.stopPropagation(); reactOpen = !reactOpen; reactBar(); }
+  else if (t.dataset.a === 'rsend') { e.stopPropagation(); sendReact(t.dataset.v); reactOpen = false; reactBar(); }
+}, true);
+
+// ---------- leaderboard (a third tab on the Trophies screen) ----------
+let LB = null, lbSort = 'lv', lbErr = '';
+async function loadLeaders(){
+  lbErr = '';
+  if (!AUTH_ON) { LB = []; lbErr = 'The leaderboard lives on supertock.com.'; return; }
+  if (navigator.onLine === false) { lbErr = 'No signal. The leaderboard needs a connection.'; return; }
+  try {
+    const snap = await withTimeout(firebase.database().ref('users').once('value'), 8000), all = snap.val() || {};
+    LB = Object.entries(all).map(([uid, u]) => {
+      const s = (u.ach && u.ach.v === 2 && u.ach.stats) || {};
+      const w = s.wins || 0, l = s.losses || 0;
+      return {uid, name: u.name || 'Player', lv: levelOf(s.xp || 0).lv, xp: s.xp || 0, wins: w, losses: l, pct: w + l >= 5 ? w / (w + l) : -1, binks: s.binks || 0, look: u.look || {}};
+    }).filter(x => x.xp > 0 || x.wins > 0);
+  } catch (e) { lbErr = 'Couldn’t load the leaderboard. Try again in a moment.'; }
+}
+function leadersHTML(){
+  if (lbErr) return `<p class="hint center">${esc(lbErr)}</p>`;
+  if (!LB) return '<div class="spin" style="margin:30px auto"></div>';
+  const key = {lv:'xp', wins:'wins', pct:'pct', binks:'binks'}[lbSort];
+  const rows = LB.slice().sort((a, b) => b[key] - a[key] || b.xp - a.xp);
+  const val = x => lbSort === 'lv' ? `Lv ${x.lv}` : lbSort === 'wins' ? `${x.wins} W` : lbSort === 'pct' ? (x.pct < 0 ? '–' : Math.round(x.pct * 100) + '%') : `${x.binks}`;
+  const medal = i => ['🥇', '🥈', '🥉'][i] || `<em>${i + 1}</em>`;
+  return `<div class="lbsort">${[['lv', 'Level'], ['wins', 'Wins'], ['pct', 'Win %'], ['binks', 'Binks']].map(([k, l]) => `<button data-a="lbsort" data-v="${k}" class="${lbSort === k ? 'on' : ''}">${l}</button>`).join('')}</div>
+    ${lbSort === 'pct' ? '<p class="hint center">Win % needs at least 5 finished games.</p>' : ''}
+    <div class="lblist">${rows.length ? rows.map((x, i) => `<div class="lbrow ${ME && x.uid === ME.uid ? 'me' : ''}"><span class="rk">${medal(i)}</span>
+      ${typeof styleOrb === 'function' && x.look.m && MSTYLE(x.look.m) ? styleOrb('c0', x.look.m, 34) : skinOrb('c' + (i % 6), 34)}
+      <span class="nm"><b>${esc(x.name)}</b><small>Lv ${x.lv} · ${x.wins}-${x.losses}</small></span><span class="vl">${val(x)}</span></div>`).join('') : '<p class="hint center">No one has finished a game yet.</p>'}</div>`;
+}
+const _passHTMLS = passHTML;
+passHTML = function(){
+  let h = _passHTMLS();
+  h = h.replace(/<div class="ltabs trtabs">([\s\S]*?)<\/div>/, (m, inner) => `<div class="ltabs trtabs three">${inner}<button data-a="trtab" data-v="lead" class="${trophyTab === 'lead' ? 'on' : ''}">Leaders</button></div>`);
+  if (trophyTab === 'lead') {
+    const a = h.indexOf('<div class="lvcard">') >= 0 ? h.indexOf('<div class="lvcard">') : h.indexOf('<div class="tstats">'), b = h.lastIndexOf('</div>');
+    if (a > 0) h = h.slice(0, a) + leadersHTML() + h.slice(b);
+  }
+  return h;
+};
+window.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  if (t.dataset.a === 'trtab' && t.dataset.v === 'lead') { LB = null; loadLeaders().then(() => { if (screen === 'bpass') render(); }); }
+  else if (t.dataset.a === 'lbsort') { e.stopPropagation(); lbSort = t.dataset.v; render(); }
+}, true);
+// keep your marble on the leaderboard
+const _chooseStyleS = chooseStyle;
+chooseStyle = function(id){ _chooseStyleS(id); try { if (ME && AUTH_ON) firebase.database().ref('users/' + ME.uid + '/look').set({m: id || null}).catch(() => {}); } catch (e) {} };
 
 </script>
 </body>
