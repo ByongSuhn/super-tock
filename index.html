@@ -885,6 +885,41 @@ input.locked{opacity:.85;cursor:default}
 .tstrip{animation:tsin .3s ease-out}.tstrip.out{opacity:0;transform:translateY(-6px);transition:all .4s}
 @keyframes tsin{from{opacity:0;transform:translateY(-6px)}}
 .plays li.ltrade{background:rgba(240,196,92,.1);border-radius:10px;gap:6px;flex-wrap:wrap}
+/* ---- prestige ---- */
+.crown{display:inline-block;vertical-align:-2px;overflow:visible}
+.crown.fire{filter:drop-shadow(0 0 4px #ff7a1a) drop-shadow(0 0 8px rgba(255,80,0,.55))}
+.pchip .lvp.pr{display:inline-flex;align-items:center;gap:2px;background:linear-gradient(180deg,#3a2460,#1c0f30);color:#f6d27a;box-shadow:0 0 0 1px #f0c45c}
+.lvbadge.prb{display:flex;flex-direction:column;align-items:center;gap:2px}
+.prbox{margin:6px 0 14px;padding:16px;border-radius:18px;text-align:center;background:radial-gradient(120% 120% at 50% 0%,#4a2a70,#1a0e2c);border:2px solid #f0c45c;box-shadow:0 0 24px rgba(240,196,92,.25);color:#f3e6c8}
+.prbox b{display:block;font:900 19px Cinzel,Georgia,serif;color:#f6d27a;margin:4px 0}
+.prbox p{margin:0 0 12px;color:#d8c9e6;font:14px system-ui}
+.prbox .lux-cta,.prbox .lux-btn{width:100%;margin-top:6px}
+.prbox .prc{animation:celepop2 2.4s ease-in-out infinite}
+.prburst{position:fixed;inset:0;z-index:99;display:grid;place-items:center;background:radial-gradient(circle,rgba(80,40,130,.85),rgba(10,5,20,.92));animation:dealin .5s ease-out}
+.prburst div{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;color:#f3e6c8}
+.prburst b{font:900 38px Cinzel,Georgia,serif;color:#f6d27a;letter-spacing:4px;text-shadow:0 0 18px rgba(240,196,92,.6)}
+.prburst span{font:15px system-ui;color:#d8c9e6}
+.prburst.out{opacity:0;transition:opacity .5s}
+/* ---- card designs ---- */
+.card.skinned{background-color:transparent!important;background-size:1300% 500%!important;background-repeat:no-repeat!important;border:0!important;box-shadow:0 4px 12px rgba(0,0,0,.5)!important;justify-content:flex-end!important;padding:0 0 3px;overflow:hidden}
+.card.skinned em{position:relative;background:rgba(20,10,30,.78);color:#fff3d6!important;opacity:1!important;border-radius:6px;padding:1px 4px!important;font:800 8.5px system-ui!important;max-width:92%}
+.cthumb{flex:none;width:42px;height:60px;border-radius:6px;background:center/cover;box-shadow:0 3px 8px rgba(0,0,0,.5)}
+.cback{display:grid;place-items:center;width:54px;height:78px;margin:0 auto 4px;border-radius:7px;background:center/cover #fffaf0;box-shadow:0 3px 8px rgba(0,0,0,.5);font-style:normal;color:#b5172f;font:900 14px/1.1 Cinzel,Georgia,serif;text-align:center}
+.cback.sm{width:34px;height:48px;margin:0;font-size:11px}
+.ctile{position:relative}.ctile.locked .cback{filter:grayscale(.7) brightness(.55)}
+.ctile .clock{position:absolute;top:30px;left:50%;transform:translateX(-50%);font-style:normal;font-size:18px}
+.ctile small{display:block;color:#a99bbf;font:10px system-ui}
+.cprev{display:flex;justify-content:center;gap:8px;margin:4px 0 8px}
+.cprev .card{width:58px;height:84px}
+.lookrow .lkcards{grid-column:1 / -1;display:flex;align-items:center;gap:10px;padding:10px;border-radius:16px;background:rgba(255,255,255,.04);border:1.5px solid rgba(240,196,92,.45);color:#f3e6c8;text-align:left;cursor:pointer}
+.lookrow .lkcards b{display:block;font:700 15px/1.15 Cinzel,Georgia,serif}
+#cpick .mpicker{position:fixed;inset:0;z-index:88;background:rgba(8,4,16,.72);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+#cpick .mbox{width:min(560px,100%);max-height:86vh;overflow:auto;background:linear-gradient(180deg,#24153a,#120a20);border:2px solid rgba(224,176,79,.7);border-bottom:0;border-radius:24px 24px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));animation:pmup .25s ease-out}
+#cpick .lux-btn{width:100%}
+.cgrid{grid-template-columns:repeat(3,1fr)!important}
+.card.skinned,.hand .card.skinned,.game.lux .hand .card.skinned{background:var(--ci) var(--cp) / 1300% 500% no-repeat!important;border:0!important}
+.hand .card.skinned em,.game.lux .hand .card.skinned em{color:#fff3d6!important;background:rgba(20,10,30,.82)!important;opacity:1!important}
+.hand .card.skinned{height:auto!important;aspect-ratio:2/3}
 
 </style>
 </head>
@@ -892,7 +927,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125164742';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261125234507';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -2180,7 +2215,7 @@ function drawGame(){
     const home = G.m[p].filter(m => m.z === 'h').length;
     const team = G.set.partners ? `<em>${String.fromCharCode(65 + (p % (G.N / 2)))}</em>` : '';
     const lead = G.phase === 'pass' && G.turn === p ? '<span class="lead">1st</span>' : '';
-    return `<div class="pchip ${G.turn === p && G.phase !== 'over' ? 'turn' : ''}" data-a="pinfo" data-p="${p}"><i style="background:${PAL[p]}"></i>${typeof pl.lv === 'number' && typeof PASS_LIVE !== 'undefined' && PASS_LIVE ? `<em class="lvp ${pl.lv >= 50 ? 'max' : ''}">${pl.lv >= 50 ? '♛' : ''}${pl.lv}</em>` : ''}${esc(pl.name)} <b>${home}/4</b>${team}${lead}</div>`;
+    return `<div class="pchip ${G.turn === p && G.phase !== 'over' ? 'turn' : ''}" data-a="pinfo" data-p="${p}"><i style="background:${PAL[p]}"></i>${typeof pl.lv === 'number' && typeof PASS_LIVE !== 'undefined' && PASS_LIVE ? `<em class="lvp ${pl.pr ? 'pr' : ''}">${pl.pr ? crownSVG(pl.lv >= 50, 14) : ''}${pl.lv}</em>` : ''}${esc(pl.name)} <b>${home}/4</b>${team}${lead}</div>`;
   }).join('');
   const cur = chips.querySelector('.turn'); if (cur && cur.scrollIntoView) cur.scrollIntoView({inline:'center', block:'nearest', behavior:'smooth'});
   // whose turn: glow their start tray
@@ -2380,7 +2415,7 @@ function startGame(again){
     const eff = assignSkins(setup.seats.map(x => x.skin || null));
     players = order.map(i => { const x = setup.seats[i], sk = SKIN(eff[i]);
       const nm = (x.name || '').trim();
-      return {name: x.human ? nm || sk.name : (CNAMES.includes(nm) || !nm ? sk.name : nm), human: x.human, color: sk.grp, skin: eff[i], mskin: x.mskin || null, emo: x.human ? (x.emo || profile.emo || null) : null, lv: x.human && typeof levelOf === 'function' ? levelOf(ACH.stats.xp).lv : undefined}; });
+      return {name: x.human ? nm || sk.name : (CNAMES.includes(nm) || !nm ? sk.name : nm), human: x.human, color: sk.grp, skin: eff[i], mskin: x.mskin || null, emo: x.human ? (x.emo || profile.emo || null) : null, lv: x.human && typeof levelOf === 'function' ? levelOf(curXP(ACH.stats)).lv : undefined, pr: x.human && ACH.stats.pr ? 1 : 0}; });
     set = {partners: setup.partners && setup.n % 2 === 0, hop: false, around: false, photo: setup.photo, center: setup.center, openHands: false, level: 'hard', speed: setup.speed, decks: 'auto', jokers: setup.jokers};
     cfg = rules;
   }
@@ -2790,7 +2825,7 @@ async function hostStart(){
   }
   const eff = assignSkins(L.seats.map(x => x.kind === 'human' ? x.skin || null : null));
   const players = order.map(i => { const x = L.seats[i]; const human = x.kind === 'human', sk = SKIN(eff[i]);
-    return {name: human ? (x.name || 'Player') : sk.name, human, pid: human ? x.pid : null, uid: human ? x.uid || null : null, color:sk.grp, skin:eff[i], mskin: human ? x.mskin || null : null, emo: human ? x.emo || null : null, lv: human && typeof x.lv === 'number' ? x.lv : undefined}; });
+    return {name: human ? (x.name || 'Player') : sk.name, human, pid: human ? x.pid : null, uid: human ? x.uid || null : null, color:sk.grp, skin:eff[i], mskin: human ? x.mskin || null : null, emo: human ? x.emo || null : null, lv: human && typeof x.lv === 'number' ? x.lv : undefined, pr: human && x.pr ? 1 : 0}; });
   const set = {partners:L.partners && L.n % 2 === 0, hop:false, around:false, center:L.center, openHands:false, level:'hard', speed:L.speed, decks:'auto', jokers:L.jokers, timer:L.timer === 'off' ? 0 : 30};
   G = newGame({players, set, cfg:rules}); G.online = L.code; G.gid = 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   L.started = true; await pushLobby();
@@ -3331,12 +3366,14 @@ function levelOf(xp){
   while (lv < MAXLV && left >= lvCost(lv + 1)) { left -= lvCost(lv + 1); lv++; }
   return {lv, into: left, need: lv >= MAXLV ? 0 : lvCost(lv + 1)};
 }
+// after prestiging, your level counts from the XP you had when you prestiged (xp only ever goes up)
+const curXP = s => !s ? 0 : s.pr ? Math.max(0, (s.xp || 0) - (s.pxp || 0)) : (s.xp || 0);
 var PASS = [
   {lv:5,  kind:'marble', id:'golden-ember'}, {lv:10, kind:'board', id:'wood'},
   {lv:15, kind:'marble', id:'turquoise'},    {lv:20, kind:'board', id:'frost'},
   {lv:25, kind:'marble', id:'diamond'},      {lv:30, kind:'board', id:'ruins'},
   {lv:35, kind:'marble', id:'storm-cloud'},  {lv:40, kind:'board', id:'billiards'},
-  {lv:45, kind:'marble', id:'galaxy'},       {lv:50, kind:'board', id:'gold', crown:true},
+  {lv:45, kind:'marble', id:'galaxy'},       {lv:50, kind:'board', id:'gold'},
 ];
 function gameXP(won, binks, home, online){
   return Math.round((100 + (won ? 100 : 0) + 10 * (binks || 0) + 10 * (home || 0)) * (online ? 1.25 : 1));
@@ -3347,11 +3384,11 @@ achWin = function(w){
   const t = gameTrack(), first = t && !t.done;
   _achWin1(w);
   if (!first || viewer < 0 || !G.players[viewer] || !G.players[viewer].human) return;
-  const before = levelOf(ACH.stats.xp).lv;
+  const before = levelOf(curXP(ACH.stats)).lv;
   const won = w.players.includes(viewer), home = G.m[viewer].filter(m => m.z === 'h').length;
   const xp = gameXP(won, t.b, home, !!G.online && G.players.filter(q => q.human).length >= 2);
   ACH.stats.xp = (ACH.stats.xp || 0) + xp; ACH.stats.games = (ACH.stats.games || 0) + 1;
-  t.xp = xp; t.lvUp = levelOf(ACH.stats.xp).lv > before;
+  t.xp = xp; t.lvUp = levelOf(curXP(ACH.stats)).lv > before;
   achSave();
 };
 // the win/lose screen shows what you earned
@@ -3360,7 +3397,7 @@ winHTML = function(w){
   let h = _winHTML1(w);
   if (!PASS_LIVE) return h;
   const t = ACH.games[G && G.gid]; if (!t || !t.xp) return h;
-  const L = levelOf(ACH.stats.xp);
+  const L = levelOf(curXP(ACH.stats));
   const bar = `<div class="xpgain"><div class="xprow"><b>+${t.xp} XP</b><span>${t.lvUp ? 'LEVEL UP! ' : ''}Level ${L.lv}</span></div>
     <div class="xpbar"><i style="width:${L.need ? L.into / L.need * 100 : 100}%"></i></div></div>`;
   return h.replace('<div class="winribbon">', bar + '<div class="winribbon">');
@@ -3373,7 +3410,7 @@ function rewardInfo(r){
   const b = BOARDS.find(x => x.id === r.id); return {name: b ? b.name + ' Board' : r.id, img: b ? b.thumb : '', type:'Board'};
 }
 function passHTML(){
-  const xp = passPreview !== null ? passPreview : (ACH.stats.xp || 0), L = levelOf(xp);
+  const xp = passPreview !== null ? passPreview : curXP(ACH.stats), L = levelOf(xp);
   const pct = L.need ? L.into / L.need * 100 : 100;
   const next = PASS.find(r => r.lv > L.lv);
   const tier = r => {
@@ -3410,7 +3447,7 @@ render = function(){
   if (screen === 'bpass') { if (PASS_LIVE && (typeof ME === 'undefined' || ME || !AUTH_ON)) { clearTimeout(aiTimer); app.innerHTML = passHTML(); return; } screen = 'home'; }
   _render4();
   if (PASS_LIVE && screen === 'home') {                // level chip under the logo
-    const L = levelOf(ACH.stats.xp), c = app.querySelector('[data-a="trophies"]');
+    const L = levelOf(curXP(ACH.stats)), c = app.querySelector('[data-a="trophies"]');
     if (c && !c.querySelector('.lvdot')) c.insertAdjacentHTML('beforeend', `<span class="lvdot">${L.lv}</span>`);
   }
 };
@@ -3548,7 +3585,7 @@ var TIER = {1:'Starter', 2:'Skill', 3:'Hard', 4:'Legendary', 5:'Legendary'};
 var TESTMODE = !!window.SUPER_TOCK_TEST;
 var TESTALL = TESTMODE && LS.get('st.testall', false);                     // test copy: see everything unlocked
 const achDone = a => !!(ACH.un && ACH.un['a:' + a.id]);
-function passUnlocked(kind, id){ const L = levelOf(ACH.stats.xp).lv; return PASS.some(r => r.kind === kind && r.id === id && L >= r.lv); }
+function passUnlocked(kind, id){ const L = ACH.stats.pr ? MAXLV : levelOf(ACH.stats.xp).lv; return PASS.some(r => r.kind === kind && r.id === id && L >= r.lv); }
 function itemOwned(kind, id){
   if (!PASS_LIVE || TESTALL) return true;
   if (kind === 'board' && id === 'classic') return true;
@@ -3564,7 +3601,7 @@ function unlockHow(kind, id){
 function statOf(a){
   const s = ACH.stats;
   if (a.stat === 'marblesOwned') return MSTYLES.filter(m => itemOwned('marble', m.id)).length;
-  if (a.stat === 'allElse') return ACHS.every(x => x === a || achDone(x)) && PASS.every(r => levelOf(s.xp).lv >= r.lv) ? 1 : 0;
+  if (a.stat === 'allElse') return ACHS.every(x => x === a || achDone(x)) && PASS.every(r => (s.pr ? MAXLV : levelOf(s.xp).lv) >= r.lv) ? 1 : 0;
   return s[a.stat] || 0;
 }
 // check everything after any change; show a pop-up for each new one
@@ -3733,17 +3770,17 @@ applyIntent = async function(it){
   if (it.kind === 'lv' && L && !L.started) {
     const me = L.seats.findIndex(x => x.pid === it.pid); if (me < 0) return;
     const v = Math.max(0, Math.min(MAXLV, Math.floor(+(it.data && it.data.lv) || 0)));
-    L.seats[me].lv = v; await pushLobby(); return;
+    L.seats[me].lv = v; L.seats[me].pr = it.data && it.data.pr ? 1 : 0; await pushLobby(); return;
   }
   return _apply3(it);
 };
 const _render7 = render;
 render = function(){
   if (PASS_LIVE && screen === 'lobby' && ON.L && !ON.L.started) {
-    const me = ON.L.seats.findIndex(x => x.pid === ON.pid), lv = levelOf(ACH.stats.xp).lv;
-    if (me >= 0 && ON.L.seats[me].lv !== lv && ON._lvSent !== ON.L.code + me + ':' + lv) {
-      ON._lvSent = ON.L.code + me + ':' + lv;
-      if (ON.host) { ON.L.seats[me].lv = lv; pushLobby(); } else sendLobbyIntent('lv', {lv});
+    const me = ON.L.seats.findIndex(x => x.pid === ON.pid), lv = levelOf(curXP(ACH.stats)).lv, pr = ACH.stats.pr ? 1 : 0;
+    if (me >= 0 && (ON.L.seats[me].lv !== lv || (ON.L.seats[me].pr || 0) !== pr) && ON._lvSent !== ON.L.code + me + ':' + lv + ':' + pr) {
+      ON._lvSent = ON.L.code + me + ':' + lv + ':' + pr;
+      if (ON.host) { ON.L.seats[me].lv = lv; ON.L.seats[me].pr = pr; pushLobby(); } else sendLobbyIntent('lv', {lv, pr});
     }
   }
   _render7();
@@ -3891,7 +3928,7 @@ function profileHTML(){
         <button data-a="lookopen" data-v="board"><i class="bthumb" style="${b.thumb ? `background-image:url(${b.thumb})` : 'background:radial-gradient(circle at 42% 36%,#f6c886,#dfa560 55%,#b47a3c)'}"></i><span><small>BOARD</small><b>${esc(b.name)}</b></span></button></div>`; })() : ''}
       ${(() => { const s = ACH.stats, w = s.wins || 0, l = s.losses || 0, pct = w + l ? Math.round(w / (w + l) * 100) + '%' : '–';
         return `<div class="tstats"><div><b>${w}</b><span>Wins</span></div><div><b>${l}</b><span>Losses</span></div><div><b>${pct}</b><span>Win %</span></div></div>
-        <div class="tstats"><div><b>${typeof levelOf === 'function' ? levelOf(s.xp).lv : 0}</b><span>Level</span></div><div><b>${s.binks || 0}</b><span>Binks</span></div><div><b>${s.games || 0}</b><span>Games</span></div></div>`; })()}
+        <div class="tstats"><div><b>${typeof levelOf === 'function' ? levelOf(curXP(s)).lv : 0}${s.pr ? ' ' + crownSVG(levelOf(curXP(s)).lv >= 50, 20) : ''}</b><span>Level</span></div><div><b>${s.binks || 0}</b><span>Binks</span></div><div><b>${s.games || 0}</b><span>Games</span></div></div>`; })()}
       <button class="lux-btn" data-a="trophies">${ICON.trophy}<span>TROPHIES${TROPHIES_SOON && !(typeof PASS_LIVE !== 'undefined' && PASS_LIVE) ? ' · COMING SOON' : ''}</span></button>
       <button class="lux-btn" data-a="asignout"><span>SIGN OUT</span></button>
       <p class="hint center">You’ll stay signed in on this device until you sign out.</p></div>`;
@@ -4194,7 +4231,7 @@ async function loadLeaders(){
       if (ME && uid === ME.uid) u = Object.assign({}, u, {look:{m:profile.mskin || null, b:BOARD, c:profile.skin || null}});
       const s = (u.ach && u.ach.v === 2 && u.ach.stats) || {};
       const w = s.wins || 0, l = s.losses || 0;
-      return {uid, name: u.name || 'Player', lv: levelOf(s.xp || 0).lv, xp: s.xp || 0, wins: w, losses: l, pct: w + l >= 5 ? w / (w + l) : -1, binks: s.binks || 0, games: s.games || 0, look: u.look || {}};
+      return {uid, name: u.name || 'Player', lv: levelOf(curXP(s)).lv, pr: s.pr ? 1 : 0, xp: s.xp || 0, wins: w, losses: l, pct: w + l >= 5 ? w / (w + l) : -1, binks: s.binks || 0, games: s.games || 0, look: u.look || {}};
     }).filter(x => x.xp > 0 || x.wins > 0);
   } catch (e) { lbErr = 'Couldn’t load the leaderboard. Try again in a moment.'; }
 }
@@ -4203,7 +4240,7 @@ function leadersHTML(){
   if (!LB) return '<div class="spin" style="margin:30px auto"></div>';
   const key = {lv:'xp', wins:'wins', pct:'pct', binks:'binks'}[lbSort];
   const rows = LB.slice().sort((a, b) => b[key] - a[key] || b.xp - a.xp);
-  const val = x => lbSort === 'lv' ? `Lv ${x.lv}` : lbSort === 'wins' ? `${x.wins} W` : lbSort === 'pct' ? (x.pct < 0 ? '–' : Math.round(x.pct * 100) + '%') : `${x.binks}`;
+  const val = x => lbSort === 'lv' ? `${x.pr ? crownSVG(x.lv >= 50, 15) : ''}Lv ${x.lv}` : lbSort === 'wins' ? `${x.wins} W` : lbSort === 'pct' ? (x.pct < 0 ? '–' : Math.round(x.pct * 100) + '%') : `${x.binks}`;
   const medal = i => ['🥇', '🥈', '🥉'][i] || `<em>${i + 1}</em>`;
   return `<div class="lbsort">${[['lv', 'Level'], ['wins', 'Wins'], ['pct', 'Win %'], ['binks', 'Binks']].map(([k, l]) => `<button data-a="lbsort" data-v="${k}" class="${lbSort === k ? 'on' : ''}">${l}</button>`).join('')}</div>
     ${lbSort === 'pct' ? '<p class="hint center">Win % needs at least 5 finished games.</p>' : ''}
@@ -4240,7 +4277,7 @@ function lbProfHTML(x){
     else act = `<button class="lux-cta" data-a="lbadd" data-u="${esc(x.uid)}" data-n="${esc(x.name)}"><span>+ ADD FRIEND</span></button>`;
   }
   return `<div class="mpicker" data-a="lbpx"><div class="mbox pibox" data-a="noop">
-    <div class="pitop lbptop"><div><b>${esc(x.name)}</b><small>Level ${x.lv}${x.lv >= 50 ? ' ♛' : ''}${me ? ' · You' : ''}</small></div></div>
+    <div class="pitop lbptop"><div><b>${esc(x.name)}</b><small>${x.pr ? crownSVG(x.lv >= 50, 16) + ' Prestige · ' : ''}Level ${x.lv}${me ? ' · You' : ''}</small></div></div>
     ${lookTiles(x)}
     <div class="tstats"><div><b>${w}</b><span>Wins</span></div><div><b>${l}</b><span>Losses</span></div><div><b>${pct}</b><span>Win %</span></div></div>
     <div class="tstats"><div><b>${x.lv}</b><span>Level</span></div><div><b>${x.binks}</b><span>Binks</span></div><div><b>${x.games}</b><span>Games</span></div></div>
@@ -4300,7 +4337,7 @@ function pinfoHTML(p){
   const lv = typeof pl.lv === 'number' ? pl.lv : null;
   return `<div class="mpicker" data-a="pinfox"><div class="mbox pibox" data-a="noop">
     <div class="pitop">${orb}<div><b>${esc(pl.name)}</b>
-      <small>${pl.human ? (lv !== null ? `Level ${lv}${lv >= 50 ? ' ♛' : ''}` : 'Player') : 'Computer'}${p === viewer ? ' · You' : ''}</small>
+      <small>${pl.human ? (lv !== null ? `${pl.pr ? crownSVG(lv >= 50, 14) + ' ' : ''}Level ${lv}` : 'Player') : 'Computer'}${p === viewer ? ' · You' : ''}</small>
       <span class="pis">${style ? esc(style.name) : 'Plain'} marble${fx.length ? ' · ' + fx.join(' · ') : ''}</span>
       <span class="pic"><i style="background:${PAL[p]}"></i>${esc(CNAMES[pl.color] || '')}${mate >= 0 ? ` · partner: ${esc(G.players[mate].name)}` : ''}</span></div></div>
     <div class="tstats"><div><b>${home}/4</b><span>Home</span></div><div><b>${4 - home - start}</b><span>On the board</span></div><div><b>${start}</b><span>In start</span></div></div>
@@ -5291,6 +5328,157 @@ logHTML = function(){
   }
   return h;
 };
+
+// ===================== Prestige + card designs =====================
+// Reach level 50 → Prestige: back to level 1 with a gold crown, and a new Road to 50 of card designs.
+// Prestige level 50 → the crown catches fire.
+function crownSVG(fire, size){
+  size = size || 16; const id = 'cr' + (fire ? 'f' : 'g') + Math.random().toString(36).slice(2, 7);
+  const fill = `url(#${id}m)`;
+  const flames = fire ? `<g fill="url(#${id}f)"><path d="M2 26 C-4 12 4 4 2 -8 C12 0 14 12 10 26 Z"><animate attributeName="d" dur="0.9s" repeatCount="indefinite" values="M2 26 C-4 12 4 4 2 -8 C12 0 14 12 10 26 Z;M2 26 C-3 11 6 2 5 -11 C13 0 14 13 10 26 Z;M2 26 C-4 12 4 4 2 -8 C12 0 14 12 10 26 Z"/></path>
+    <path d="M24 22 C16 6 28 -6 30 -20 C42 -6 44 8 38 22 Z"><animate attributeName="d" dur="1.1s" repeatCount="indefinite" values="M24 22 C16 6 28 -6 30 -20 C42 -6 44 8 38 22 Z;M24 22 C17 5 31 -8 34 -22 C43 -6 44 9 38 22 Z;M24 22 C16 6 28 -6 30 -20 C42 -6 44 8 38 22 Z"/></path>
+    <path d="M52 26 C48 12 58 4 60 -8 C66 4 66 14 60 26 Z"><animate attributeName="d" dur="0.8s" repeatCount="indefinite" values="M52 26 C48 12 58 4 60 -8 C66 4 66 14 60 26 Z;M52 26 C47 11 55 2 56 -11 C65 3 66 14 60 26 Z;M52 26 C48 12 58 4 60 -8 C66 4 66 14 60 26 Z"/></path>
+    <path d="M14 30 C10 20 18 14 17 6 C23 12 24 20 21 30 Z" fill="#ffe36b"/><path d="M41 30 C38 20 45 14 45 6 C50 13 50 21 47 30 Z" fill="#ffe36b"/></g>` : '';
+  const vb = fire ? '-4 -24 70 82' : '-1 2 64 54', h = fire ? size * 82 / 70 : size * 54 / 64;
+  return `<svg class="crown ${fire ? 'fire' : ''}" width="${size}" height="${h.toFixed(1)}" viewBox="${vb}" aria-label="Prestige"><defs>
+    <linearGradient id="${id}m" x1="0" y1="0" x2="0" y2="1">${fire ? '<stop offset="0" stop-color="#ffe08a"/><stop offset=".5" stop-color="#ff8a1c"/><stop offset="1" stop-color="#b3260b"/>' : '<stop offset="0" stop-color="#fff3b0"/><stop offset=".45" stop-color="#f2c14e"/><stop offset="1" stop-color="#a8721f"/>'}</linearGradient>
+    <linearGradient id="${id}f" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ff3d00"/><stop offset=".5" stop-color="#ff9a1f"/><stop offset="1" stop-color="#ffe36b"/></linearGradient></defs>${flames}
+    <path d="M6 46 L4 18 L18 30 L31 10 L44 30 L58 18 L56 46 Z" fill="${fill}" stroke="#5a3a0c" stroke-width="2.5" stroke-linejoin="round"/>
+    <rect x="6" y="44" width="50" height="9" rx="2.5" fill="${fill}" stroke="#5a3a0c" stroke-width="2.5"/>
+    <circle cx="4" cy="17" r="3.4" fill="${fill}" stroke="#5a3a0c" stroke-width="1.6"/><circle cx="31" cy="9" r="3.8" fill="${fill}" stroke="#5a3a0c" stroke-width="1.6"/><circle cx="58" cy="17" r="3.4" fill="${fill}" stroke="#5a3a0c" stroke-width="1.6"/>
+    <circle cx="31" cy="36" r="4.4" fill="${fire ? '#fff7c2' : '#ff2a2a'}" stroke="#5a3a0c" stroke-width="1.5"/><circle cx="18" cy="39" r="2.8" fill="#2f7bff"/><circle cx="44" cy="39" r="2.8" fill="#2f7bff"/></svg>`;
+}
+
+// ---------- the 10 card designs (Prestige Road to 50) ----------
+const CARDSETS = [
+  {id:'ivory',    name:'Ivory Marble',     lv:5},
+  {id:'emerald',  name:'Emerald Court',    lv:10},
+  {id:'royal',    name:'Royal Amethyst',   lv:15},
+  {id:'japanese', name:'Cherry Blossom',   lv:20},
+  {id:'frozen',   name:'Frozen Crystal',   lv:25},
+  {id:'roulette', name:'Roulette Royale',  lv:30},
+  {id:'galaxy',   name:'Cosmic Galaxy',    lv:35},
+  {id:'dragon',   name:'Dragon’s Keep',    lv:40},
+  {id:'volcanic', name:'Volcanic Inferno', lv:45},
+  {id:'obsidian', name:'Obsidian Gold',    lv:50},
+];
+const CARD_PASS = CARDSETS.map(c => ({lv:c.lv, kind:'cards', id:c.id}));
+const CARDSET = id => CARDSETS.find(c => c.id === id) || null;
+const prOn = () => !!(ACH.stats && ACH.stats.pr);
+function cardsOwned(id){
+  if (!id || id === 'classic') return true;
+  if (typeof TESTALL !== 'undefined' && TESTALL) return true;
+  const c = CARDSET(id); return !!(c && prOn() && levelOf(curXP(ACH.stats)).lv >= c.lv);
+}
+function myCards(){ const id = profile.cards; return id && CARDSET(id) && cardsOwned(id) ? id : null; }
+const cardBack = id => `cards/${id}_back.webp`;
+
+// ---------- your hand uses your card design ----------
+const RANK_COL = {A:0, '2':1, '3':2, '4':3, '5':4, '6':5, '7':6, '8':7, '9':8, '10':9, J:10, Q:11, K:12};
+const SUIT_ROW = {'♠':0, '♥':1, '♦':2, '♣':3};
+const _cardFacePr = cardFace;
+cardFace = function(r, s, cls, note){
+  const id = myCards();
+  if (!id || cls === 'mini') return _cardFacePr(r, s, cls, note);
+  let col, row;
+  if (r === 'JK') { col = (s === '♥' || s === '♦') ? 1 : 0; row = 4; }
+  else { col = RANK_COL[r]; row = SUIT_ROW[s]; if (col === undefined || row === undefined) return _cardFacePr(r, s, cls, note); }
+  return `<div class="card skinned ${cls || ''}" style="--ci:url(cards/${id}.webp);--cp:${col / 12 * 100}% ${row / 4 * 100}%" aria-label="${r}${s || ''}">${note ? `<em>${note}</em>` : ''}</div>`;
+};
+
+// ---------- the Road to 50 screen: prestige button + card road ----------
+const _rewardInfoPr = rewardInfo;
+rewardInfo = function(r){
+  if (r.kind === 'cards') { const c = CARDSET(r.id); return {name:c ? c.name + ' Cards' : r.id, img:cardBack(r.id), type:'Cards'}; }
+  return _rewardInfoPr(r);
+};
+let prAsk = false;
+const _passHTMLPr = passHTML;
+passHTML = function(){
+  const pr = prOn(), saved = PASS;
+  if (pr) PASS = CARD_PASS;
+  let h;
+  try { h = _passHTMLPr(); } finally { PASS = saved; }
+  if (pr) {
+    h = h.replace(/<i class="bthumb" style="background-image:url\((cards\/[a-z]+_back\.webp)\)"><\/i>/g, '<i class="cthumb" style="background-image:url($1)"></i>');
+    const L = levelOf(curXP(ACH.stats));
+    h = h.replace('<div class="lvbadge"><small>LEVEL</small>', `<div class="lvbadge prb">${crownSVG(L.lv >= 50, 26)}<small>PRESTIGE</small>`);
+  }
+  const L = levelOf(curXP(ACH.stats));
+  if (!pr && L.lv >= MAXLV && passPreview === null) {
+    const box = prAsk
+      ? `<div class="prbox ask"><b>Prestige now?</b><p>Your level goes back to 1 and you start a brand-new Road to 50 with 10 card designs. You keep every marble, board, trophy and stat, and you get a gold crown next to your name.</p>
+         <button class="lux-cta" data-a="prgo">${crownSVG(false, 22)}<span>YES, PRESTIGE</span></button><button class="lux-btn" data-a="prno"><span>NOT YET</span></button></div>`
+      : `<div class="prbox"><div class="prc">${crownSVG(false, 54)}</div><b>You maxed out the Road to 50</b><p>Prestige to earn a gold crown and unlock a new road of 10 card designs.</p><button class="lux-cta" data-a="prask"><span>PRESTIGE</span></button></div>`;
+    h = h.replace('<div class="track">', box + '<div class="track">');
+  }
+  return h;
+};
+window.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  const a = t.dataset.a;
+  if (a === 'prask') { e.stopPropagation(); prAsk = true; render(); }
+  else if (a === 'prno') { e.stopPropagation(); prAsk = false; render(); }
+  else if (a === 'prgo') {
+    e.stopPropagation(); prAsk = false;
+    if (prOn() || levelOf(ACH.stats.xp).lv < MAXLV) return;
+    ACH.stats.pxp = ACH.stats.xp || 0; ACH.stats.pr = 1; achSave();
+    render(); prBurst();
+  }
+}, true);
+function prBurst(){
+  const el = document.createElement('div'); el.className = 'prburst';
+  el.innerHTML = `<div>${crownSVG(false, 120)}<b>PRESTIGE</b><span>Back to level 1. The card road is open.</span></div>`;
+  document.body.appendChild(el); setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 600); }, 2600);
+}
+
+// ---------- choosing your cards ----------
+let cardSheet = false;
+function cardSheetHTML(){
+  const cur = myCards();
+  const tile = (id, name, img, ok, how) => `<button class="mtile ctile ${(cur || 'classic') === id ? 'on' : ''} ${ok ? '' : 'locked'}" data-a="cpick" data-v="${id}">
+      <i class="cback" style="${img ? `background-image:url(${img})` : ''}">${img ? '' : '<span>♠♥<br>♦♣</span>'}</i>${ok ? '' : '<em class="clock">🔒</em>'}<b>${esc(name)}</b>${ok ? '' : `<small>${how}</small>`}</button>`;
+  const prev = cur ? `<div class="cprev">${['A♠', 'K♥', 'Q♦', '7♣'].map(x => cardFace(x.slice(0, -1), x.slice(-1), '', '')).join('')}</div>` : '';
+  return `<div class="mpicker" data-a="cpx"><div class="mbox" data-a="noop">
+    <h3 class="lh3" style="margin-top:0">CARDS</h3>${prev}
+    <p class="hint center">${prOn() ? 'New designs unlock every 5 levels on your Prestige Road to 50.' : 'Reach level 50 and Prestige to start unlocking card designs.'}</p>
+    <div class="mgrid cgrid">${tile('classic', 'Classic', '', true, '')}${CARDSETS.map(c => tile(c.id, c.name, cardBack(c.id), cardsOwned(c.id), `Prestige · Level ${c.lv}`)).join('')}</div>
+    <button class="lux-btn" data-a="cpx"><span>DONE</span></button></div></div>`;
+}
+function drawCardSheet(){
+  let el = document.getElementById('cpick');
+  if (!cardSheet) { if (el) el.remove(); return; }
+  const y = el && el.querySelector('.mbox') ? el.querySelector('.mbox').scrollTop : 0;
+  if (!el) { el = document.createElement('div'); el.id = 'cpick'; document.body.appendChild(el); }
+  el.innerHTML = cardSheetHTML();
+  const box = el.querySelector('.mbox'); if (box) box.scrollTop = y;
+}
+window.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  const a = t.dataset.a;
+  if (a === 'cardsopen') { e.stopPropagation(); cardSheet = true; drawCardSheet(); }
+  else if (a === 'cpx') { e.stopPropagation(); cardSheet = false; drawCardSheet(); render(); }
+  else if (a === 'cpick') {
+    e.stopPropagation();
+    const id = t.dataset.v;
+    if (!cardsOwned(id)) { const c = CARDSET(id); flash(prOn() ? `Unlocks at Prestige level ${c.lv}` : 'Prestige at level 50 to unlock card designs'); return; }
+    profile.cards = id === 'classic' ? null : id; LS.set('st.profile', profile); drawCardSheet();
+  }
+  else if (a === 'noop' && t.closest('#cpick')) e.stopPropagation();
+}, true);
+const _renderPr = render;
+render = function(){
+  _renderPr();
+  if (cardSheet && !['setup', 'lobby', 'profile'].includes(screen)) { cardSheet = false; drawCardSheet(); }
+  const row = app.querySelector('.lookrow');
+  if (row && !row.querySelector('[data-a="cardsopen"]') && ['setup', 'lobby', 'profile'].includes(screen)) {
+    const id = myCards(), c = id ? CARDSET(id) : null;
+    const html = `<button class="lkcards" data-a="cardsopen"><i class="cback sm" style="${c ? `background-image:url(${cardBack(id)})` : ''}">${c ? '' : '<span>♠♥</span>'}</i><span><small>CARDS</small><b>${c ? esc(c.name) : 'Classic'}</b></span></button>`;
+    const emo = row.querySelector('[data-a="emoopen"]');
+    if (emo) emo.insertAdjacentHTML('beforebegin', html); else row.insertAdjacentHTML('beforeend', html);
+  }
+};
+render();
 
 </script>
 </body>
