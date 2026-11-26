@@ -925,6 +925,9 @@ input.locked{opacity:.85;cursor:default}
 .hand .card.skinned{overflow:visible!important}
 .hand .card.skinned em,.game.lux .hand .card.skinned em{position:absolute!important;left:50%;bottom:-9px;transform:translateX(-50%);white-space:nowrap!important;width:max-content!important;max-width:none!important;line-height:1.3!important;font-size:8.5px!important;padding:1px 6px!important;border:1px solid rgba(240,196,92,.5);z-index:2}
 .cwrap.frommate .card.skinned ~ .fromtag{bottom:auto;top:-8px}
+.pemb{display:inline-block;vertical-align:middle;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
+.pemb.max{filter:drop-shadow(0 0 4px rgba(255,140,30,.7))}
+.pchip .lvp.pr .pemb{margin:-3px 0}
 
 </style>
 </head>
@@ -932,7 +935,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126000208';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126000517';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -5338,6 +5341,10 @@ logHTML = function(){
 // Reach level 50 → Prestige: back to level 1 with a gold crown, and a new Road to 50 of card designs.
 // Prestige level 50 → the crown catches fire.
 function crownSVG(fire, size){
+  size = Math.round((size || 16) * 1.6);
+  return `<img class="pemb ${fire ? 'max' : ''}" src="cards/${fire ? 'pmax' : 'p1'}.webp" width="${size}" height="${size}" alt="${fire ? 'Prestige max' : 'Prestige'}">`;
+}
+function crownSVGOld(fire, size){
   size = size || 16; const id = 'cr' + (fire ? 'f' : 'g') + Math.random().toString(36).slice(2, 7);
   const fill = `url(#${id}m)`;
   const flames = fire ? `<g fill="url(#${id}f)"><path d="M2 26 C-4 12 4 4 2 -8 C12 0 14 12 10 26 Z"><animate attributeName="d" dur="0.9s" repeatCount="indefinite" values="M2 26 C-4 12 4 4 2 -8 C12 0 14 12 10 26 Z;M2 26 C-3 11 6 2 5 -11 C13 0 14 13 10 26 Z;M2 26 C-4 12 4 4 2 -8 C12 0 14 12 10 26 Z"/></path>
@@ -5412,9 +5419,9 @@ passHTML = function(){
   const L = levelOf(curXP(ACH.stats));
   if (!pr && L.lv >= MAXLV && passPreview === null) {
     const box = prAsk
-      ? `<div class="prbox ask"><b>Prestige now?</b><p>Your level goes back to 1 and you start a brand-new Road to 50 with 10 card designs. You keep every marble, board, trophy and stat, and you get a gold crown next to your name.</p>
+      ? `<div class="prbox ask"><b>Prestige now?</b><p>Your level goes back to 1 and you start a brand-new Road to 50 with 10 card designs. You keep every marble, board, trophy and stat, and you get the Prestige emblem next to your name.</p>
          <button class="lux-cta" data-a="prgo">${crownSVG(false, 22)}<span>YES, PRESTIGE</span></button><button class="lux-btn" data-a="prno"><span>NOT YET</span></button></div>`
-      : `<div class="prbox"><div class="prc">${crownSVG(false, 54)}</div><b>You maxed out the Road to 50</b><p>Prestige to earn a gold crown and unlock a new road of 10 card designs.</p><button class="lux-cta" data-a="prask"><span>PRESTIGE</span></button></div>`;
+      : `<div class="prbox"><div class="prc">${crownSVG(false, 70)}</div><b>You maxed out the Road to 50</b><p>Prestige to earn the Prestige emblem and unlock a new road of 10 card designs. Hit level 50 again for the gold one.</p><button class="lux-cta" data-a="prask"><span>PRESTIGE</span></button></div>`;
     h = h.replace('<div class="track">', box + '<div class="track">');
   }
   return h;
@@ -5433,7 +5440,7 @@ window.addEventListener('click', e => {
 }, true);
 function prBurst(){
   const el = document.createElement('div'); el.className = 'prburst';
-  el.innerHTML = `<div>${crownSVG(false, 120)}<b>PRESTIGE</b><span>Back to level 1. The card road is open.</span></div>`;
+  el.innerHTML = `<div>${crownSVG(false, 150)}<b>PRESTIGE</b><span>Back to level 1. The card road is open.</span></div>`;
   document.body.appendChild(el); setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 600); }, 2600);
 }
 
