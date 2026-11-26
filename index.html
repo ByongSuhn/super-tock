@@ -942,6 +942,14 @@ input.locked{opacity:.85;cursor:default}
 .prbacks{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:0 auto 6px;max-width:300px}
 .prbacks i{aspect-ratio:2/3;border-radius:5px;background:center/cover;box-shadow:0 2px 6px rgba(0,0,0,.5)}
 .ctile.pv{box-shadow:0 0 0 2px #b9a7d6!important}
+/* ---- Classic Dark cards ---- */
+.card.darkc,.hand .card.darkc,.game.lux .hand .card.darkc{background:linear-gradient(165deg,#2a2140 0%,#171026 60%,#0e0918 100%)!important;border:2px solid #c9a24a!important;box-shadow:0 0 0 1px #000,0 6px 12px rgba(0,0,0,.6)!important;color:#f3e6c8!important}
+.card.darkc.red,.hand .card.darkc.red{color:#ff6b7d!important}
+.card.darkc em,.hand .card.darkc em{color:#cdb98a!important;opacity:.85!important}
+.card.darkc.red em,.hand .card.darkc.red em{color:#ff9aa6!important}
+.card.darkc.joker .star,.hand .card.darkc.joker .star{color:#c79bff!important}
+.card.darkc.joker small,.hand .card.darkc.joker small{color:#c79bff!important}
+.cback.dk{background:linear-gradient(165deg,#2a2140,#0e0918)!important;border:1.5px solid #c9a24a;color:#ff6b7d}
 
 </style>
 </head>
@@ -949,7 +957,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126000908';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126002603';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -5392,7 +5400,7 @@ const CARD_PASS = CARDSETS.map(c => ({lv:c.lv, kind:'cards', id:c.id}));
 const CARDSET = id => CARDSETS.find(c => c.id === id) || null;
 const prOn = () => !!(ACH.stats && ACH.stats.pr);
 function cardsOwned(id){
-  if (!id || id === 'classic') return true;
+  if (!id || id === 'classic' || id === 'dark') return true;
   if (typeof TESTALL !== 'undefined' && TESTALL) return true;
   const c = CARDSET(id); return !!(c && prOn() && levelOf(curXP(ACH.stats)).lv >= c.lv);
 }
@@ -5409,6 +5417,7 @@ function skinFace(id, r, s){
 }
 const _cardFacePr = cardFace;
 cardFace = function(r, s, cls, note){
+  if (profile.cards === 'dark' && cls !== 'mini') return _cardFacePr(r, s, ((cls || '') + ' darkc').trim(), note);
   const id = myCards();
   if (!id || cls === 'mini') return _cardFacePr(r, s, cls, note);
   let col, row;
@@ -5477,17 +5486,18 @@ function prBurst(){
 let cardSheet = false, cardPrev = null;
 function cardSheetHTML(){
   const cur = myCards();
-  const tile = (id, name, img, ok, how) => `<button class="mtile ctile ${(cur || 'classic') === id ? 'on' : ''} ${cardPrev === id && (cur || 'classic') !== id ? 'pv' : ''} ${ok ? '' : 'locked'}" data-a="cpick" data-v="${id}">
-      <i class="cback" style="${img ? `background-image:url(${img})` : ''}">${img ? '' : '<span>♠♥<br>♦♣</span>'}</i>${ok ? '' : '<em class="clock">🔒</em>'}<b>${esc(name)}</b>${ok ? '' : `<small>${how}</small>`}</button>`;
-  const pid = cardPrev || cur || 'classic', pc = CARDSET(pid);
+  const curk = profile.cards === 'dark' ? 'dark' : (cur || 'classic');
+  const tile = (id, name, img, ok, how) => `<button class="mtile ctile ${curk === id ? 'on' : ''} ${cardPrev === id && curk !== id ? 'pv' : ''} ${ok ? '' : 'locked'}" data-a="cpick" data-v="${id}">
+      <i class="cback ${id === 'dark' ? 'dk' : ''}" style="${img ? `background-image:url(${img})` : ''}">${img ? '' : '<span>♠♥<br>♦♣</span>'}</i>${ok ? '' : '<em class="clock">🔒</em>'}<b>${esc(name)}</b>${ok ? '' : `<small>${how}</small>`}</button>`;
+  const pid = cardPrev || curk, pc = CARDSET(pid);
   const prev = pc
     ? `<div class="cprev"><i class="cback big" style="background-image:url(${cardBack(pid)})"></i>${skinFace(pid, '10', '♥')}${skinFace(pid, 'K', '♠')}${skinFace(pid, 'JK', '')}</div>
        <p class="cpname"><b>${esc(pc.name)}</b>${cardsOwned(pid) ? ' · In use' : ` · 🔒 ${prOn() ? 'Prestige level ' + pc.lv : 'Prestige, then level ' + pc.lv}`}</p>`
-    : `<div class="cprev">${[['10','♥'],['K','♠'],['Q','♦'],['A','♣']].map(([r, s]) => _cardFacePr(r, s, '', '')).join('')}</div><p class="cpname"><b>Classic</b>${!cur ? ' · In use' : ''}</p>`;
+    : `<div class="cprev">${[['10','♥'],['K','♠'],['JK',''],['A','♣']].map(([r, s]) => _cardFacePr(r, s, pid === 'dark' ? 'darkc' : '', '')).join('')}</div><p class="cpname"><b>${pid === 'dark' ? 'Classic Dark' : 'Classic Light'}</b>${curk === pid ? ' · In use' : ' · Free'}</p>`;
   return `<div class="mpicker" data-a="cpx"><div class="mbox" data-a="noop">
     <h3 class="lh3" style="margin-top:0">CARDS</h3>${prev}
-    <p class="hint center">${prOn() ? 'New designs unlock every 5 levels on your Prestige Road to 50.' : 'Reach level 50 and Prestige to start unlocking card designs.'}</p>
-    <div class="mgrid cgrid">${tile('classic', 'Classic', '', true, '')}${CARDSETS.map(c => tile(c.id, c.name, cardBack(c.id), cardsOwned(c.id), `Prestige · Level ${c.lv}`)).join('')}</div>
+    <p class="hint center">Classic Light and Dark are free. ${prOn() ? 'New designs unlock every 5 levels on your Prestige Road to 50.' : 'Reach level 50 and Prestige to unlock the rest.'}</p>
+    <div class="mgrid cgrid">${tile('classic', 'Classic Light', '', true, '')}${tile('dark', 'Classic Dark', '', true, '')}${CARDSETS.map(c => tile(c.id, c.name, cardBack(c.id), cardsOwned(c.id), `Prestige · Level ${c.lv}`)).join('')}</div>
     <button class="lux-btn" data-a="cpx"><span>DONE</span></button></div></div>`;
 }
 function drawCardSheet(){
@@ -5518,8 +5528,8 @@ render = function(){
   if (cardSheet && !['setup', 'lobby', 'profile'].includes(screen)) { cardSheet = false; drawCardSheet(); }
   const row = app.querySelector('.lookrow');
   if (row && !row.querySelector('[data-a="cardsopen"]') && ['setup', 'lobby', 'profile'].includes(screen)) {
-    const id = myCards(), c = id ? CARDSET(id) : null;
-    const html = `<button class="lkcards" data-a="cardsopen"><i class="cback sm" style="${c ? `background-image:url(${cardBack(id)})` : ''}">${c ? '' : '<span>♠♥</span>'}</i><span><small>CARDS</small><b>${c ? esc(c.name) : 'Classic'}</b></span></button>`;
+    const id = myCards(), c = id ? CARDSET(id) : null, dk = profile.cards === 'dark';
+    const html = `<button class="lkcards" data-a="cardsopen"><i class="cback sm ${dk ? 'dk' : ''}" style="${c ? `background-image:url(${cardBack(id)})` : ''}">${c ? '' : '<span>♠♥</span>'}</i><span><small>CARDS</small><b>${c ? esc(c.name) : dk ? 'Classic Dark' : 'Classic Light'}</b></span></button>`;
     const emo = row.querySelector('[data-a="emoopen"]');
     if (emo) emo.insertAdjacentHTML('beforebegin', html); else row.insertAdjacentHTML('beforeend', html);
   }
