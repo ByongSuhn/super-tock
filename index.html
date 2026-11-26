@@ -974,7 +974,7 @@ body.saver .boardwrap svg [style*="blur"]{filter:none!important}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126124119';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126124246';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -4316,7 +4316,7 @@ function leadersHTML(){
 const _passHTMLS = passHTML;
 passHTML = function(){
   let h = _passHTMLS();
-  h = h.replace(/<div class="ltabs trtabs">([\s\S]*?)<\/div>/, (m, inner) => `<div class="ltabs trtabs three">${inner}<button data-a="trtab" data-v="lead" class="${trophyTab === 'lead' ? 'on' : ''}">Leaders</button></div>`);
+  h = h.replace(/<div class="ltabs trtabs">([\s\S]*?)<\/div>/, (m, inner) => `<div class="ltabs trtabs three">${inner}<button data-a="trtab" data-v="lead" class="${trophyTab === 'lead' ? 'on' : ''}">Leaderboard</button></div>`);
   if (trophyTab === 'lead') {
     const a = h.indexOf('<div class="lvcard">') >= 0 ? h.indexOf('<div class="lvcard">') : h.indexOf('<div class="tstats">'), b = h.lastIndexOf('</div>');
     if (a > 0) h = h.slice(0, a) + leadersHTML() + h.slice(b);
