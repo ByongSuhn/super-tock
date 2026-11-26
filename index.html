@@ -951,6 +951,10 @@ input.locked{opacity:.85;cursor:default}
 .card.darkc.joker small,.hand .card.darkc.joker small{color:#c79bff!important}
 .cback.dk{background:linear-gradient(165deg,#2a2140,#0e0918)!important;border:1.5px solid #c9a24a;color:#ff6b7d}
 .lux-btn.danger{border-color:#e5484d!important;color:#ffb0b0!important}
+.rgall{display:block;margin:-6px auto 14px;padding:6px 14px;border:0;background:none;color:#f0c45c;font:700 14px system-ui;cursor:pointer}
+#rgsheet .mpicker{position:fixed;inset:0;z-index:88;background:rgba(8,4,16,.72);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
+#rgsheet .mbox{width:min(560px,100%);max-height:82vh;overflow:auto;background:linear-gradient(180deg,#24153a,#120a20);border:2px solid rgba(224,176,79,.7);border-bottom:0;border-radius:24px 24px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));animation:pmup .25s ease-out}
+#rgsheet .lux-btn{width:100%}
 
 </style>
 </head>
@@ -958,7 +962,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126003433';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126040916';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -5118,7 +5122,7 @@ function recordGame(w){
   let bk = 0, bd = 0; for (let q = 0; q < G.N; q++) if (q !== me) { bk += bm[me + '>' + q] || 0; bd += bm[q + '>' + me] || 0; }
   const entry = {t:Date.now(), on:!!G.online, win:won, bk, bd, n:G.N, pt:!!(G.set && G.set.partners),
     pl:G.players.map((pl, i) => ({n:pl.name, c:PAL[i], w:w.players.includes(i), me:i === me, cpu:!pl.human}))};
-  const list = [entry].concat(recentList()).slice(0, 10);
+  const list = [entry].concat(recentList()).slice(0, RECENT_KEEP);
   LS.set(myRecKey(), list);
   // rivalries: only real people you played against, and only with an account
   const rivals = [];
@@ -5149,7 +5153,7 @@ function pullRecent(){
     firebase.database().ref('users/' + ME.uid).once('value').then(s => {
       const u = s.val() || {};
       if (Array.isArray(u.recent) && u.recent.length) {
-        const mine = recentList(), all = [...u.recent, ...mine].filter((x, i, a) => x && a.findIndex(y => y && y.t === x.t) === i).sort((a, b) => b.t - a.t).slice(0, 10);
+        const mine = recentList(), all = [...u.recent, ...mine].filter((x, i, a) => x && a.findIndex(y => y && y.t === x.t) === i).sort((a, b) => b.t - a.t).slice(0, RECENT_KEEP);
         LS.set(myRecKey(), all);
       }
       rivLoad();
@@ -5166,16 +5170,38 @@ function agoText(t){
   const h = Math.round(m / 60); if (h < 24) return h + (h === 1 ? ' hour ago' : ' hours ago');
   const d = Math.round(h / 24); return d === 1 ? 'yesterday' : d + ' days ago';
 }
-function recentHTML(){
-  const list = recentList();
-  const rows = list.length ? list.map(g => `<div class="rgrow">
+const RECENT_KEEP = 20, RECENT_SHOW = 5;
+let allGames = false;
+function rgRow(g){
+  return `<div class="rgrow">
       <span class="rgres ${g.win ? 'w' : 'l'}">${g.win ? 'W' : 'L'}</span>
       <span class="rgmid"><span class="rgpl">${g.pl.map(p => `<span class="${p.w ? 'rwon' : ''} ${p.me ? 'rme' : ''}"><i style="background:${p.c}"></i>${esc(p.me ? 'You' : p.n)}</span>`).join('')}</span>
         <small>${g.on ? '🌐 Online' : '🤖 Computer'} · ${g.n} players${g.pt ? ' · partners' : ''} · ${agoText(g.t)}</small></span>
-      <span class="rgbk"><b>${g.bk}</b><small>${g.bk === 1 ? 'bink' : 'binks'}</small></span></div>`).join('')
-    : '<p class="hint center">Finish a game and it shows up here.</p>';
-  return `<h3 class="lh3">RECENT GAMES</h3><div class="rglist">${rows}</div>`;
+      <span class="rgbk"><b>${g.bk}</b><small>${g.bk === 1 ? 'bink' : 'binks'}</small></span></div>`;
 }
+function recentHTML(){
+  const list = recentList();
+  const rows = list.length ? list.slice(0, RECENT_SHOW).map(rgRow).join('') : '<p class="hint center">Finish a game and it shows up here.</p>';
+  const more = list.length > RECENT_SHOW ? `<button class="rgall" data-a="rgall">See all ${list.length} games ›</button>` : '';
+  return `<h3 class="lh3">RECENT GAMES</h3><div class="rglist">${rows}</div>${more}`;
+}
+function drawAllGames(){
+  let el = document.getElementById('rgsheet');
+  if (!allGames || screen !== 'profile') { allGames = false; if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'rgsheet'; document.body.appendChild(el); }
+  const list = recentList(), w = list.filter(g => g.win).length;
+  el.innerHTML = `<div class="mpicker" data-a="rgx"><div class="mbox" data-a="noop">
+    <h3 class="lh3" style="margin-top:0">LAST ${list.length} GAMES</h3>
+    <p class="hint center">${w} wins and ${list.length - w} losses</p>
+    <div class="rglist">${list.map(rgRow).join('')}</div>
+    <button class="lux-btn" data-a="rgx"><span>DONE</span></button></div></div>`;
+}
+window.addEventListener('click', e => {
+  const t = e.target.closest('[data-a]'); if (!t) return;
+  if (t.dataset.a === 'rgall') { e.stopPropagation(); allGames = true; drawAllGames(); }
+  else if (t.dataset.a === 'rgx') { e.stopPropagation(); allGames = false; drawAllGames(); }
+  else if (t.dataset.a === 'noop' && t.closest('#rgsheet')) e.stopPropagation();
+}, true);
 const _profileRiv = profileHTML;
 profileHTML = function(){
   const h = _profileRiv();
