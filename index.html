@@ -928,6 +928,20 @@ input.locked{opacity:.85;cursor:default}
 .pemb{display:inline-block;vertical-align:middle;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.5))}
 .pemb.max{filter:drop-shadow(0 0 4px rgba(255,140,30,.7))}
 .pchip .lvp.pr .pemb{margin:-3px 0}
+.cprev{align-items:center}
+.cprev .cback.big{width:58px;height:84px;margin:0;border-radius:8px}
+.cprev .card.skinned{width:58px;height:87px}
+.cpname{margin:2px 0 6px;text-align:center;color:#a99bbf;font:13px system-ui}.cpname b{color:#f6d27a;font:800 15px Cinzel,Georgia,serif}
+.prpeek{margin:16px 0 8px;padding:16px 14px;border-radius:18px;text-align:center;background:radial-gradient(120% 120% at 50% 0%,#3e2264,#170c28);border:2px dashed rgba(240,196,92,.6);color:#f3e6c8}
+.prpeek small{display:block;color:#a99bbf;font:800 11px system-ui;letter-spacing:3px}
+.prpeek>b{display:block;font:900 24px Cinzel,Georgia,serif;color:#f6d27a;letter-spacing:3px;margin:2px 0 10px}
+.prembs{display:flex;justify-content:center;gap:22px;margin-bottom:10px}
+.prembs div{display:flex;flex-direction:column;align-items:center;gap:4px;font:700 13px/1.25 system-ui}
+.prembs em{font-style:normal;font-weight:500;color:#a99bbf;font-size:11px}
+.prpeek p{margin:4px 0 8px;color:#d8c9e6;font:13px system-ui}
+.prbacks{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:0 auto 6px;max-width:300px}
+.prbacks i{aspect-ratio:2/3;border-radius:5px;background:center/cover;box-shadow:0 2px 6px rgba(0,0,0,.5)}
+.ctile.pv{box-shadow:0 0 0 2px #b9a7d6!important}
 
 </style>
 </head>
@@ -935,7 +949,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126000517';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126000908';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -5388,6 +5402,11 @@ const cardBack = id => `cards/${id}_back.webp`;
 // ---------- your hand uses your card design ----------
 const RANK_COL = {A:0, '2':1, '3':2, '4':3, '5':4, '6':5, '7':6, '8':7, '9':8, '10':9, J:10, Q:11, K:12};
 const SUIT_ROW = {'♠':0, '♥':1, '♦':2, '♣':3};
+function skinFace(id, r, s){
+  let col, row;
+  if (r === 'JK') { col = (s === '♥' || s === '♦') ? 1 : 0; row = 4; } else { col = RANK_COL[r]; row = SUIT_ROW[s]; }
+  return `<div class="card skinned" style="--ci:url(cards/${id}.webp);--cp:${col / 12 * 100}% ${row / 4 * 100}%"></div>`;
+}
 const _cardFacePr = cardFace;
 cardFace = function(r, s, cls, note){
   const id = myCards();
@@ -5424,6 +5443,16 @@ passHTML = function(){
       : `<div class="prbox"><div class="prc">${crownSVG(false, 70)}</div><b>You maxed out the Road to 50</b><p>Prestige to earn the Prestige emblem and unlock a new road of 10 card designs. Hit level 50 again for the gold one.</p><button class="lux-cta" data-a="prask"><span>PRESTIGE</span></button></div>`;
     h = h.replace('<div class="track">', box + '<div class="track">');
   }
+  if (!pr) {
+    // show everyone what's waiting after level 50
+    const peek = `<div class="prpeek"><small>AFTER LEVEL 50</small><b>PRESTIGE</b>
+      <div class="prembs"><div>${crownSVG(false, 44)}<span>Prestige emblem<br><em>when you prestige</em></span></div><div>${crownSVG(true, 44)}<span>Gold emblem<br><em>Prestige level 50</em></span></div></div>
+      <p>Prestige starts a new Road to 50 with a card design every 5 levels:</p>
+      <div class="prbacks">${CARDSETS.map(c => `<i style="background-image:url(${cardBack(c.id)})" title="${esc(c.name)}"></i>`).join('')}</div>
+      <p class="hint">You keep every marble, board and trophy.</p></div>`;
+    const end = h.lastIndexOf('</div>');
+    h = h.slice(0, end) + peek + h.slice(end);
+  }
   return h;
 };
 window.addEventListener('click', e => {
@@ -5445,12 +5474,16 @@ function prBurst(){
 }
 
 // ---------- choosing your cards ----------
-let cardSheet = false;
+let cardSheet = false, cardPrev = null;
 function cardSheetHTML(){
   const cur = myCards();
-  const tile = (id, name, img, ok, how) => `<button class="mtile ctile ${(cur || 'classic') === id ? 'on' : ''} ${ok ? '' : 'locked'}" data-a="cpick" data-v="${id}">
+  const tile = (id, name, img, ok, how) => `<button class="mtile ctile ${(cur || 'classic') === id ? 'on' : ''} ${cardPrev === id && (cur || 'classic') !== id ? 'pv' : ''} ${ok ? '' : 'locked'}" data-a="cpick" data-v="${id}">
       <i class="cback" style="${img ? `background-image:url(${img})` : ''}">${img ? '' : '<span>♠♥<br>♦♣</span>'}</i>${ok ? '' : '<em class="clock">🔒</em>'}<b>${esc(name)}</b>${ok ? '' : `<small>${how}</small>`}</button>`;
-  const prev = cur ? `<div class="cprev">${['A♠', 'K♥', 'Q♦', '7♣'].map(x => cardFace(x.slice(0, -1), x.slice(-1), '', '')).join('')}</div>` : '';
+  const pid = cardPrev || cur || 'classic', pc = CARDSET(pid);
+  const prev = pc
+    ? `<div class="cprev"><i class="cback big" style="background-image:url(${cardBack(pid)})"></i>${skinFace(pid, '10', '♥')}${skinFace(pid, 'K', '♠')}${skinFace(pid, 'JK', '')}</div>
+       <p class="cpname"><b>${esc(pc.name)}</b>${cardsOwned(pid) ? ' · In use' : ` · 🔒 ${prOn() ? 'Prestige level ' + pc.lv : 'Prestige, then level ' + pc.lv}`}</p>`
+    : `<div class="cprev">${[['10','♥'],['K','♠'],['Q','♦'],['A','♣']].map(([r, s]) => _cardFacePr(r, s, '', '')).join('')}</div><p class="cpname"><b>Classic</b>${!cur ? ' · In use' : ''}</p>`;
   return `<div class="mpicker" data-a="cpx"><div class="mbox" data-a="noop">
     <h3 class="lh3" style="margin-top:0">CARDS</h3>${prev}
     <p class="hint center">${prOn() ? 'New designs unlock every 5 levels on your Prestige Road to 50.' : 'Reach level 50 and Prestige to start unlocking card designs.'}</p>
@@ -5468,13 +5501,14 @@ function drawCardSheet(){
 window.addEventListener('click', e => {
   const t = e.target.closest('[data-a]'); if (!t) return;
   const a = t.dataset.a;
-  if (a === 'cardsopen') { e.stopPropagation(); cardSheet = true; drawCardSheet(); }
+  if (a === 'cardsopen') { e.stopPropagation(); cardSheet = true; cardPrev = null; drawCardSheet(); }
   else if (a === 'cpx') { e.stopPropagation(); cardSheet = false; drawCardSheet(); render(); }
   else if (a === 'cpick') {
     e.stopPropagation();
     const id = t.dataset.v;
-    if (!cardsOwned(id)) { const c = CARDSET(id); flash(prOn() ? `Unlocks at Prestige level ${c.lv}` : 'Prestige at level 50 to unlock card designs'); return; }
-    profile.cards = id === 'classic' ? null : id; LS.set('st.profile', profile); drawCardSheet();
+    cardPrev = id;                                   // every tap shows that design up top
+    if (cardsOwned(id)) { profile.cards = id === 'classic' ? null : id; LS.set('st.profile', profile); }
+    drawCardSheet();
   }
   else if (a === 'noop' && t.closest('#cpick')) e.stopPropagation();
 }, true);
