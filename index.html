@@ -950,6 +950,7 @@ input.locked{opacity:.85;cursor:default}
 .card.darkc.joker .star,.hand .card.darkc.joker .star{color:#c79bff!important}
 .card.darkc.joker small,.hand .card.darkc.joker small{color:#c79bff!important}
 .cback.dk{background:linear-gradient(165deg,#2a2140,#0e0918)!important;border:1.5px solid #c9a24a;color:#ff6b7d}
+.lux-btn.danger{border-color:#e5484d!important;color:#ffb0b0!important}
 
 </style>
 </head>
@@ -957,7 +958,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126002603';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126003032';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -2318,7 +2319,7 @@ function drawGame(){
     const sc2 = ov.querySelector('.plays'); if (sc2) sc2.scrollTop = y;
   } else if (menuOpen) {
     ov.className = 'overlay show';
-    ov.innerHTML = `<div class="box lux-box">${ribbon('SUPER TOCK', 'sm')}<h2 class="ltitle"><i></i>PAUSED<i></i></h2><button class="cta" data-a="mresume">Keep playing</button><button class="ghost wide" data-a="mrules">See card rules</button><button class="ghost wide" data-a="mquit">Back to menu</button><p class="hint">Your game is saved. Resume it from the menu any time.</p></div>`;
+    ov.innerHTML = `<div class="box lux-box">${ribbon('SUPER TOCK', 'sm')}<h2 class="ltitle"><i></i>PAUSED<i></i></h2><button class="cta" data-a="mresume">Keep playing</button><button class="ghost wide" data-a="mrules">See card rules</button><button class="ghost wide" data-a="mquit">Back to menu</button><p class="hint">Your game is saved. Resume it from the menu any time.${typeof gameFar === 'function' && G && !G.online && gameFar(G) ? ' If you start a new game instead, this one counts as a loss.' : ''}</p></div>`;
   } else if (G.phase === 'over') {
     ov.className = 'overlay show win';
     ov.innerHTML = winHTML(G.winner);
@@ -4051,7 +4052,7 @@ function soloSaved(){
   const s = LS.get('st.game2', null);
   return s && s.G && s.G.v === 3 && s.G.phase !== 'over' && !s.G.online ? s.G : null;
 }
-let resumeAsk = false;
+let resumeAsk = false, newAsk = false;
 function resumeAskHTML(g){
   const me = g.players.findIndex(p => p.human), home = me >= 0 ? g.m[me].filter(m => m.z === 'h').length : 0;
   return `<div class="mpicker" data-a="rsno"><div class="mbox rsbox" data-a="noop">
@@ -4059,13 +4060,20 @@ function resumeAskHTML(g){
     <p class="hint center">You have a game in progress: ${g.N} players, ${home} of 4 marbles home.</p>
     <button class="lux-cta" data-a="rsgo">${ICON.bookmark}<span>RESUME GAME</span></button>
     <button class="lux-btn" data-a="rsnew"><span>START A NEW GAME</span></button>
-    <p class="hint center">Starting a new game ends the old one.</p></div></div>`;
+    <p class="hint center">${gameFar(g) ? 'This game is far enough along that starting a new one counts as a loss.' : 'Starting a new game ends the old one.'}</p></div></div>`;
+}
+function newAskHTML(){
+  return `<div class="mpicker" data-a="rsnno"><div class="mbox rsbox lossask" data-a="noop">
+    <h2 class="ltitle"><i></i>ARE YOU SURE?<i></i></h2>
+    <p class="hint center">Starting a new game ends your unfinished one, and <b>it will count as a loss</b>. Your win streak will reset.</p>
+    <button class="lux-cta" data-a="rsgo">${ICON.bookmark}<span>RESUME INSTEAD</span></button>
+    <button class="lux-btn danger" data-a="rsnyes"><span>YES, COUNT THE LOSS</span></button></div></div>`;
 }
 function drawResumeAsk(){
   let el = document.getElementById('rsask');
-  if (!resumeAsk) { if (el) el.remove(); return; }
+  if (!resumeAsk && !newAsk) { if (el) el.remove(); return; }
   if (!el) { el = document.createElement('div'); el.id = 'rsask'; document.body.appendChild(el); }
-  el.innerHTML = resumeAskHTML(soloSaved());
+  el.innerHTML = newAsk ? newAskHTML() : resumeAskHTML(soloSaved());
 }
 // remember the online game you're in
 function trackOnline(){
@@ -4083,12 +4091,17 @@ window.addEventListener('click', async e => {
   if (a === 'setup' && t.dataset.mode === 'solo' && screen === 'home' && soloSaved()) {
     e.stopPropagation(); e.stopImmediatePropagation(); if (typeof drawPlayMenu === 'function') { playMenu = false; drawPlayMenu(); } resumeAsk = true; drawResumeAsk();
   } else if (a === 'rsgo') {
-    e.stopPropagation(); resumeAsk = false; drawResumeAsk();
+    e.stopPropagation(); resumeAsk = false; newAsk = false; drawResumeAsk();
     const g = soloSaved(); if (!g) return;
     G = g; sel = null; curtain = null; busy = false; burnPick = false; menuOpen = false;
     viewer = G.players.findIndex(p => p.human); if (viewer < 0) viewer = 0; screen = 'game'; render();
-  } else if (a === 'rsnew') {
-    e.stopPropagation(); resumeAsk = false; drawResumeAsk(); LS.del('st.game2');
+  } else if (a === 'rsnew' && gameFar(soloSaved())) {
+    e.stopPropagation(); resumeAsk = false; newAsk = true; drawResumeAsk();
+  } else if (a === 'rsnno') { e.stopPropagation(); newAsk = false; resumeAsk = true; drawResumeAsk();
+  } else if (a === 'rsnew' || a === 'rsnyes') {
+    e.stopPropagation(); resumeAsk = false; newAsk = false; drawResumeAsk();
+    { const g = soloSaved(); const t = g && g.gid && ACH.games && ACH.games[g.gid]; if (t) t.quit = true; achSave(); }
+    LS.del('st.game2');
     setup = defaultSetup('solo'); screen = 'setup'; render();
   } else if (a === 'rsno') { e.stopPropagation(); resumeAsk = false; drawResumeAsk(); }
   else if (a === 'orejoin') {
