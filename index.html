@@ -966,6 +966,7 @@ body.saver .boardwrap svg [style*="blur"]{filter:none!important}
 .game .panel>#tstrip{background:rgba(20,10,34,.92)}
 .game .panel>#tclock{background:rgba(10,5,20,.85)}
 .game .panel>#tclock+#tstrip{bottom:calc(100% + 34px)}
+.game .panel>.status{min-height:94px}
 
 </style>
 </head>
@@ -973,7 +974,7 @@ body.saver .boardwrap svg [style*="blur"]{filter:none!important}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126044045';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126044621';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -5363,7 +5364,7 @@ window.addEventListener('click', e => {
 }, true);
 
 // the trade stays up all hand: what you gave, what you got, and the card you got is tagged in your hand
-const TRS = {key:null, at:0, timer:null}, TRS_SHOW = 15000;
+const TRS = {key:null, at:0, timer:null}, TRS_SHOW = 0;   // trade bar retired: the FROM tag and Recent plays show the trade
 function myTrade(){
   if (!G || !G.set || !G.set.partners || !G.traded || G.tradedHand !== G.hand || viewer < 0 || (ON.active && ON.spec)) return null;
   const mate = mateOf(G, viewer);
@@ -5385,11 +5386,9 @@ drawGame = function(){
   });
   // the trade bar shows for a little while after the swap, then gets out of the way
   const key = t ? G.gid + ':' + G.hand : null;
-  if (key && TRS.key !== key) { TRS.key = key; TRS.at = Date.now(); clearTimeout(TRS.timer); TRS.timer = setTimeout(() => { if (screen === 'game') drawGame(); }, TRS_SHOW + 50); }
-  if (!t || !panel || Date.now() - TRS.at > TRS_SHOW) {
-    if (el && !el.classList.contains('out')) { el.classList.add('out'); setTimeout(() => el.remove(), 450); }
-    return;
-  }
+  
+  if (el) el.remove();
+  return;
   if (!el) { el = document.createElement('div'); el.id = 'tstrip'; el.className = 'tstrip'; }
   const stillHave = G.hands[viewer].some(c => c.id === t.got.id), gone = !G.hands[mate2()].some(c => c.id === t.gave.id);
   function mate2(){ return t.mate; }
