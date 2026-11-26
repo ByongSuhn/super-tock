@@ -974,7 +974,7 @@ body.saver .boardwrap svg [style*="blur"]{filter:none!important}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126044621';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126124119';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -1700,8 +1700,8 @@ function heroBoard(){
 }
 function defaultSetup(mode){
   const n = mode === 'solo' ? 4 : 4;
-  const s = {mode, n, level:'hard', speed:'normal', partners:false, around:true, center:'card', decks:'auto', jokers:true, photo:photoOn(), seats:[]};
-  fitSeats(s);
+  const s = {mode, n, level:'hard', speed:'normal', partners:true, around:true, center:'card', decks:'auto', jokers:true, photo:photoOn(), seats:[]};
+  fitSeats(s); if (s.partners && !teamsOk(s)) resetTeams(s);
   return s;
 }
 function teamsOk(s){ const c = {}; for (const x of s.seats) c[x.team] = (c[x.team] || 0) + 1; return Object.values(c).length === s.n / 2 && Object.values(c).every(v => v === 2); }
@@ -2730,7 +2730,7 @@ const isHostOnline = () => ON.active && ON.host;
 // ---------- lobby ----------
 function defaultLobby(code){
   const s = defaultSetup('solo');
-  return {code, host:ON.pid, started:false, n:4, level:'hard', speed:'normal', partners:false, center:'card', jokers:true, timer:'30',
+  return {code, host:ON.pid, started:false, n:4, level:'hard', speed:'normal', partners:true, center:'card', jokers:true, timer:'30',
     seats:[0,1,2,3].map(i => i === 0 ? {kind:'human', pid:ON.pid, name:(profile.name || 'Host').trim(), team:0} : {kind:'open', pid:null, name:'', team:i % 2})};
 }
 function fitLobby(L){
