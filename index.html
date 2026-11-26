@@ -960,6 +960,12 @@ body.saver *{backdrop-filter:none!important;-webkit-backdrop-filter:none!importa
 body.saver .home.lux .tilt svg{animation:none!important}
 body.saver .boardwrap .orb.fx,body.saver .pchip .orb.fx,body.saver .pchip .orb.fx *{animation:none!important}
 body.saver .boardwrap svg [style*="blur"]{filter:none!important}
+/* trade bar + turn clock float over the bottom of the board so the board never resizes */
+.game .panel{position:relative}
+.game .panel>#tstrip,.game .panel>#tclock{position:absolute;left:12px;right:12px;bottom:100%;margin:0 0 6px;z-index:5;box-shadow:0 6px 16px rgba(0,0,0,.45)}
+.game .panel>#tstrip{background:rgba(20,10,34,.92)}
+.game .panel>#tclock{background:rgba(10,5,20,.85)}
+.game .panel>#tclock+#tstrip{bottom:calc(100% + 34px)}
 
 </style>
 </head>
@@ -967,7 +973,7 @@ body.saver .boardwrap svg [style*="blur"]{filter:none!important}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126043136';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126044045';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
