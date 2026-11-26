@@ -955,6 +955,11 @@ input.locked{opacity:.85;cursor:default}
 #rgsheet .mpicker{position:fixed;inset:0;z-index:88;background:rgba(8,4,16,.72);display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px)}
 #rgsheet .mbox{width:min(560px,100%);max-height:82vh;overflow:auto;background:linear-gradient(180deg,#24153a,#120a20);border:2px solid rgba(224,176,79,.7);border-bottom:0;border-radius:24px 24px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));animation:pmup .25s ease-out}
 #rgsheet .lux-btn{width:100%}
+/* ---- battery saver ---- */
+body.saver *{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+body.saver .home.lux .tilt svg{animation:none!important}
+body.saver .boardwrap .orb.fx,body.saver .pchip .orb.fx,body.saver .pchip .orb.fx *{animation:none!important}
+body.saver .boardwrap svg [style*="blur"]{filter:none!important}
 
 </style>
 </head>
@@ -962,7 +967,7 @@ input.locked{opacity:.85;cursor:default}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126040916';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126043136';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -1427,7 +1432,7 @@ function playMove(st, mv){
     hand: st.hand, did: describeMove(st, mv), hit: [...new Set(bumped.map(e => nm(e.key)))]};
   if (mv.mateForced && bumped.some(e => own(e.key) !== mv.p && teamOf(st, own(e.key)) === teamOf(st, mv.p))) { st.last.mateForced = true; st.last.text += ' (no other move)'; }
   st.log.push(st.last);
-  if (st.log.length > 80) st.log.shift();
+  if (st.log.length > 120) st.log.shift();
   advance(st);
   if (st.skipped >= 0) { st.last.text += ` · skipped ${st.players[st.skipped].name}`; st.last.did = `skipped ${st.players[st.skipped].name}`; }
   return ev;
@@ -4515,7 +4520,7 @@ function ttDraw(){
   el.innerHTML = `<i style="width:${Math.min(100, left / G.tm.len * 100)}%;background:${w.kind === 'play' ? PAL[w.p] : '#f0c45c'}"></i><span>${esc(who)}</span><b>⏱ ${secs}</b>`;
   if (mine && secs <= 10 && TT.buzzed !== G.tm.id) { TT.buzzed = G.tm.id; vib([60, 60, 60]); }
 }
-TT.tick = setInterval(() => { if (screen === 'game' && ON.active) ttDraw(); }, 250);
+TT.tick = setInterval(() => { if (screen === 'game' && ON.active && !document.hidden && G && G.tm) ttDraw(); }, 500);
 const _drawGameTT = drawGame;
 drawGame = function(){
   _drawGameTT();
@@ -5399,7 +5404,8 @@ logHTML = function(){
     const row = `<li class="ltrade"><span>🔄</span><span>You gave</span><span class="lc ${red(gave)}">${cardName(gave)}</span><span>· ${esc(G.players[mate].name)} gave you</span><span class="lc ${red(got)}">${cardName(got)}</span></li>`;
     const head = `<li class="lh">Hand ${t.hand}</li>`;
     if (h.includes(head)) h = h.replace(head, head + row);
-    else h = h.replace('<ul class="plays">', `<ul class="plays">${head}${row}`).replace('<p>No plays yet.</p>', `<ul class="plays">${head}${row}</ul>`);
+    else if (t.hand === G.hand) h = h.replace('<ul class="plays">', `<ul class="plays">${head}${row}`).replace('<p>No plays yet.</p>', `<ul class="plays">${head}${row}</ul>`);
+    // older hands whose plays have scrolled out of the log are left out
   }
   return h;
 };
@@ -5580,6 +5586,35 @@ render = function(){
   }
 };
 render();
+
+// ===================== Battery saver (on by default) =====================
+// The big drains were the animated marbles redrawing the whole board every frame, the spinning home board,
+// and blurred see-through panels. Saver keeps the board still between moves; marbles still animate in the pickers.
+let SAVER = LS.get('st.saver', true);
+function applySaver(){
+  document.body.classList.toggle('saver', SAVER);
+  if (!SAVER) return;
+  document.querySelectorAll('#board svg, svg#board, .boardwrap svg').forEach(s => { try { s.pauseAnimations(); } catch (e) {} });
+}
+const _renderSv = render;
+render = function(){ _renderSv(); applySaver(); };
+const _drawGameSv = drawGame;
+drawGame = function(){ _drawGameSv(); applySaver(); if (menuOpen) {
+  const r = document.querySelector('#overlay [data-a="mrules"]');
+  if (r && !document.querySelector('#overlay [data-a="msaver"]')) r.insertAdjacentHTML('afterend', `<button class="ghost wide" data-a="msaver">Battery saver: ${SAVER ? 'On' : 'Off'}</button>`);
+} };
+const _buildBoardSv = buildBoard;
+buildBoard = function(){ _buildBoardSv(); applySaver(); };
+window.addEventListener('click', e => {
+  const t = e.target.closest('[data-a="msaver"]'); if (!t) return;
+  e.stopPropagation(); SAVER = !SAVER; LS.set('st.saver', SAVER);
+  t.textContent = `Battery saver: ${SAVER ? 'On' : 'Off'}`;
+  if (!SAVER) document.querySelectorAll('.boardwrap svg').forEach(s => { try { s.unpauseAnimations(); } catch (e) {} });
+  applySaver();
+}, true);
+// stop the turn-clock ticker and friend heartbeats from waking the phone while the app is in the background
+document.addEventListener('visibilitychange', () => { if (!document.hidden) applySaver(); });
+applySaver();
 
 </script>
 </body>
