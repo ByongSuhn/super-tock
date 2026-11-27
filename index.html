@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, minimum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -967,6 +967,10 @@ body.saver .boardwrap svg [style*="blur"]{filter:none!important}
 .game .panel>#tclock{background:rgba(10,5,20,.85)}
 .game .panel>#tclock+#tstrip{bottom:calc(100% + 34px)}
 .game .panel>.status{min-height:94px}
+/* no double-tap / pinch zoom anywhere */
+html,body{touch-action:manipulation;-webkit-text-size-adjust:100%;overscroll-behavior:none}
+*{-webkit-tap-highlight-color:transparent}
+button,.card,.mtile,[data-a]{touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 
 </style>
 </head>
@@ -974,7 +978,7 @@ body.saver .boardwrap svg [style*="blur"]{filter:none!important}
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
-<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261126124246';</script>
+<script>window.SUPER_TOCK_FIREBASE = {"apiKey":"AIzaSyCN0eAzW7qH4pUAIQc6UZVzO-Is4Xve2wc","authDomain":"super-tock-7b8e2.firebaseapp.com","databaseURL":"https://super-tock-7b8e2-default-rtdb.firebaseio.com","projectId":"super-tock-7b8e2","storageBucket":"super-tock-7b8e2.firebasestorage.app","messagingSenderId":"70900079089","appId":"1:70900079089:web:5946d4b1a71152edb80c50","measurementId":"G-9B3N30TTK7"}; window.SUPER_TOCK_BOARDS = true; window.SUPER_TOCK_BUILD = '20261127123459';</script>
 <div id="app"></div>
 <script>
 // ===== Super Tock engine (pure game logic, no DOM) =====
@@ -5620,6 +5624,46 @@ window.addEventListener('click', e => {
 // stop the turn-clock ticker and friend heartbeats from waking the phone while the app is in the background
 document.addEventListener('visibilitychange', () => { if (!document.hidden) applySaver(); });
 applySaver();
+
+// ===================== No zoom, no stuck zoom, no shake-to-undo =====================
+// iOS ignores the viewport "no zoom" setting, so stop pinch and double-tap zoom here.
+['gesturestart', 'gesturechange', 'gestureend'].forEach(t => document.addEventListener(t, e => e.preventDefault(), {passive:false}));
+document.addEventListener('touchmove', e => { if (e.touches && e.touches.length > 1) e.preventDefault(); }, {passive:false});
+let lastTouchEnd = 0;
+document.addEventListener('touchend', e => {
+  const now = Date.now();
+  if (now - lastTouchEnd < 350 && !e.target.closest('input, textarea')) {
+    e.preventDefault();                                   // stop the double-tap zoom…
+    const t = e.target.closest('[data-a]'); if (t) t.click();   // …but still count the tap
+  }
+  lastTouchEnd = now;
+}, {passive:false});
+document.addEventListener('dblclick', e => e.preventDefault(), {passive:false});
+// if the page somehow got zoomed, snap it back
+function unzoom(){
+  const vv = window.visualViewport; if (!vv || vv.scale <= 1.01) return;
+  const m = document.querySelector('meta[name=viewport]'); if (!m) return;
+  const c = m.content; m.content = c + ', maximum-scale=1.0'; setTimeout(() => { m.content = c; }, 300);
+}
+if (window.visualViewport) visualViewport.addEventListener('resize', () => setTimeout(unzoom, 200));
+// Shake-to-undo comes from text boxes remembering what was typed. Once you're done typing,
+// put the box back to a fresh one so there's nothing for iOS to offer to undo.
+document.addEventListener('focusout', e => {
+  const el = e.target;
+  if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement) || el.type === 'password') return;
+  setTimeout(() => {
+    const a = document.activeElement;
+    if (a && (a instanceof HTMLInputElement || a instanceof HTMLTextAreaElement)) return;   // moved to another box
+    try {
+      // redraw whatever holds the box: it comes back as a brand-new box with the same text and no undo history
+      if (el.closest('#chat') && typeof drawChat === 'function') drawChat();
+      else if (el.closest('#friends') && typeof frRedraw === 'function') frRedraw();
+      else if (el.isConnected && el.closest('#app')) {           // the main screens listen on #app, so a fresh copy works the same
+        const fresh = el.cloneNode(true); fresh.value = el.value; el.replaceWith(fresh);
+      }
+    } catch (x) {}
+  }, 50);
+}, true);
 
 </script>
 </body>
